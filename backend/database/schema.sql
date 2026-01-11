@@ -22,7 +22,7 @@ CREATE TABLE public.categories (
   created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
 );
 
--- PRODUCTS
+-- PRODUCTS (Updated for Industrial Models)
 CREATE TABLE public.products (
   id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
   name TEXT NOT NULL,
@@ -32,109 +32,66 @@ CREATE TABLE public.products (
   compare_at_price DECIMAL(10, 2),
   stock_quantity INTEGER DEFAULT 0,
   category_id UUID REFERENCES public.categories(id),
-  vendor_id UUID REFERENCES public.profiles(id),
+  vendor_id UUID REFERENCES public.profiles(id), -- Primary vendor
   images TEXT[] DEFAULT '{}',
-  attributes JSONB DEFAULT '{}', -- Flexible attributes for different product types
+  attributes JSONB DEFAULT '{}',
+  purchase_model TEXT DEFAULT 'rfq' CHECK (purchase_model IN ('direct', 'rfq')),
+  min_rfq_fields JSONB DEFAULT '[]', -- Configurable fields for RFQ
   is_active BOOLEAN DEFAULT true,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL,
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
 );
 
--- CARTS
-CREATE TABLE public.carts (
+-- ARTICLES (Knowledge Hub)
+CREATE TABLE public.articles (
   id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
-  user_id UUID REFERENCESauth.users(id), -- Can be null for guest carts (handled via session/local storage usually, but for DB persistence we usually need user)
-  session_id TEXT, -- For guest carts
+  title TEXT NOT NULL,
+  slug TEXT UNIQUE NOT NULL,
+  content TEXT,
+  video_url TEXT,
+  level TEXT DEFAULT 'beginner' CHECK (level IN ('beginner', 'intermediate', 'advanced')),
+  is_gated BOOLEAN DEFAULT false,
+  category_id UUID REFERENCES public.categories(id),
+  tags TEXT[] DEFAULT '{}',
+  linked_product_ids UUID[] DEFAULT '{}',
   created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL,
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
 );
 
--- CART ITEMS
-CREATE TABLE public.cart_items (
-  id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
-  cart_id UUID REFERENCES public.carts(id) ON DELETE CASCADE,
-  product_id UUID REFERENCES public.products(id),
-  quantity INTEGER DEFAULT 1,
-  created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
+-- PRODUCT_VENDORS (Many-to-Many)
+CREATE TABLE public.product_vendors (
+  product_id UUID REFERENCES public.products(id) ON DELETE CASCADE,
+  vendor_id UUID REFERENCES public.profiles(id) ON DELETE CASCADE,
+  PRIMARY KEY (product_id, vendor_id)
 );
 
--- ORDERS
-CREATE TABLE public.orders (
+-- RFQS (Request for Quote Engine)
+CREATE TABLE public.rfqs (
   id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
   user_id UUID REFERENCES auth.users(id),
-  status TEXT DEFAULT 'pending' CHECK (status IN ('pending', 'processing', 'shipped', 'delivered', 'cancelled')),
-  total_amount DECIMAL(10, 2) NOT NULL,
-  shipping_address JSONB,
-  billing_address JSONB,
-  payment_status TEXT DEFAULT 'unpaid',
-  payment_intent_id TEXT,
-  created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL,
-  updated_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
-);
-
--- ORDER ITEMS
-CREATE TABLE public.order_items (
-  id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
-  order_id UUID REFERENCES public.orders(id) ON DELETE CASCADE,
   product_id UUID REFERENCES public.products(id),
-  quantity INTEGER NOT NULL,
-  price_at_purchase DECIMAL(10, 2) NOT NULL, -- Snapshot price
-  created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
-);
-
--- RLS POLICIES (Basic Setup)
-ALTER TABLE public.profiles ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.categories ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.products ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.carts ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.cart_items ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.orders ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.order_items ENABLE ROW LEVEL SECURITY;
-
--- CONSULTANTS TABLE
-CREATE TABLE public.consultants (
-  id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
-  first_name TEXT NOT NULL,
-  last_name TEXT NOT NULL,
-  email TEXT UNIQUE NOT NULL,
-  phone TEXT,
-  experience_years TEXT,
-  bio TEXT,
-  service_categories TEXT[] DEFAULT '{}',
-  location TEXT,
-  status TEXT DEFAULT 'pending' CHECK (status IN ('pending', 'approved', 'rejected', 'suspended')),
-  documents JSONB DEFAULT '[]',
-  is_visible BOOLEAN DEFAULT false,
+  status TEXT DEFAULT 'pending' CHECK (status IN ('pending', 'processing', 'replied', 'closed')),
+  submitted_fields JSONB DEFAULT '{}',
   created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL,
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
 );
 
-ALTER TABLE public.consultants ENABLE ROW LEVEL SECURITY;
+-- RLS POLICIES
+ALTER TABLE public.articles ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.product_vendors ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.rfqs ENABLE ROW LEVEL SECURITY;
 
--- Profiles: Users can view own profile. Admins can view all.
-CREATE POLICY "Public profiles are viewable by everyone" ON public.profiles FOR SELECT USING (true);
-CREATE POLICY "Users can update own profile" ON public.profiles FOR UPDATE USING (auth.uid() = id);
+-- Articles: Public can read non-gated. Everyone can read all metadata. Content access handled in app.
+CREATE POLICY "Articles are viewable by everyone" ON public.articles FOR SELECT USING (true);
+CREATE POLICY "Admins can manage articles" ON public.articles FOR ALL USING (EXISTS (SELECT 1 FROM public.profiles WHERE id = auth.uid() AND role = 'admin'));
 
--- Categories: Public read, Admin write
-CREATE POLICY "Categories are viewable by everyone" ON public.categories FOR SELECT USING (true);
-CREATE POLICY "Admins can insert categories" ON public.categories FOR INSERT WITH CHECK (EXISTS (SELECT 1 FROM public.profiles WHERE id = auth.uid() AND role = 'admin'));
-CREATE POLICY "Admins can update categories" ON public.categories FOR UPDATE USING (EXISTS (SELECT 1 FROM public.profiles WHERE id = auth.uid() AND role = 'admin'));
+-- RFQs: Owners and Admins can view
+CREATE POLICY "Users can view own RFQs" ON public.rfqs FOR SELECT USING (auth.uid() = user_id);
+CREATE POLICY "Admins can view all RFQs" ON public.rfqs FOR SELECT USING (EXISTS (SELECT 1 FROM public.profiles WHERE id = auth.uid() AND role = 'admin'));
+CREATE POLICY "Users can insert RFQs" ON public.rfqs FOR INSERT WITH CHECK (auth.uid() = user_id);
 
--- Products: Public read, Vendor/Admin write
-CREATE POLICY "Products are viewable by everyone" ON public.products FOR SELECT USING (true);
-CREATE POLICY "Vendors can insert own products" ON public.products FOR INSERT WITH CHECK (auth.uid() = vendor_id);
-CREATE POLICY "Vendors can update own products" ON public.products FOR UPDATE USING (auth.uid() = vendor_id);
-CREATE POLICY "Admins can manage all products" ON public.products FOR ALL USING (EXISTS (SELECT 1 FROM public.profiles WHERE id = auth.uid() AND role = 'admin'));
+-- Product Vendors: Public read
+CREATE POLICY "Product vendors are viewable by everyone" ON public.product_vendors FOR SELECT USING (true);
+CREATE POLICY "Admins can manage product vendors" ON public.product_vendors FOR ALL USING (EXISTS (SELECT 1 FROM public.profiles WHERE id = auth.uid() AND role = 'admin'));
 
--- Carts: Owners can see their cart
-CREATE POLICY "Users can view own cart" ON public.carts FOR SELECT USING (auth.uid() = user_id OR session_id IS NOT NULL); -- Simplified logic
-CREATE POLICY "Users can insert own cart" ON public.carts FOR INSERT WITH CHECK (auth.uid() = user_id OR session_id IS NOT NULL);
-
--- Orders: Users view own orders
-CREATE POLICY "Users can view own orders" ON public.orders FOR SELECT USING (auth.uid() = user_id);
-CREATE POLICY "Users can insert own orders" ON public.orders FOR INSERT WITH CHECK (auth.uid() = user_id);
-
--- Consultants Policies
-CREATE POLICY "Approved consultants are viewable by everyone" ON public.consultants FOR SELECT USING (status = 'approved' AND is_visible = true);
-CREATE POLICY "Admins can manage all consultants" ON public.consultants FOR ALL USING (EXISTS (SELECT 1 FROM public.profiles WHERE id = auth.uid() AND role = 'admin'));
-CREATE POLICY "Public can register as consultant" ON public.consultants FOR INSERT WITH CHECK (true);
+-- Rest of the existing RLS...

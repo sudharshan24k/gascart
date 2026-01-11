@@ -8,6 +8,7 @@ const AdminLayout = () => {
     const navItems = [
         { name: 'Dashboard', path: '/', icon: LayoutDashboard },
         { name: 'Products', path: '/products', icon: Package },
+        { name: 'RFQs', path: '/rfqs', icon: ClipboardCheck },
         { name: 'Consultants', path: '/consultants', icon: Users },
         { name: 'Orders', path: '/orders', icon: ShoppingCart },
         { name: 'Settings', path: '/settings', icon: Settings },

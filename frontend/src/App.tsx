@@ -6,8 +6,11 @@ import Services from './pages/Services';
 import Technology from './pages/Technology';
 import Contact from './pages/Contact';
 import Consultants from './pages/Consultants';
+import ExpertProfile from './pages/ExpertProfile';
 import ConsultantRegistration from './pages/ConsultantRegistration';
 import Learn from './pages/Learn';
+import ArticleDetail from './pages/ArticleDetail';
+import Resources from './pages/Resources';
 import Compare from './pages/Compare';
 
 import CheckoutPage from './pages/Checkout';
@@ -31,8 +34,11 @@ function App() {
                         <Route path="services" element={<Services />} />
                         <Route path="technology" element={<Technology />} />
                         <Route path="learn" element={<Learn />} />
+                        <Route path="learn/:slug" element={<ArticleDetail />} />
                         <Route path="experts" element={<Consultants />} />
+                        <Route path="experts/:id" element={<ExpertProfile />} />
                         <Route path="consultant-registration" element={<ConsultantRegistration />} />
+                        <Route path="resources" element={<Resources />} />
                         <Route path="contact" element={<Contact />} />
 
                         {/* E-commerce Routes */}

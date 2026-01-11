@@ -47,5 +47,39 @@ export const api = {
             });
             return res.json();
         }
+    },
+    articles: {
+        list: async (params: Record<string, string>) => {
+            const query = new URLSearchParams(params).toString();
+            const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3000/api/v1';
+            const res = await fetch(`${apiUrl}/articles?${query}`);
+            return res.json();
+        },
+        get: async (slug: string) => {
+            const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3000/api/v1';
+            const res = await fetch(`${apiUrl}/articles/${slug}`);
+            return res.json();
+        }
+    },
+    rfqs: {
+        submit: async (token: string, data: { product_id: string; submitted_fields: any }) => {
+            const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3000/api/v1';
+            const res = await fetch(`${apiUrl}/rfqs`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify(data)
+            });
+            return res.json();
+        },
+        my: async (token: string) => {
+            const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3000/api/v1';
+            const res = await fetch(`${apiUrl}/rfqs/my`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            return res.json();
+        }
     }
 };

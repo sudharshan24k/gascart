@@ -6,6 +6,8 @@ import cartRoutes from './routes/cart.routes';
 import orderRoutes from './routes/order.routes';
 import consultantRoutes from './routes/consultants.routes';
 import adminRoutes from './routes/admin.routes';
+import articleRoutes from './routes/articles.routes';
+import rfqRoutes from './routes/rfqs.routes';
 
 const app = express();
 
@@ -29,6 +31,8 @@ app.use('/api/v1/cart', cartRoutes); // Auth handled in controller for guest sup
 app.use('/api/v1/orders', orderRoutes);
 app.use('/api/v1/consultants', consultantRoutes);
 app.use('/api/v1/admin', adminRoutes);
+app.use('/api/v1/articles', articleRoutes);
+app.use('/api/v1/rfqs', rfqRoutes);
 
 // Start Server
 // Server startup moved to server.ts for Vercel compatibility

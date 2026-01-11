@@ -64,3 +64,18 @@ export const deleteProduct = async (id: string) => {
     });
     return response.data;
 };
+
+// RFQ Management
+export const fetchRFQs = async () => {
+    const response = await axios.get(`${API_URL}/rfqs/all`, {
+        headers: getAuthHeader()
+    });
+    return response.data.data;
+};
+
+export const updateAdminRFQStatus = async (id: string, status: string) => {
+    const response = await axios.patch(`${API_URL}/rfqs/${id}/status`, { status }, {
+        headers: getAuthHeader()
+    });
+    return response.data.data;
+};
