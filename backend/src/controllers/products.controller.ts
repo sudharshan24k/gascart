@@ -82,3 +82,39 @@ export const createProduct = async (req: Request, res: Response, next: NextFunct
         next(err);
     }
 };
+
+export const updateProduct = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const { id } = req.params;
+        const updates = req.body;
+
+        const { data, error } = await supabase
+            .from('products')
+            .update(updates)
+            .eq('id', id)
+            .select()
+            .single();
+
+        if (error) throw error;
+
+        res.json({ status: 'success', data });
+    } catch (err) {
+        next(err);
+    }
+};
+
+export const deleteProduct = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const { id } = req.params;
+        const { error } = await supabase
+            .from('products')
+            .delete()
+            .eq('id', id);
+
+        if (error) throw error;
+
+        res.json({ status: 'success', message: 'Product deleted successfully' });
+    } catch (err) {
+        next(err);
+    }
+};

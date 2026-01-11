@@ -1,7 +1,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { Database, Zap, Truck, Recycle } from 'lucide-react';
-import processGraphic from '../assets/process-graphic.png';
+import InteractiveDiagram from '../components/technology/InteractiveDiagram';
 
 const Technology: React.FC = () => {
     const steps = [
@@ -55,14 +55,10 @@ const Technology: React.FC = () => {
 
             <section className="py-24">
                 <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-                    <div className="bg-neutral-light p-8 md:p-12 rounded-3xl shadow-inner mb-24 text-center border border-neutral-dark/20">
-                        <div className="inline-block px-4 py-1 bg-primary/10 text-primary font-bold rounded-full mb-6">Process Visualized</div>
-                        <h2 className="text-3xl font-display font-bold mb-8 text-gray-900">Seamless Waste-to-Energy Flow</h2>
-                        <img
-                            src={processGraphic}
-                            alt="Gascart Process Diagram"
-                            className="w-full h-auto max-h-[700px] object-contain mx-auto mix-blend-multiply rounded-xl"
-                        />
+                    <div className="bg-neutral-light p-4 md:p-12 rounded-3xl shadow-inner mb-24 text-center border border-neutral-dark/20">
+                        <div className="inline-block px-4 py-1 bg-primary/10 text-primary font-bold rounded-full mb-6 uppercase tracking-wider text-xs">Process Visualized</div>
+                        <h2 className="text-3xl font-display font-bold mb-12 text-gray-900">Interactive Industrial Workflow</h2>
+                        <InteractiveDiagram />
                     </div>
 
                     <div className="max-w-4xl mx-auto space-y-6">

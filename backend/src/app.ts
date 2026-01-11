@@ -4,6 +4,8 @@ import { config } from './config/env';
 import productRoutes from './routes/products.routes';
 import cartRoutes from './routes/cart.routes';
 import orderRoutes from './routes/order.routes';
+import consultantRoutes from './routes/consultants.routes';
+import adminRoutes from './routes/admin.routes';
 
 const app = express();
 
@@ -25,6 +27,8 @@ app.get('/health', (req, res) => {
 app.use('/api/v1/products', productRoutes);
 app.use('/api/v1/cart', cartRoutes); // Auth handled in controller for guest support
 app.use('/api/v1/orders', orderRoutes);
+app.use('/api/v1/consultants', consultantRoutes);
+app.use('/api/v1/admin', adminRoutes);
 
 // Start Server
 // Server startup moved to server.ts for Vercel compatibility

@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { getProducts, getProduct, createProduct } from '../controllers/products.controller';
+import { getProducts, getProduct, createProduct, updateProduct, deleteProduct } from '../controllers/products.controller';
 import { requireAuth, requireAdmin } from '../middlewares/auth.middleware';
 
 const router = Router();
@@ -9,6 +9,7 @@ router.get('/:id', getProduct);
 
 // Protected routes
 router.post('/', requireAuth, requireAdmin, createProduct);
-// Add put/delete later
+router.put('/:id', requireAuth, requireAdmin, updateProduct);
+router.delete('/:id', requireAuth, requireAdmin, deleteProduct);
 
 export default router;
