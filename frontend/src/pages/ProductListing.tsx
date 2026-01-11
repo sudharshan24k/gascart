@@ -4,10 +4,10 @@ import { Filter } from 'lucide-react';
 
 // Mock data until API is connected
 const MOCK_PRODUCTS = [
-    { id: '1', name: 'Premium Leather Bag', price: 129.99, image: 'https://images.unsplash.com/photo-1548036328-c9fa89d128fa?auto=format&fit=crop&w=800&q=80', category: 'Accessories' },
-    { id: '2', name: 'Minimalist Watch', price: 199.50, image: 'https://images.unsplash.com/photo-1524592094714-0f0654e20314?auto=format&fit=crop&w=800&q=80', category: 'Accessories' },
-    { id: '3', name: 'Ceramic Vase Set', price: 45.00, image: 'https://images.unsplash.com/photo-1578500494198-246f612d3e3d?auto=format&fit=crop&w=800&q=80', category: 'Home' },
-    { id: '4', name: 'Wireless Headphones', price: 299.00, image: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?auto=format&fit=crop&w=800&q=80', category: 'Electronics' },
+    { id: '1', name: 'Industrial Biogas Scrubber', price: 4500.00, image: 'https://images.unsplash.com/photo-1518709268805-4e9042af9f23?auto=format&fit=crop&w=800&q=80', category: 'Equipment' },
+    { id: '2', name: 'Bio-CNG Cascade Cylinder', price: 1200.50, image: 'https://images.unsplash.com/photo-1504307651254-35680f356dfd?auto=format&fit=crop&w=800&q=80', category: 'Storage' },
+    { id: '3', name: 'Methane Concentration Sensor', price: 245.00, image: 'https://images.unsplash.com/photo-1581092160562-40aa08e78837?auto=format&fit=crop&w=800&q=80', category: 'Monitoring' },
+    { id: '4', name: 'Pressure Regulating Valve', price: 89.00, image: 'https://images.unsplash.com/photo-1581093458791-9f3c3900df4b?auto=format&fit=crop&w=800&q=80', category: 'Components' },
 ];
 
 const ProductListing = () => {

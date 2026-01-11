@@ -8,22 +8,36 @@ export default {
         extend: {
             colors: {
                 primary: {
-                    50: '#f5f3ff',
-                    100: '#ede9fe',
-                    500: '#8b5cf6',
-                    600: '#7c3aed',
-                    700: '#6d28d9',
-                    900: '#4c1d95',
+                    light: '#72AD62', // Lighter green
+                    DEFAULT: '#2D5A27', // Forest Green (Industrial)
+                    dark: '#1E3F1A', // Dark Forest
+                    50: '#F5F9F4',
+                    100: '#E7F2E5',
+                    200: '#C7DFC2',
+                    300: '#9BBE93',
+                    400: '#72AD62',
+                    500: '#2D5A27',
+                    600: '#264D21',
+                    700: '#1E3C1A',
+                    800: '#172E14',
+                    900: '#0F1F0D',
                 },
                 secondary: {
-                    50: '#f8fafc',
-                    900: '#0f172a',
+                    light: '#D9B48F', // Earthy clay
+                    DEFAULT: '#B47B44', // Industrial earth tone
+                    dark: '#8C5A2D',
+                    50: '#FDFCFB',
+                },
+                neutral: {
+                    light: '#F5F5F0', // Off-white/Industrial neutral
+                    DEFAULT: '#E0E0D1',
+                    dark: '#C2C2B0',
                 }
             },
             fontFamily: {
-                sans: ['Inter', 'sans-serif'],
-                display: ['Outfit', 'sans-serif'],
-            }
+                sans: ['Roboto', 'Inter', 'sans-serif'],
+                display: ['Roboto', 'Inter', 'sans-serif'],
+            },
         },
     },
     plugins: [],

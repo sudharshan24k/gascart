@@ -1,8 +1,9 @@
+import React from 'react';
 import { Outlet } from 'react-router-dom';
 import Header from './Header';
 import Footer from './Footer';
 
-const Layout = () => {
+const Layout: React.FC = () => {
     return (
         <div className="min-h-screen flex flex-col font-sans text-gray-900">
             <Header />
@@ -14,4 +15,4 @@ const Layout = () => {
     );
 };
 
-export default Layout;
+export default Layout; // Exporting Layout component

@@ -1,4 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
+import { AuthRequest } from '../middlewares/auth.middleware';
 import { supabase } from '../config/supabase';
 
 // Helper to get or create cart
@@ -24,7 +25,7 @@ const getOrCreateCart = async (userId: string | undefined, sessionId: string | u
     return newCart.id;
 };
 
-export const addToCart = async (req: Request, res: Response, next: NextFunction) => {
+export const addToCart = async (req: AuthRequest, res: Response, next: NextFunction) => {
     try {
         const { productId, quantity } = req.body;
         const userId = req.user?.id;
@@ -63,7 +64,7 @@ export const addToCart = async (req: Request, res: Response, next: NextFunction)
     }
 };
 
-export const getCart = async (req: Request, res: Response, next: NextFunction) => {
+export const getCart = async (req: AuthRequest, res: Response, next: NextFunction) => {
     try {
         const userId = req.user?.id;
         const sessionId = req.headers['x-session-id'] as string;

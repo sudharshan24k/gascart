@@ -1,7 +1,8 @@
 import { Request, Response, NextFunction } from 'express';
+import { AuthRequest } from '../middlewares/auth.middleware';
 import { supabase } from '../config/supabase';
 
-export const createOrder = async (req: Request, res: Response, next: NextFunction) => {
+export const createOrder = async (req: AuthRequest, res: Response, next: NextFunction) => {
     try {
         const userId = req.user?.id;
         const { items, shippingAddress, billingAddress, totalAmount } = req.body;
@@ -43,7 +44,7 @@ export const createOrder = async (req: Request, res: Response, next: NextFunctio
     }
 };
 
-export const getMyOrders = async (req: Request, res: Response, next: NextFunction) => {
+export const getMyOrders = async (req: AuthRequest, res: Response, next: NextFunction) => {
     try {
         const userId = req.user?.id;
         const { data, error } = await supabase

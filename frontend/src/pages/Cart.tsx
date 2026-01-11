@@ -66,8 +66,8 @@ const Cart = () => {
                                 <span className="font-bold text-lg text-primary-600">${state.total.toFixed(2)}</span>
                             </div>
                         </div>
-                        <Link to="/checkout" className="w-full bg-black text-white py-4 rounded-xl font-bold hover:bg-gray-800 transition-colors flex items-center justify-center space-x-2">
-                            <span>Checkout</span>
+                        <Link to="/checkout" className="w-full bg-primary hover:bg-primary-dark text-white py-4 rounded-xl font-bold transition-colors flex items-center justify-center space-x-2 shadow-lg">
+                            <span>Proceed to Checkout</span>
                             <ArrowRight className="w-4 h-4" />
                         </Link>
                     </div>

@@ -11,12 +11,11 @@ const ProductDetail = () => {
     // Mock Data
     const product = {
         id: id || '1',
-        name: 'Premium Leather Bag',
-        price: 129.99,
-        description: 'Handcrafted with premium Italian leather, this bag features a spacious interior, durable hardware, and a timeless design suitable for any occasion.',
-        image: 'https://images.unsplash.com/photo-1548036328-c9fa89d128fa?auto=format&fit=crop&w=800&q=80',
-        colors: ['Black', 'Brown', 'Tan'],
-        sizes: ['One Size']
+        name: 'Industrial Biogas Scrubber',
+        price: 4500.00,
+        description: 'Heavy-duty industrial scrubber designed for high-efficiency removal of H2S and CO2 from raw biogas. Features robust stainless steel construction and automated control systems.',
+        image: 'https://images.unsplash.com/photo-1518709268805-4e9042af9f23?auto=format&fit=crop&w=800&q=80',
+        specifications: ['Stainless Steel 316', '1000 m3/h capacity', 'Automated purifiers'],
     };
 
     const handleAddToCart = () => {
@@ -51,14 +50,12 @@ const ProductDetail = () => {
                     </p>
 
                     <div className="mb-8">
-                        <h3 className="font-bold mb-3">Color</h3>
-                        <div className="flex space-x-3">
-                            {product.colors.map(color => (
-                                <button key={color} className="border border-gray-300 px-4 py-2 rounded-lg hover:border-primary-600 focus:ring-2 focus:ring-primary-500">
-                                    {color}
-                                </button>
+                        <h3 className="font-bold mb-3">Key Specifications</h3>
+                        <ul className="list-disc list-inside space-y-2 text-gray-600">
+                            {product.specifications?.map(spec => (
+                                <li key={spec}>{spec}</li>
                             ))}
-                        </div>
+                        </ul>
                     </div>
 
                     <div className="flex items-center space-x-6 mb-8">

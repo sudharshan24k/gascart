@@ -62,9 +62,12 @@ const Checkout = () => {
                         </div>
 
                         <div className="pt-6">
-                            <button type="button" className="w-full bg-black text-white py-4 rounded-xl font-bold hover:bg-gray-800">
-                                Continue to Payment
-                            </button>
+                            <Link
+                                to="/order-confirmation"
+                                className="w-full bg-primary hover:bg-primary-dark text-white py-4 rounded-xl font-bold transition-all shadow-lg active:scale-95 flex items-center justify-center"
+                            >
+                                Complete Purchase
+                            </Link>
                         </div>
                     </form>
                 </div>
