@@ -1,7 +1,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
-import { UserPlus, Star, MapPin, Award, Search, Filter, ClipboardList, Building2 } from 'lucide-react';
+import { UserPlus, Star, MapPin, Search, Filter, Building2 } from 'lucide-react';
 
 const expertConsultants = [
     {

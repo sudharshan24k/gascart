@@ -1,5 +1,5 @@
 import { Link, Outlet, useLocation } from 'react-router-dom';
-import { LayoutDashboard, Package, ShoppingCart, Users, Settings, LogOut } from 'lucide-react';
+import { LayoutDashboard, Package, ShoppingCart, Users, Settings, LogOut, ClipboardCheck, BookOpen, FolderTree, Building2, ShieldCheck, Settings2 } from 'lucide-react';
 
 const AdminLayout = () => {
     const location = useLocation();
@@ -9,7 +9,12 @@ const AdminLayout = () => {
         { name: 'Dashboard', path: '/', icon: LayoutDashboard },
         { name: 'Products', path: '/products', icon: Package },
         { name: 'RFQs', path: '/rfqs', icon: ClipboardCheck },
-        { name: 'Consultants', path: '/consultants', icon: Users },
+        { name: 'RFQ Engine Config', path: '/rfq-config', icon: Settings2 },
+        { name: 'Knowledge Hub', path: '/learn', icon: BookOpen },
+        { name: 'Taxonomy', path: '/taxonomy', icon: FolderTree },
+        { name: 'Vendors', path: '/vendors', icon: Building2 },
+        { name: 'Legal Vault', path: '/documents', icon: ShieldCheck },
+        { name: 'Consultants', icon: Users, path: '/consultants' },
         { name: 'Orders', path: '/orders', icon: ShoppingCart },
         { name: 'Settings', path: '/settings', icon: Settings },
     ];

@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
-import { useParams, Link } from 'react-router-dom';
-import { motion } from 'framer-motion';
+import { Link } from 'react-router-dom';
 import {
     Award,
     MessageSquare,
@@ -8,13 +7,11 @@ import {
     Star,
     ChevronLeft,
     Building2,
-    Verified,
     Calendar,
     CheckCircle2
 } from 'lucide-react';
 
 const ExpertProfile: React.FC = () => {
-    const { id } = useParams();
     const [enquirySent, setEnquirySent] = useState(false);
 
     // Mock Data based on the experts list

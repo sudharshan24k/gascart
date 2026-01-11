@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react'; // Refresh
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import { BookOpen, Search, Video, Lock, Filter, Lightbulb, Zap, FileText } from 'lucide-react';
+import { BookOpen, Search, Video, Lock, Lightbulb, Zap, FileText } from 'lucide-react';
 import { api } from '../services/api';
 
 const Learn: React.FC = () => {
@@ -65,8 +65,8 @@ const Learn: React.FC = () => {
                             key={level}
                             onClick={() => setActiveLevel(level)}
                             className={`px-8 py-3 rounded-full font-bold transition-all border shrink-0 ${activeLevel === level
-                                    ? 'bg-primary text-white border-primary shadow-lg shadow-primary/20'
-                                    : 'bg-white text-gray-600 border-gray-100 hover:border-primary/30'
+                                ? 'bg-primary text-white border-primary shadow-lg shadow-primary/20'
+                                : 'bg-white text-gray-600 border-gray-100 hover:border-primary/30'
                                 }`}
                         >
                             {level}
@@ -99,8 +99,8 @@ const Learn: React.FC = () => {
                                             </div>
                                         )}
                                         <span className={`px-3 py-1 rounded-lg text-[10px] font-black uppercase tracking-widest ${article.level === 'beginner' ? 'bg-green-100 text-green-700' :
-                                                article.level === 'intermediate' ? 'bg-orange-100 text-orange-700' :
-                                                    'bg-red-100 text-red-700'
+                                            article.level === 'intermediate' ? 'bg-orange-100 text-orange-700' :
+                                                'bg-red-100 text-red-700'
                                             }`}>
                                             {article.level}
                                         </span>

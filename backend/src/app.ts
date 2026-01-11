@@ -8,6 +8,9 @@ import consultantRoutes from './routes/consultants.routes';
 import adminRoutes from './routes/admin.routes';
 import articleRoutes from './routes/articles.routes';
 import rfqRoutes from './routes/rfqs.routes';
+import categoryRoutes from './routes/categories.routes';
+import vendorRoutes from './routes/vendors.routes';
+import documentRoutes from './routes/documents.routes';
 
 const app = express();
 
@@ -33,6 +36,9 @@ app.use('/api/v1/consultants', consultantRoutes);
 app.use('/api/v1/admin', adminRoutes);
 app.use('/api/v1/articles', articleRoutes);
 app.use('/api/v1/rfqs', rfqRoutes);
+app.use('/api/v1/categories', categoryRoutes);
+app.use('/api/v1/vendors', vendorRoutes);
+app.use('/api/v1/documents', documentRoutes);
 
 // Start Server
 // Server startup moved to server.ts for Vercel compatibility

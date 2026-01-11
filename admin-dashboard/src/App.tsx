@@ -5,6 +5,11 @@ import Products from './pages/Products';
 import Orders from './pages/Orders';
 import ConsultantManagement from './pages/ConsultantManagement';
 import RFQManagement from './pages/RFQManagement';
+import KnowledgeHubManagement from './pages/KnowledgeHubManagement';
+import CategoryManagement from './pages/CategoryManagement';
+import VendorManagement from './pages/VendorManagement';
+import DocumentCenter from './pages/DocumentCenter';
+import RFQConfigurator from './pages/RFQConfigurator';
 import Login from './pages/Login';
 
 function App() {
@@ -16,6 +21,11 @@ function App() {
                     <Route index element={<Dashboard />} />
                     <Route path="products" element={<Products />} />
                     <Route path="rfqs" element={<RFQManagement />} />
+                    <Route path="learn" element={<KnowledgeHubManagement />} />
+                    <Route path="taxonomy" element={<CategoryManagement />} />
+                    <Route path="rfq-config" element={<RFQConfigurator />} />
+                    <Route path="vendors" element={<VendorManagement />} />
+                    <Route path="documents" element={<DocumentCenter />} />
                     <Route path="consultants" element={<ConsultantManagement />} />
                     <Route path="orders" element={<Orders />} />
                 </Route>

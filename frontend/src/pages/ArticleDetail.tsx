@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { motion } from 'framer-motion';
-import { BookOpen, Video, Lock, ChevronLeft, Calendar, Tag, User } from 'lucide-react';
+import { BookOpen, Video, Lock, ChevronLeft, Calendar, Tag } from 'lucide-react';
 import { api } from '../services/api';
 
 const ArticleDetail: React.FC = () => {
@@ -37,8 +36,8 @@ const ArticleDetail: React.FC = () => {
                 <header className="mb-12">
                     <div className="flex items-center gap-4 mb-6">
                         <span className={`px-4 py-1 rounded-full text-xs font-black uppercase tracking-widest ${article.level === 'beginner' ? 'bg-green-100 text-green-700' :
-                                article.level === 'intermediate' ? 'bg-orange-100 text-orange-700' :
-                                    'bg-red-100 text-red-700'
+                            article.level === 'intermediate' ? 'bg-orange-100 text-orange-700' :
+                                'bg-red-100 text-red-700'
                             }`}>
                             {article.level} Level
                         </span>
