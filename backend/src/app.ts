@@ -14,6 +14,10 @@ app.use(express.json());
 // Routes
 // Routes
 
+app.get('/', (req, res) => {
+    res.json({ message: 'Bespoke E-commerce API is running 🚀', version: '1.0.0' });
+});
+
 app.get('/health', (req, res) => {
     res.json({ status: 'ok', version: '1.0.0' });
 });
