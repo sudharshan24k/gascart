@@ -1,15 +1,17 @@
 import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Menu, X, Leaf, ClipboardList, User, GitCompare, LogOut } from 'lucide-react';
+import { Menu, X, Leaf, ClipboardList, User, GitCompare, LogOut, ShoppingCart } from 'lucide-react';
 import { clsx } from 'clsx';
 import { useEnquiry } from '../../context/EnquiryContext';
 import { useAuth } from '../../context/AuthContext';
+import { useCart } from '../../context/CartContext';
 
 const Header: React.FC = () => {
     const [isOpen, setIsOpen] = useState(false);
     const location = useLocation();
     const { state } = useEnquiry();
     const { user, signOut } = useAuth();
+    const { items } = useCart();
 
     const navItems = [
         { name: 'Home', path: '/' },
@@ -77,6 +79,19 @@ const Header: React.FC = () => {
                                 )}
                             </Link>
 
+                            <Link
+                                title="Shopping Cart"
+                                to="/cart"
+                                className="relative text-gray-400 hover:text-primary transition-all p-2.5 hover:bg-primary/5 rounded-xl border border-transparent hover:border-primary/10"
+                            >
+                                <ShoppingCart className="w-5 h-5" />
+                                {items.length > 0 && (
+                                    <span className="absolute -top-1 -right-1 bg-primary text-white text-[10px] font-black rounded-lg px-1.5 py-0.5 border-2 border-white">
+                                        {items.length}
+                                    </span>
+                                )}
+                            </Link>
+
                             {user ? (
                                 <div className="flex items-center gap-2">
                                     <span className="text-xs font-bold text-gray-700 hidden lg:block">Hey, {user.email?.split('@')[0]}</span>
@@ -98,19 +113,11 @@ const Header: React.FC = () => {
 
                     {/* Mobile menu button */}
                     <div className="md:hidden flex items-center gap-4">
-                        <Link to="/compare" className="text-gray-400 relative">
-                            <GitCompare className="w-6 h-6" />
-                            {state.comparisonItems.length > 0 && (
-                                <span className="absolute -top-1 -right-1 bg-secondary text-white text-[10px] font-bold rounded-full w-5 h-5 flex items-center justify-center border-2 border-white">
-                                    {state.comparisonItems.length}
-                                </span>
-                            )}
-                        </Link>
-                        <Link to="/enquiry-list" className="text-gray-400 relative">
-                            <ClipboardList className="w-6 h-6" />
-                            {state.items.length > 0 && (
+                        <Link to="/cart" className="text-gray-400 relative">
+                            <ShoppingCart className="w-6 h-6" />
+                            {items.length > 0 && (
                                 <span className="absolute -top-1 -right-1 bg-primary text-white text-[10px] font-bold rounded-full w-5 h-5 flex items-center justify-center border-2 border-white">
-                                    {state.items.length}
+                                    {items.length}
                                 </span>
                             )}
                         </Link>

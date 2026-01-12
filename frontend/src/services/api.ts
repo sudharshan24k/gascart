@@ -17,12 +17,6 @@ export const supabase = createClient(
 export const api = {
     products: {
         list: async (params: Record<string, string>) => {
-            // Call backend API or Supabase directly. 
-            // For this architecture, let's assume we call our Node backend to abstraction logic
-            // OR specific requirements said "Supabase" but "Node.js with Express" backend.
-            // Usually usage is: Frontend -> Node Backend -> Supabase (for custom logic) 
-            // OR Frontend -> Supabase (for simple CRUD). 
-            // Given the "Bespoke platform" and "Backend Folder Structure", we should prefer the Node Backend.
             const query = new URLSearchParams(params).toString();
             const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3000/api/v1';
             const res = await fetch(`${apiUrl}/products?${query}`);
@@ -35,15 +29,54 @@ export const api = {
         }
     },
     cart: {
-        add: async (token: string, data: { productId: string; quantity: number }) => {
+        get: async (token: string | null, sessionId: string) => {
             const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3000/api/v1';
+            const headers: Record<string, string> = { 'x-session-id': sessionId };
+            if (token) headers['Authorization'] = `Bearer ${token}`;
+
+            const res = await fetch(`${apiUrl}/cart`, { headers });
+            return res.json();
+        },
+        add: async (token: string | null, sessionId: string, data: { productId: string; quantity: number }) => {
+            const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3000/api/v1';
+            const headers: Record<string, string> = {
+                'Content-Type': 'application/json',
+                'x-session-id': sessionId
+            };
+            if (token) headers['Authorization'] = `Bearer ${token}`;
+
             const res = await fetch(`${apiUrl}/cart`, {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}`
-                },
+                headers,
                 body: JSON.stringify(data)
+            });
+            return res.json();
+        },
+        update: async (token: string | null, sessionId: string, itemId: string, quantity: number) => {
+            const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3000/api/v1';
+            const headers: Record<string, string> = {
+                'Content-Type': 'application/json',
+                'x-session-id': sessionId
+            };
+            if (token) headers['Authorization'] = `Bearer ${token}`;
+
+            const res = await fetch(`${apiUrl}/cart/${itemId}`, {
+                method: 'PATCH',
+                headers,
+                body: JSON.stringify({ quantity })
+            });
+            return res.json();
+        },
+        remove: async (token: string | null, sessionId: string, itemId: string) => {
+            const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3000/api/v1';
+            const headers: Record<string, string> = {
+                'x-session-id': sessionId
+            };
+            if (token) headers['Authorization'] = `Bearer ${token}`;
+
+            const res = await fetch(`${apiUrl}/cart/${itemId}`, {
+                method: 'DELETE',
+                headers
             });
             return res.json();
         }

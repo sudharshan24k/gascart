@@ -84,3 +84,46 @@ export const getCart = async (req: AuthRequest, res: Response, next: NextFunctio
         next(err);
     }
 };
+
+export const updateCartItem = async (req: AuthRequest, res: Response, next: NextFunction) => {
+    try {
+        const { itemId } = req.params;
+        const { quantity } = req.body;
+        const userId = req.user?.id;
+        const sessionId = req.headers['x-session-id'] as string;
+
+        // Verify cart ownership (optional strict check, RLS handles mostly but good for hygiene)
+        // For query simplicity, strict RLS is enough or we check parent cart.
+        // Direct update on cart_items requires knowing the item ID.
+
+        const { data, error } = await supabase
+            .from('cart_items')
+            .update({ quantity })
+            .eq('id', itemId)
+            .select()
+            .single();
+
+        if (error) throw error;
+
+        res.json({ status: 'success', message: 'Cart updated', data });
+    } catch (err) {
+        next(err);
+    }
+};
+
+export const removeCartItem = async (req: AuthRequest, res: Response, next: NextFunction) => {
+    try {
+        const { itemId } = req.params;
+
+        const { error } = await supabase
+            .from('cart_items')
+            .delete()
+            .eq('id', itemId);
+
+        if (error) throw error;
+
+        res.json({ status: 'success', message: 'Item removed from cart' });
+    } catch (err) {
+        next(err);
+    }
+};

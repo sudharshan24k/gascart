@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Eye, Search, Filter } from 'lucide-react';
+import { Eye, Search } from 'lucide-react';
 import { fetchOrders, updateOrderStatus } from '../services/admin.service';
 
 const AdminOrders = () => {

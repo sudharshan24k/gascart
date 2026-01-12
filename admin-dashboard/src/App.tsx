@@ -10,6 +10,7 @@ import CategoryManagement from './pages/CategoryManagement';
 import VendorManagement from './pages/VendorManagement';
 import DocumentCenter from './pages/DocumentCenter';
 import RFQConfigurator from './pages/RFQConfigurator';
+import Inventory from './pages/Inventory';
 import Login from './pages/Login';
 
 function App() {
@@ -27,6 +28,7 @@ function App() {
                     <Route path="vendors" element={<VendorManagement />} />
                     <Route path="documents" element={<DocumentCenter />} />
                     <Route path="consultants" element={<ConsultantManagement />} />
+                    <Route path="inventory" element={<Inventory />} />
                     <Route path="orders" element={<Orders />} />
                 </Route>
                 <Route path="*" element={<Navigate to="/" replace />} />

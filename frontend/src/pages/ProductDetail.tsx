@@ -17,6 +17,7 @@ import {
 } from 'lucide-react';
 import { api } from '../services/api';
 import { useEnquiry } from '../context/EnquiryContext';
+import { useCart } from '../context/CartContext';
 
 const ProductDetail: React.FC = () => {
     const { id } = useParams();
@@ -28,6 +29,7 @@ const ProductDetail: React.FC = () => {
     const [rfqForm, setRfqForm] = useState<Record<string, any>>({});
     const [rfqError, setRfqError] = useState<string | null>(null);
     const { state, dispatch } = useEnquiry();
+    const { addToCart } = useCart();
 
     useEffect(() => {
         const fetchProduct = async () => {
@@ -101,7 +103,7 @@ const ProductDetail: React.FC = () => {
                                 </span>
                                 <div className="flex items-center gap-2 text-gray-400 text-xs font-bold">
                                     <Building2 className="w-4 h-4" />
-                                    {product.vendor_id ? `Verified Vendor: ${product.vendor_id}` : 'Factory Direct'}
+                                    {product.profiles?.company_name ? `Verified Vendor: ${product.profiles.company_name}` : 'Factory Direct'}
                                 </div>
                             </div>
 
@@ -136,12 +138,11 @@ const ProductDetail: React.FC = () => {
                                 {isDirectBuy ? (
                                     <>
                                         <button
-                                            onClick={() => {
-                                                dispatch({
-                                                    type: 'ADD_ITEM',
-                                                    payload: { id: product.id, name: product.name, price: product.price, quantity: 1, image: product.images?.[0], vendor: product.vendor }
-                                                });
-                                                window.location.href = '/enquiry-list';
+                                            onClick={async () => {
+                                                await addToCart(product.id, 1);
+                                                // Optional: simple alert or toast
+                                                alert('Added to cart lead gen commitment');
+                                                window.location.href = '/cart';
                                             }}
                                             className="w-full bg-primary hover:bg-primary-dark text-white font-black py-5 px-8 rounded-2xl shadow-xl transition-all flex flex-col items-center justify-center transform hover:-translate-y-1"
                                         >

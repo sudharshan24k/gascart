@@ -3,11 +3,11 @@ import { supabase } from '../config/supabase';
 
 export const getProducts = async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const { category, minPrice, maxPrice, sort, search } = req.query;
+        const { category, minPrice, maxPrice, sort, search, low_stock, vendor } = req.query;
 
         let query = supabase
             .from('products')
-            .select('*, categories(name, slug)', { count: 'exact' });
+            .select('*, categories(name, slug), profiles:vendor_id(company_name, full_name)', { count: 'exact' });
 
         // Filtering
         if (category) {
@@ -16,6 +16,10 @@ export const getProducts = async (req: Request, res: Response, next: NextFunctio
             // For simplicity/perf, filtering by category_id directly is best, but UI usually uses slugs.
             // We'll trust the frontend sends ID or we look it up. Let's assume ID for now for speed, or basic text match.
             query = query.eq('category_id', category);
+        }
+
+        if (vendor) {
+            query = query.eq('vendor_id', vendor);
         }
 
         if (minPrice) query = query.gte('price', minPrice);
@@ -50,7 +54,7 @@ export const getProduct = async (req: Request, res: Response, next: NextFunction
         const { id } = req.params;
         const { data, error } = await supabase
             .from('products')
-            .select('*, categories(*)')
+            .select('*, categories(*), profiles:vendor_id(company_name, full_name)')
             .eq('id', id)
             .single();
 
@@ -103,6 +107,7 @@ export const updateProduct = async (req: Request, res: Response, next: NextFunct
     }
 };
 
+
 export const deleteProduct = async (req: Request, res: Response, next: NextFunction) => {
     try {
         const { id } = req.params;
@@ -114,6 +119,40 @@ export const deleteProduct = async (req: Request, res: Response, next: NextFunct
         if (error) throw error;
 
         res.json({ status: 'success', message: 'Product deleted successfully' });
+    } catch (err) {
+        next(err);
+    }
+};
+
+export const updateInventory = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const { id } = req.params;
+        const { adjustment } = req.body;
+
+        if (typeof adjustment !== 'number') {
+            return res.status(400).json({ message: 'Adjustment must be a number' });
+        }
+
+        const { data: product, error: fetchError } = await supabase
+            .from('products')
+            .select('stock_quantity')
+            .eq('id', id)
+            .single();
+
+        if (fetchError) throw fetchError;
+
+        const newStock = Math.max(0, (product.stock_quantity || 0) + adjustment);
+
+        const { data, error } = await supabase
+            .from('products')
+            .update({ stock_quantity: newStock })
+            .eq('id', id)
+            .select()
+            .single();
+
+        if (error) throw error;
+
+        res.json({ status: 'success', data });
     } catch (err) {
         next(err);
     }

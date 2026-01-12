@@ -246,3 +246,10 @@ export const updateOrderStatus = async (id: string, status: string) => {
     });
     return response.data.data;
 };
+
+export const updateProductInventory = async (id: string, adjustment: number) => {
+    const response = await axios.patch(`${API_URL}/products/${id}/inventory`, { adjustment }, {
+        headers: getAuthHeader()
+    });
+    return response.data.data;
+};
