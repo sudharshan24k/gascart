@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { fetchRFQs, updateAdminRFQStatus } from '../services/admin.service';
-import { ClipboardList, Download, Search, Filter, Mail, Eye } from 'lucide-react';
+import { ClipboardList, Download, Search, Mail, Eye } from 'lucide-react';
 import axios from 'axios';
 
 const RFQManagement: React.FC = () => {

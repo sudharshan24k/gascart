@@ -1,13 +1,15 @@
 import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Menu, X, Leaf, ClipboardList, User, GitCompare } from 'lucide-react';
+import { Menu, X, Leaf, ClipboardList, User, GitCompare, LogOut } from 'lucide-react';
 import { clsx } from 'clsx';
 import { useEnquiry } from '../../context/EnquiryContext';
+import { useAuth } from '../../context/AuthContext';
 
 const Header: React.FC = () => {
     const [isOpen, setIsOpen] = useState(false);
     const location = useLocation();
     const { state } = useEnquiry();
+    const { user, signOut } = useAuth();
 
     const navItems = [
         { name: 'Home', path: '/' },
@@ -16,6 +18,11 @@ const Header: React.FC = () => {
         { name: 'Resources', path: '/resources' },
         { name: 'Experts', path: '/experts' },
     ];
+
+    const handleSignOut = async () => {
+        await signOut();
+        setIsOpen(false);
+    };
 
     return (
         <nav className="bg-white/80 backdrop-blur-md shadow-sm fixed w-full z-50 transition-all duration-300 border-b border-gray-100">
@@ -70,9 +77,22 @@ const Header: React.FC = () => {
                                 )}
                             </Link>
 
-                            <Link to="/login" className="text-gray-400 hover:text-gray-900 transition-colors p-2.5 hover:bg-gray-50 rounded-xl">
-                                <User className="w-5 h-5" />
-                            </Link>
+                            {user ? (
+                                <div className="flex items-center gap-2">
+                                    <span className="text-xs font-bold text-gray-700 hidden lg:block">Hey, {user.email?.split('@')[0]}</span>
+                                    <button
+                                        onClick={handleSignOut}
+                                        className="text-gray-400 hover:text-red-500 transition-colors p-2.5 hover:bg-red-50 rounded-xl"
+                                        title="Sign out"
+                                    >
+                                        <LogOut className="w-5 h-5" />
+                                    </button>
+                                </div>
+                            ) : (
+                                <Link to="/login" className="text-gray-400 hover:text-gray-900 transition-colors p-2.5 hover:bg-gray-50 rounded-xl">
+                                    <User className="w-5 h-5" />
+                                </Link>
+                            )}
                         </div>
                     </div>
 
@@ -122,13 +142,22 @@ const Header: React.FC = () => {
                             </Link>
                         ))}
                         <div className="pt-4 mt-4 border-t border-gray-50 flex gap-4">
-                            <Link
-                                to="/login"
-                                className="flex-1 px-4 py-4 text-center rounded-2xl text-base font-bold bg-gray-50 text-gray-700"
-                                onClick={() => setIsOpen(false)}
-                            >
-                                Login
-                            </Link>
+                            {user ? (
+                                <button
+                                    onClick={handleSignOut}
+                                    className="flex-1 px-4 py-4 text-center rounded-2xl text-base font-bold bg-gray-50 text-gray-700 hover:bg-red-50 hover:text-red-500"
+                                >
+                                    Sign Out
+                                </button>
+                            ) : (
+                                <Link
+                                    to="/login"
+                                    className="flex-1 px-4 py-4 text-center rounded-2xl text-base font-bold bg-gray-50 text-gray-700"
+                                    onClick={() => setIsOpen(false)}
+                                >
+                                    Login
+                                </Link>
+                            )}
                             <Link
                                 to="/contact"
                                 className="flex-1 px-4 py-4 text-center rounded-2xl text-base font-bold bg-primary text-white shadow-lg"

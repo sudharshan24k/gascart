@@ -60,3 +60,46 @@ export const getMyOrders = async (req: AuthRequest, res: Response, next: NextFun
         next(err);
     }
 };
+// Admin: Get all orders
+export const getAllOrders = async (req: AuthRequest, res: Response, next: NextFunction) => {
+    try {
+        const { status } = req.query;
+        let query = supabase
+            .from('orders')
+            .select('*, order_items(*, product:products(name, price)), profiles:user_id(full_name, email)')
+            .order('created_at', { ascending: false });
+
+        if (status && status !== 'All') {
+            query = query.eq('status', (status as string).toLowerCase());
+        }
+
+        const { data, error } = await query;
+
+        if (error) throw error;
+
+        res.json({ status: 'success', data });
+    } catch (err) {
+        next(err);
+    }
+};
+
+// Admin: Update order status
+export const updateOrderStatus = async (req: AuthRequest, res: Response, next: NextFunction) => {
+    try {
+        const { id } = req.params;
+        const { status } = req.body;
+
+        const { data, error } = await supabase
+            .from('orders')
+            .update({ status })
+            .eq('id', id)
+            .select()
+            .single();
+
+        if (error) throw error;
+
+        res.json({ status: 'success', data });
+    } catch (err) {
+        next(err);
+    }
+};

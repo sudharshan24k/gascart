@@ -4,13 +4,12 @@ import {
     Search,
     Edit2,
     Trash2,
-    X,
     FolderTree,
     Code,
     Type,
     Image as ImageIcon
 } from 'lucide-react';
-import { fetchCategories, addCategory, updateCategory, deleteCategory } from '../../services/admin.service';
+import { fetchCategories, addCategory, updateCategory, deleteCategory } from '../services/admin.service';
 
 const CategoryManagement = () => {
     const [categories, setCategories] = useState<any[]>([]);

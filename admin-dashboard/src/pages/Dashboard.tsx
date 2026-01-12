@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Package, Users, ClipboardCheck, Clock, Plus, LayoutGrid } from 'lucide-react';
-import { getDashboardStats } from '../../services/admin.service';
+import { getDashboardStats } from '../services/admin.service';
 import { Link } from 'react-router-dom';
 
 interface StatCardProps {

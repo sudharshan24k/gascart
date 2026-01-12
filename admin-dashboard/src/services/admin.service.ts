@@ -194,6 +194,13 @@ export const removeVendorFromProduct = async (product_id: string, vendor_id: str
     return response.data;
 };
 
+export const fetchProductVendors = async (productId: string) => {
+    const response = await axios.get(`${API_URL}/vendors/product/${productId}`, {
+        headers: getAuthHeader()
+    });
+    return response.data.data;
+};
+
 // Document Management
 export const fetchDocuments = async (params?: { category?: string; status?: string }) => {
     const response = await axios.get(`${API_URL}/documents`, {
@@ -222,4 +229,20 @@ export const deleteDocument = async (id: string) => {
         headers: getAuthHeader()
     });
     return response.data;
+};
+
+// Order Management
+export const fetchOrders = async (params?: { status?: string }) => {
+    const response = await axios.get(`${API_URL}/orders/admin/all`, {
+        params,
+        headers: getAuthHeader()
+    });
+    return response.data.data;
+};
+
+export const updateOrderStatus = async (id: string, status: string) => {
+    const response = await axios.patch(`${API_URL}/orders/admin/${id}/status`, { status }, {
+        headers: getAuthHeader()
+    });
+    return response.data.data;
 };

@@ -55,3 +55,32 @@ export const requireAdmin = async (req: AuthRequest, res: Response, next: NextFu
         res.status(500).json({ message: 'Internal Server Error during role check' });
     }
 };
+
+
+export const restrictTo = (...roles: string[]) => {
+    return async (req: AuthRequest, res: Response, next: NextFunction) => {
+        if (!req.user) {
+            return res.status(401).json({ message: 'Authentication required' });
+        }
+
+        try {
+            const { data: profile, error } = await supabase
+                .from('profiles')
+                .select('role')
+                .eq('id', req.user.id)
+                .single();
+
+            if (error || !profile) {
+                return res.status(403).json({ message: 'Failed to verify user role' });
+            }
+
+            if (!roles.includes(profile.role)) {
+                return res.status(403).json({ message: 'You do not have permission to perform this action' });
+            }
+
+            next();
+        } catch (err) {
+            res.status(500).json({ message: 'Internal Server Error during permission check' });
+        }
+    };
+};

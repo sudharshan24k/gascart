@@ -5,16 +5,12 @@ import {
     Edit2,
     Trash2,
     X,
-    Upload,
     CheckCircle,
     Package,
-    Settings2,
-    Eye,
-    EyeOff,
-    FileText,
-    Users,
     ClipboardList,
-    ArrowUpDown
+    ArrowUpDown,
+    Building2,
+    Loader2
 } from 'lucide-react';
 import {
     fetchAdminProducts,
@@ -22,16 +18,22 @@ import {
     updateProduct,
     deleteProduct,
     fetchCategories,
-    fetchConsultants // Reusing consultants as a proxy for vendors for now, or we might need separate vendor fetch
-} from '../../services/admin.service';
+    fetchVendors,
+    fetchProductVendors,
+    assignVendorToProduct,
+    removeVendorFromProduct
+} from '../services/admin.service';
 
 const AdminProducts = () => {
     const [products, setProducts] = useState<any[]>([]);
     const [categories, setCategories] = useState<any[]>([]);
+    const [vendors, setVendors] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [searchQuery, setSearchQuery] = useState('');
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingProduct, setEditingProduct] = useState<any>(null);
+    const [productVendors, setProductVendors] = useState<any[]>([]);
+    const [vendorsLoading, setVendorsLoading] = useState(false);
 
     const [formData, setFormData] = useState({
         name: '',
@@ -53,12 +55,14 @@ const AdminProducts = () => {
 
     const loadData = async () => {
         try {
-            const [pData, cData] = await Promise.all([
+            const [pData, cData, vData] = await Promise.all([
                 fetchAdminProducts(),
-                fetchCategories()
+                fetchCategories(),
+                fetchVendors()
             ]);
             setProducts(pData);
             setCategories(cData);
+            setVendors(vData || []);
         } catch (err) {
             console.error('Failed to load products', err);
         } finally {
@@ -66,7 +70,41 @@ const AdminProducts = () => {
         }
     };
 
-    const handleOpenModal = (product: any = null) => {
+    const loadProductVendors = async (productId: string) => {
+        setVendorsLoading(true);
+        try {
+            const data = await fetchProductVendors(productId);
+            setProductVendors(data || []);
+        } catch (err) {
+            console.error('Failed to load product vendors', err);
+            setProductVendors([]);
+        } finally {
+            setVendorsLoading(false);
+        }
+    };
+
+    const handleAssignVendor = async (vendorId: string) => {
+        if (!editingProduct) return;
+        try {
+            await assignVendorToProduct(editingProduct.id, vendorId);
+            await loadProductVendors(editingProduct.id);
+        } catch (err) {
+            console.error('Failed to assign vendor', err);
+            alert('Failed to assign vendor. It may already be assigned.');
+        }
+    };
+
+    const handleRemoveVendor = async (vendorId: string) => {
+        if (!editingProduct) return;
+        try {
+            await removeVendorFromProduct(editingProduct.id, vendorId);
+            await loadProductVendors(editingProduct.id);
+        } catch (err) {
+            console.error('Failed to remove vendor', err);
+        }
+    };
+
+    const handleOpenModal = async (product: any = null) => {
         if (product) {
             setEditingProduct(product);
             setFormData({
@@ -82,8 +120,10 @@ const AdminProducts = () => {
                 attributes: product.attributes || {},
                 min_rfq_fields: product.min_rfq_fields || []
             });
+            loadProductVendors(product.id);
         } else {
             setEditingProduct(null);
+            setProductVendors([]);
             setFormData({
                 name: '',
                 category_id: '',
@@ -450,6 +490,86 @@ const AdminProducts = () => {
                                     </div>
                                 </div>
                             </div>
+
+                            {/* Vendor Assignment Section - Only show when editing */}
+                            {editingProduct && (
+                                <div className="bg-gray-50 p-8 rounded-[32px] border border-gray-100">
+                                    <div className="flex items-center justify-between mb-6">
+                                        <div>
+                                            <h4 className="text-lg font-bold text-gray-900 flex items-center gap-2">
+                                                <Building2 className="w-5 h-5 text-primary" />
+                                                Assigned Vendors
+                                            </h4>
+                                            <p className="text-xs text-gray-500 mt-1">Multiple vendors can supply this product</p>
+                                        </div>
+                                        <span className="text-xs font-black text-primary bg-primary/10 px-3 py-1 rounded-full">
+                                            {productVendors.length} Vendors
+                                        </span>
+                                    </div>
+
+                                    {vendorsLoading ? (
+                                        <div className="flex items-center justify-center py-8">
+                                            <Loader2 className="w-6 h-6 text-primary animate-spin" />
+                                        </div>
+                                    ) : (
+                                        <>
+                                            {/* Current Vendors */}
+                                            {productVendors.length > 0 && (
+                                                <div className="mb-6">
+                                                    <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-3">Current Vendors</label>
+                                                    <div className="flex flex-wrap gap-2">
+                                                        {productVendors.map((pv: any) => (
+                                                            <span
+                                                                key={pv.vendor_id}
+                                                                className="px-4 py-2 bg-white border border-gray-100 rounded-xl text-sm font-bold text-gray-700 flex items-center gap-2 group"
+                                                            >
+                                                                <Building2 className="w-4 h-4 text-gray-400" />
+                                                                {pv.profiles?.company_name || pv.profiles?.full_name || 'Unknown Vendor'}
+                                                                <button
+                                                                    type="button"
+                                                                    onClick={() => handleRemoveVendor(pv.vendor_id)}
+                                                                    className="text-gray-300 hover:text-red-500 transition-colors"
+                                                                >
+                                                                    <X className="w-4 h-4" />
+                                                                </button>
+                                                            </span>
+                                                        ))}
+                                                    </div>
+                                                </div>
+                                            )}
+
+                                            {/* Add Vendor */}
+                                            <div>
+                                                <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-3">Add Vendor</label>
+                                                <select
+                                                    className="w-full px-6 py-4 bg-white border border-gray-100 rounded-xl outline-none font-bold"
+                                                    value=""
+                                                    onChange={(e) => {
+                                                        if (e.target.value) {
+                                                            handleAssignVendor(e.target.value);
+                                                            e.target.value = '';
+                                                        }
+                                                    }}
+                                                >
+                                                    <option value="">Select a vendor to add...</option>
+                                                    {vendors
+                                                        .filter(v => v.visibility_status === 'active')
+                                                        .filter(v => !productVendors.some((pv: any) => pv.vendor_id === v.id))
+                                                        .map(v => (
+                                                            <option key={v.id} value={v.id}>
+                                                                {v.company_name || v.full_name || v.email}
+                                                            </option>
+                                                        ))
+                                                    }
+                                                </select>
+                                                {vendors.filter(v => v.visibility_status === 'active').length === 0 && (
+                                                    <p className="text-xs text-gray-400 mt-2">No active vendors available. Onboard vendors first.</p>
+                                                )}
+                                            </div>
+                                        </>
+                                    )}
+                                </div>
+                            )}
 
                             <button
                                 type="submit"

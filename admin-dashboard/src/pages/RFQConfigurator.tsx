@@ -1,11 +1,9 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import {
     Settings2,
     Plus,
     Trash2,
-    CheckSquare,
     Type,
-    ListFilter,
     Save,
     ChevronRight,
     HelpCircle

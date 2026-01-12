@@ -81,5 +81,37 @@ export const api = {
             });
             return res.json();
         }
+    },
+    vendors: {
+        submitEnquiry: async (data: {
+            company_name: string;
+            contact_person: string;
+            email: string;
+            phone: string;
+            business_type: string;
+            certifications?: string[];
+            message?: string;
+        }) => {
+            const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3000/api/v1';
+            const res = await fetch(`${apiUrl}/vendors/enquiry`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(data)
+            });
+            if (!res.ok) {
+                const error = await res.json();
+                throw new Error(error.message || 'Failed to submit enquiry');
+            }
+            return res.json();
+        }
+    },
+    documents: {
+        list: async () => {
+            const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3000/api/v1';
+            const res = await fetch(`${apiUrl}/documents`);
+            return res.json();
+        }
     }
 };

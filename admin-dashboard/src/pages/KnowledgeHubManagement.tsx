@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import {
     Plus,
-    Search,
     Edit2,
     Trash2,
     X,
@@ -9,12 +8,10 @@ import {
     Video,
     Lock,
     Unlock,
-    Eye,
     Tag,
-    ChevronRight,
     Search as SearchIcon
 } from 'lucide-react';
-import { fetchAdminArticles, addArticle, updateArticle, deleteArticle, fetchCategories } from '../../services/admin.service';
+import { fetchAdminArticles, addArticle, updateArticle, deleteArticle, fetchCategories } from '../services/admin.service';
 
 const KnowledgeHubManagement = () => {
     const [articles, setArticles] = useState<any[]>([]);
@@ -187,7 +184,7 @@ const KnowledgeHubManagement = () => {
                                         <div className="flex flex-col gap-1">
                                             <span className="text-xs font-bold text-gray-500 uppercase tracking-tighter">Skill Level</span>
                                             <span className={`text-sm font-black uppercase ${article.level === 'advanced' ? 'text-red-500' :
-                                                    article.level === 'intermediate' ? 'text-amber-500' : 'text-green-500'
+                                                article.level === 'intermediate' ? 'text-amber-500' : 'text-green-500'
                                                 }`}>
                                                 {article.level}
                                             </span>

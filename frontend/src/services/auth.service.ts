@@ -1,10 +1,13 @@
 import { supabase } from './api';
 
 export const authService = {
-    signUp: async (email: string, password: string) => {
+    signUp: async (email: string, password: string, options?: any) => {
         const { data, error } = await supabase.auth.signUp({
             email,
             password,
+            options: {
+                data: options
+            }
         });
         if (error) throw error;
         return data;

@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
-import { CheckCircle, XCircle, Clock, User, Mail, Phone, MapPin, ExternalLink, MoreVertical, Edit2, Ban } from 'lucide-react';
-import { fetchConsultants, updateConsultantStatus, deleteConsultant } from '../../services/admin.service';
+import { useState, useEffect } from 'react';
+import { CheckCircle, XCircle, Clock, User, Mail, Phone, MapPin, Edit2, Ban } from 'lucide-react';
+import { fetchConsultants, updateConsultantStatus } from '../services/admin.service';
 
 const ConsultantManagement = () => {
     const [consultants, setConsultants] = useState<any[]>([]);
@@ -51,8 +51,8 @@ const ConsultantManagement = () => {
                         key={tab.id}
                         onClick={() => setActiveTab(tab.id as any)}
                         className={`flex items-center gap-2 px-6 py-3 rounded-xl font-bold transition-all ${activeTab === tab.id
-                                ? 'bg-white text-primary shadow-sm'
-                                : 'text-gray-500 hover:text-gray-700'
+                            ? 'bg-white text-primary shadow-sm'
+                            : 'text-gray-500 hover:text-gray-700'
                             }`}
                     >
                         <tab.icon className="w-4 h-4" />
@@ -79,7 +79,7 @@ const ConsultantManagement = () => {
                                     {c.first_name[0]}{c.last_name[0]}
                                 </div>
                                 <span className={`px-4 py-1.5 rounded-full text-xs font-bold uppercase tracking-wider ${c.status === 'approved' ? 'bg-green-100 text-green-700' :
-                                        c.status === 'pending' ? 'bg-amber-100 text-amber-700' : 'bg-red-100 text-red-700'
+                                    c.status === 'pending' ? 'bg-amber-100 text-amber-700' : 'bg-red-100 text-red-700'
                                     }`}>
                                     {c.status}
                                 </span>
@@ -144,8 +144,8 @@ const ConsultantManagement = () => {
                                     <button
                                         onClick={() => handleAction(c.id, c.status === 'suspended' ? 'approved' : 'suspended', c.status === 'suspended')}
                                         className={`p-2.5 rounded-xl border transition-all ${c.status === 'suspended'
-                                                ? 'bg-amber-100 text-amber-700 border-amber-200'
-                                                : 'bg-white text-red-400 border-gray-200 hover:bg-red-50 hover:text-red-600 hover:border-red-100'
+                                            ? 'bg-amber-100 text-amber-700 border-amber-200'
+                                            : 'bg-white text-red-400 border-gray-200 hover:bg-red-50 hover:text-red-600 hover:border-red-100'
                                             }`}
                                         title={c.status === 'suspended' ? 'Unsuspended' : 'Suspend'}
                                     >

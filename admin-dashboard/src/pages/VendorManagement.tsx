@@ -19,12 +19,12 @@ import {
     createVendor,
     updateVendor,
     deleteVendor
-} from '../../services/admin.service';
+} from '../services/admin.service';
 
 const VendorManagement = () => {
     const [vendors, setVendors] = useState<any[]>([]);
     const [enquiries, setEnquiries] = useState<any[]>([]);
-    const [loading, setLoading] = useState(true);
+    const [_loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [showEnquiries, setShowEnquiries] = useState(false);
@@ -226,7 +226,7 @@ const VendorManagement = () => {
                                                 value={vendor.visibility_status}
                                                 onChange={(e) => updateVendor(vendor.id, { ...vendor, visibility_status: e.target.value }).then(() => loadData())}
                                                 className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-tight border-none outline-none focus:ring-4 focus:ring-primary/5 cursor-pointer ${vendor.visibility_status === 'active' ? 'bg-green-50 text-green-600' :
-                                                        vendor.visibility_status === 'inactive' ? 'bg-gray-50 text-gray-600' : 'bg-red-50 text-red-600'
+                                                    vendor.visibility_status === 'inactive' ? 'bg-gray-50 text-gray-600' : 'bg-red-50 text-red-600'
                                                     }`}
                                             >
                                                 <option value="active">Active (Public)</option>
