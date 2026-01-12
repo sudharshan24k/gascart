@@ -23,6 +23,7 @@ const ProductDetail: React.FC = () => {
     const { id } = useParams();
     const [product, setProduct] = useState<any>(null);
     const [loading, setLoading] = useState(true);
+    const [selectedVariant, setSelectedVariant] = useState<any>(null); // For handling variants
     const [showRFQModal, setShowRFQModal] = useState(false);
     const [rfqSubmitted, setRfqSubmitted] = useState(false);
     const [rfqSubmitting, setRfqSubmitting] = useState(false);
@@ -37,12 +38,19 @@ const ProductDetail: React.FC = () => {
                 const res = await api.products.get(id);
                 if (res.status === 'success') {
                     setProduct(res.data);
+                    // Default to first variant if exists and active
+                    if (res.data.variants && res.data.variants.length > 0) {
+                        setSelectedVariant(res.data.variants[0]);
+                    }
                 }
                 setLoading(false);
             }
         };
         fetchProduct();
     }, [id]);
+
+    const activePrice = selectedVariant ? selectedVariant.price : (product?.price || 0);
+
 
     if (loading) return <div className="pt-32 text-center text-gray-500 font-bold">Retrieving technical specifications...</div>;
     if (!product) return <div className="pt-32 text-center text-red-500 font-bold">Industrial asset not found</div>;
@@ -111,10 +119,36 @@ const ProductDetail: React.FC = () => {
                                 {product.name}
                             </h1>
 
-                            <div className="flex items-baseline gap-2 mb-10">
-                                <span className="text-4xl font-bold text-gray-900">${product.price.toLocaleString()}</span>
+                            <div className="flex items-baseline gap-2 mb-6">
+                                <span className="text-4xl font-bold text-gray-900">${activePrice.toLocaleString()}</span>
                                 <span className="text-gray-400 font-bold text-xs uppercase tracking-widest">Net ex-works</span>
                             </div>
+
+                            {/* Variants Selector */}
+                            {product.variants && product.variants.length > 0 && (
+                                <div className="mb-10 p-6 bg-gray-50 rounded-2xl border border-gray-100">
+                                    <h4 className="font-bold text-gray-900 mb-4 text-sm uppercase tracking-wider">Select Option</h4>
+                                    <div className="flex flex-wrap gap-3">
+                                        {product.variants.map((v: any, i: number) => {
+                                            const isSelected = selectedVariant?.id === v.id || (!selectedVariant && i === 0);
+                                            // Handle attribute object to string
+                                            const label = Object.entries(v.attributes || {}).map(([key, val]) => `${key}: ${val}`).join(' | ') || `Option ${i + 1}`;
+                                            return (
+                                                <button
+                                                    key={i}
+                                                    onClick={() => setSelectedVariant(v)}
+                                                    className={`px-4 py-3 rounded-xl text-sm font-bold border transition-all ${isSelected
+                                                        ? 'bg-primary text-white border-primary shadow-lg shadow-primary/25'
+                                                        : 'bg-white text-gray-600 border-gray-200 hover:border-primary/50'
+                                                        }`}
+                                                >
+                                                    {label}
+                                                </button>
+                                            )
+                                        })}
+                                    </div>
+                                </div>
+                            )}
 
                             <p className="text-gray-600 text-lg leading-relaxed mb-10 pb-10 border-b border-gray-50">
                                 {product.description}
@@ -124,7 +158,8 @@ const ProductDetail: React.FC = () => {
                             <div className="mb-12 bg-gray-50 p-8 rounded-3xl">
                                 <h3 className="font-bold text-gray-900 mb-6 text-lg">Technical Specifications</h3>
                                 <div className="grid grid-cols-2 gap-y-6 gap-x-12">
-                                    {Object.entries(product.attributes || {}).map(([key, value], i) => (
+                                    {/* Merge Product Attributes and Variant Attributes */}
+                                    {Object.entries({ ...product.attributes, ...(selectedVariant?.attributes || {}) }).map(([key, value], i) => (
                                         <div key={i} className="flex flex-col gap-1 border-b border-gray-100 pb-2">
                                             <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">{key}</span>
                                             <span className="text-sm font-bold text-gray-700">{String(value)}</span>
@@ -139,7 +174,7 @@ const ProductDetail: React.FC = () => {
                                     <>
                                         <button
                                             onClick={async () => {
-                                                await addToCart(product.id, 1);
+                                                await addToCart(product.id, 1, selectedVariant);
                                                 // Optional: simple alert or toast
                                                 alert('Added to cart lead gen commitment');
                                                 window.location.href = '/cart';
@@ -147,7 +182,7 @@ const ProductDetail: React.FC = () => {
                                             className="w-full bg-primary hover:bg-primary-dark text-white font-black py-5 px-8 rounded-2xl shadow-xl transition-all flex flex-col items-center justify-center transform hover:-translate-y-1"
                                         >
                                             <span className="text-lg">Reserve with 50% Advance</span>
-                                            <span className="text-xs opacity-80 font-medium tracking-tight">Lead Gen Commitment: ${(product.price * 0.5).toLocaleString()}</span>
+                                            <span className="text-xs opacity-80 font-medium tracking-tight">Lead Gen Commitment: ${(activePrice * 0.5).toLocaleString()}</span>
                                         </button>
                                         <button
                                             onClick={() => dispatch({

@@ -25,6 +25,9 @@ import { AuthProvider } from './context/AuthContext';
 import Signup from './pages/Signup';
 import { CartProvider } from './context/CartContext';
 import Cart from './pages/Cart';
+import Checkout from './pages/Checkout';
+import OrderSuccess from './pages/OrderSuccess';
+import Profile from './pages/Profile';
 
 function App() {
     // Default Marketplace Routes
@@ -58,6 +61,9 @@ function App() {
                                 <Route path="order-confirmation" element={<OrderConfirmation />} />
                                 <Route path="login" element={<Login />} />
                                 <Route path="signup" element={<Signup />} />
+                                <Route path="checkout" element={<Checkout />} />
+                                <Route path="order-success" element={<OrderSuccess />} />
+                                <Route path="profile" element={<Profile />} />
                             </Route>
                         </Routes>
                     </Router>

@@ -153,7 +153,7 @@ const Cart = () => {
 
                         <div className="mt-8 space-y-4">
                             <Link
-                                to="/order-confirmation" // In a real app, this would perform checkout logic first
+                                to="/checkout"
                                 className="w-full flex items-center justify-center px-6 py-4 border border-transparent rounded-xl shadow-lg text-base font-bold text-white bg-primary-600 hover:bg-primary-700 hover:shadow-primary-500/25 transition-all duration-200 group"
                             >
                                 Proceed to Checkout

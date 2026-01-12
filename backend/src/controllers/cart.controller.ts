@@ -27,7 +27,7 @@ const getOrCreateCart = async (userId: string | undefined, sessionId: string | u
 
 export const addToCart = async (req: AuthRequest, res: Response, next: NextFunction) => {
     try {
-        const { productId, quantity } = req.body;
+        const { productId, quantity, variant } = req.body;
         const userId = req.user?.id;
         const sessionId = req.headers['x-session-id'] as string; // Client generated UUID
 
@@ -37,13 +37,28 @@ export const addToCart = async (req: AuthRequest, res: Response, next: NextFunct
 
         const cartId = await getOrCreateCart(userId, sessionId);
 
-        // Check if item exists
-        const { data: existingItem } = await supabase
+        // Check if item exists (Same Product AND Same Variant)
+        // Note: JSONB comparison in Supabase/Postgres is tricky.
+        // For MVP, if variant is present, we might just add a new line item if not exactly matching,
+        // or try to match.
+        // Let's assume strict match on variant structure if provided. Since JSONB order might vary, key order matters.
+        // But better is to trust the client sending the same object structure.
+
+        let query = supabase
             .from('cart_items')
             .select('id, quantity')
             .eq('cart_id', cartId)
-            .eq('product_id', productId)
-            .single();
+            .eq('product_id', productId);
+
+        if (variant) {
+            // Postgres JSONB containment/equality
+            query = query.contains('selected_variant', variant);
+        } else {
+            query = query.is('selected_variant', null);
+        }
+
+        const { data: existingItems } = await query;
+        const existingItem = existingItems && existingItems.length > 0 ? existingItems[0] : null;
 
         if (existingItem) {
             const { error } = await supabase
@@ -54,7 +69,12 @@ export const addToCart = async (req: AuthRequest, res: Response, next: NextFunct
         } else {
             const { error } = await supabase
                 .from('cart_items')
-                .insert([{ cart_id: cartId, product_id: productId, quantity }]);
+                .insert([{
+                    cart_id: cartId,
+                    product_id: productId,
+                    quantity,
+                    selected_variant: variant || null
+                }]);
             if (error) throw error;
         }
 

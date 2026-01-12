@@ -45,6 +45,12 @@ const ProductListing: React.FC = () => {
                 if (ven) params.vendor = ven.id; // Correct param is vendor (id)
             }
 
+            // Search Param
+            const searchQuery = searchParams.get('search');
+            if (searchQuery) {
+                params.search = searchQuery;
+            }
+
             const { data } = await api.products.list(params);
             setProducts(data || []);
 
@@ -95,6 +101,27 @@ const ProductListing: React.FC = () => {
                     </div>
                 </div>
 
+                {/* Search Results Indicator */}
+                {searchParams.get('search') && (
+                    <div className="mb-8 flex items-center justify-between bg-white p-4 rounded-2xl border border-gray-100 shadow-sm">
+                        <span className="text-lg font-bold text-gray-700">
+                            Search Results for: <span className="text-primary">"{searchParams.get('search')}"</span>
+                        </span>
+                        <button
+                            onClick={() => {
+                                const newParams = new URLSearchParams(searchParams);
+                                newParams.delete('search');
+                                setSearchParams(newParams);
+                            }}
+                            className="flex items-center gap-2 text-sm font-bold text-gray-400 hover:text-red-500 transition-colors px-4 py-2 hover:bg-red-50 rounded-lg"
+                        >
+                            <span className="sr-only">Clear Search</span>
+                            Clear Search
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6 6 18" /><path d="m6 6 12 12" /></svg>
+                        </button>
+                    </div>
+                )}
+
                 <div className="flex flex-col lg:flex-row gap-12">
                     {/* Filter Sidebar */}
                     <aside className="w-full lg:w-72 flex-shrink-0 space-y-8">
@@ -108,16 +135,56 @@ const ProductListing: React.FC = () => {
                                 <div>
                                     <label className="block text-xs font-black text-gray-400 uppercase tracking-widest mb-4">Product Category</label>
                                     <div className="space-y-2">
-                                        {['All', 'Equipment', 'Storage', 'Monitoring', 'Components'].map(cat => (
+                                        <div className="space-y-1">
                                             <button
-                                                key={cat}
-                                                onClick={() => updateFilter('category', cat)}
-                                                className={`block w-full text-left px-4 py-2.5 rounded-xl text-sm font-bold transition-all ${activeCategory === cat ? 'bg-primary text-white shadow-lg shadow-primary/20' : 'text-gray-500 hover:bg-gray-50'
-                                                    }`}
+                                                onClick={() => updateFilter('category', 'All')}
+                                                className={`block w-full text-left px-4 py-2.5 rounded-xl text-sm font-bold transition-all ${activeCategory === 'All' ? 'bg-primary text-white shadow-lg shadow-primary/20' : 'text-gray-500 hover:bg-gray-50'}`}
                                             >
-                                                {cat}
+                                                All Categories
                                             </button>
-                                        ))}
+
+                                            {/* Recursive/Hierarchical Rendering */}
+                                            {(() => {
+                                                // 1. Build Tree
+                                                const roots = categories.filter(c => !c.parent_id);
+                                                const getChildren = (pid: string) => categories.filter(c => c.parent_id === pid);
+
+                                                const renderNode = (node: any, depth = 0) => {
+                                                    const children = getChildren(node.id);
+                                                    const isActive = activeCategory === node.id;
+
+                                                    return (
+                                                        <div key={node.id} className="w-full">
+                                                            <button
+                                                                onClick={() => updateFilter('category', node.id)}
+                                                                className={`block w-full text-left px-4 py-2.5 rounded-xl text-sm font-bold transition-all flex items-center justify-between ${isActive ? 'bg-primary text-white shadow-lg shadow-primary/20' : 'text-gray-500 hover:bg-gray-50'
+                                                                    }`}
+                                                                style={{ paddingLeft: `${(depth + 1) * 1}rem` }}
+                                                            >
+                                                                {node.name}
+                                                                {children.length > 0 && <span className="text-[10px] opacity-50 ml-2">▼</span>}
+                                                            </button>
+                                                            {children.length > 0 && (
+                                                                <div className="mt-1 space-y-1">
+                                                                    {children.map(child => renderNode(child, depth + 1))}
+                                                                </div>
+                                                            )}
+                                                        </div>
+                                                    )
+                                                };
+
+                                                // Fallback for flat list if hierarchy is missing or partial
+                                                return roots.length > 0 ? roots.map(root => renderNode(root)) : categories.map(c => (
+                                                    <button
+                                                        key={c.id}
+                                                        onClick={() => updateFilter('category', c.id)}
+                                                        className={`block w-full text-left px-4 py-2.5 rounded-xl text-sm font-bold transition-all ${activeCategory === c.id ? 'bg-primary text-white' : 'text-gray-500 hover:bg-gray-50'}`}
+                                                    >
+                                                        {c.name}
+                                                    </button>
+                                                ));
+                                            })()}
+                                        </div>
                                     </div>
                                 </div>
 

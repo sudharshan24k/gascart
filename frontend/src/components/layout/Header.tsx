@@ -52,6 +52,26 @@ const Header: React.FC = () => {
                             </Link>
                         ))}
 
+                        {/* Search Bar */}
+                        <div className="relative group">
+                            <form onSubmit={(e) => {
+                                e.preventDefault();
+                                const fd = new FormData(e.currentTarget);
+                                const q = fd.get('q');
+                                if (q) window.location.href = `/shop?search=${q}`;
+                            }}>
+                                <input
+                                    name="q"
+                                    type="text"
+                                    placeholder="Search..."
+                                    className="bg-gray-100/50 border border-transparent focus:bg-white focus:border-primary/20 rounded-xl py-2 pl-4 pr-10 text-sm font-bold outline-none transition-all w-32 focus:w-48"
+                                />
+                                <button type="submit" className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-primary">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-search"><circle cx="11" cy="11" r="8" /><path d="m21 21-4.3-4.3" /></svg>
+                                </button>
+                            </form>
+                        </div>
+
                         <div className="flex items-center space-x-3 pl-6 border-l border-gray-100">
                             <Link
                                 title="Compare Hub"
@@ -94,7 +114,18 @@ const Header: React.FC = () => {
 
                             {user ? (
                                 <div className="flex items-center gap-2">
-                                    <span className="text-xs font-bold text-gray-700 hidden lg:block">Hey, {user.email?.split('@')[0]}</span>
+                                    <Link
+                                        to="/profile"
+                                        className="flex items-center gap-2 group mr-2"
+                                        title="My Account"
+                                    >
+                                        <div className="w-8 h-8 bg-gray-100 text-gray-600 rounded-full flex items-center justify-center font-bold text-xs group-hover:bg-primary group-hover:text-white transition-colors border border-gray-200 group-hover:border-primary">
+                                            {user.email?.[0].toUpperCase()}
+                                        </div>
+                                        <span className="text-xs font-bold text-gray-700 hidden lg:block group-hover:text-primary transition-colors">
+                                            Account
+                                        </span>
+                                    </Link>
                                     <button
                                         onClick={handleSignOut}
                                         className="text-gray-400 hover:text-red-500 transition-colors p-2.5 hover:bg-red-50 rounded-xl"
@@ -148,32 +179,38 @@ const Header: React.FC = () => {
                                 {item.name}
                             </Link>
                         ))}
-                        <div className="pt-4 mt-4 border-t border-gray-50 flex gap-4">
-                            {user ? (
-                                <button
-                                    onClick={handleSignOut}
-                                    className="flex-1 px-4 py-4 text-center rounded-2xl text-base font-bold bg-gray-50 text-gray-700 hover:bg-red-50 hover:text-red-500"
-                                >
-                                    Sign Out
-                                </button>
-                            ) : (
-                                <Link
-                                    to="/login"
-                                    className="flex-1 px-4 py-4 text-center rounded-2xl text-base font-bold bg-gray-50 text-gray-700"
-                                    onClick={() => setIsOpen(false)}
-                                >
-                                    Login
-                                </Link>
-                            )}
+                    </div>
+                    {user ? (
+                        <div className="px-4 pb-6 border-t border-gray-100 pt-6">
+                            <div className="flex items-center gap-4 mb-4 px-4">
+                                <div className="w-10 h-10 bg-primary/10 text-primary rounded-full flex items-center justify-center font-bold">
+                                    {user.email?.[0].toUpperCase()}
+                                </div>
+                                <div className="overflow-hidden">
+                                    <p className="font-bold text-sm text-gray-900 truncate">{user.email}</p>
+                                    <Link to="/profile" className="text-xs text-primary font-bold hover:underline" onClick={() => setIsOpen(false)}>View Profile</Link>
+                                </div>
+                            </div>
+                            <button
+                                onClick={handleSignOut}
+                                className="w-full flex items-center justify-center px-4 py-4 rounded-2xl text-base font-bold text-red-500 bg-red-50 hover:bg-red-100 transition-colors"
+                            >
+                                <LogOut className="w-5 h-5 mr-2" />
+                                Sign Out
+                            </button>
+                        </div>
+                    ) : (
+                        <div className="px-4 pb-6 pt-2">
                             <Link
-                                to="/contact"
-                                className="flex-1 px-4 py-4 text-center rounded-2xl text-base font-bold bg-primary text-white shadow-lg"
+                                to="/login"
+                                className="w-full flex items-center justify-center px-4 py-4 rounded-2xl text-base font-bold text-white bg-gray-900 hover:bg-gray-800 transition-colors"
                                 onClick={() => setIsOpen(false)}
                             >
-                                Get Started
+                                <User className="w-5 h-5 mr-2" />
+                                Sign In
                             </Link>
                         </div>
-                    </div>
+                    )}
                 </div>
             )}
         </nav>

@@ -11,6 +11,7 @@ import rfqRoutes from './routes/rfqs.routes';
 import categoryRoutes from './routes/categories.routes';
 import vendorRoutes from './routes/vendors.routes';
 import documentRoutes from './routes/documents.routes';
+import userRoutes from './routes/user.routes';
 
 const app = express();
 
@@ -19,8 +20,6 @@ app.use(cors());
 app.use(express.json());
 
 // Routes
-// Routes
-
 app.get('/', (req, res) => {
     res.json({ message: 'Bespoke E-commerce API is running 🚀', version: '1.0.0' });
 });
@@ -28,6 +27,7 @@ app.get('/', (req, res) => {
 app.get('/health', (req, res) => {
     res.json({ status: 'ok', version: '1.0.0' });
 });
+
 
 app.use('/api/v1/products', productRoutes);
 app.use('/api/v1/cart', cartRoutes); // Auth handled in controller for guest support
@@ -39,6 +39,7 @@ app.use('/api/v1/rfqs', rfqRoutes);
 app.use('/api/v1/categories', categoryRoutes);
 app.use('/api/v1/vendors', vendorRoutes);
 app.use('/api/v1/documents', documentRoutes);
+app.use('/api/v1/users', userRoutes);
 
 // Start Server
 // Server startup moved to server.ts for Vercel compatibility
