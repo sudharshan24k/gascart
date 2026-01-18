@@ -149,30 +149,37 @@ const Checkout: React.FC = () => {
 
                             {step === 1 && selectingSaved ? (
                                 <div className="space-y-4">
-                                    <div className="grid md:grid-cols-2 gap-4">
-                                        {addresses.map((addr) => (
-                                            <button
-                                                key={addr.id}
-                                                onClick={() => applyAddress(addr)}
-                                                className="text-left p-4 bg-gray-50 rounded-2xl border border-gray-100 hover:border-primary hover:bg-white transition-all group"
+                                    {loadingAddresses ? (
+                                        <div className="flex flex-col items-center justify-center p-12 text-gray-400 gap-3">
+                                            <Loader2 className="w-8 h-8 animate-spin text-primary" />
+                                            <p className="text-sm font-bold">Loading your saved addresses...</p>
+                                        </div>
+                                    ) : (
+                                        <div className="grid md:grid-cols-2 gap-4">
+                                            {addresses.map((addr) => (
+                                                <button
+                                                    key={addr.id}
+                                                    onClick={() => applyAddress(addr)}
+                                                    className="text-left p-4 bg-gray-50 rounded-2xl border border-gray-100 hover:border-primary hover:bg-white transition-all group"
+                                                >
+                                                    <div className="flex justify-between items-start mb-2">
+                                                        <span className="text-[10px] font-black uppercase tracking-widest text-primary bg-primary/10 px-2 py-0.5 rounded-full">{addr.label || 'Home'}</span>
+                                                        {addr.is_default && <span className="text-[10px] font-bold text-gray-400">Default</span>}
+                                                    </div>
+                                                    <p className="font-bold text-gray-900 text-sm">{addr.full_name}</p>
+                                                    <p className="text-xs text-gray-500 line-clamp-1">{addr.address_line1}</p>
+                                                    <p className="text-xs text-gray-500">{addr.city}, {addr.state}</p>
+                                                </button>
+                                            ))}
+                                            <Link
+                                                to="/profile"
+                                                className="flex flex-col items-center justify-center p-4 rounded-2xl border border-dashed border-gray-200 text-gray-400 hover:text-primary hover:border-primary hover:bg-primary/5 transition-all gap-2"
                                             >
-                                                <div className="flex justify-between items-start mb-2">
-                                                    <span className="text-[10px] font-black uppercase tracking-widest text-primary bg-primary/10 px-2 py-0.5 rounded-full">{addr.label || 'Home'}</span>
-                                                    {addr.is_default && <span className="text-[10px] font-bold text-gray-400">Default</span>}
-                                                </div>
-                                                <p className="font-bold text-gray-900 text-sm">{addr.full_name}</p>
-                                                <p className="text-xs text-gray-500 line-clamp-1">{addr.address_line1}</p>
-                                                <p className="text-xs text-gray-500">{addr.city}, {addr.state}</p>
-                                            </button>
-                                        ))}
-                                        <Link
-                                            to="/profile"
-                                            className="flex flex-col items-center justify-center p-4 rounded-2xl border border-dashed border-gray-200 text-gray-400 hover:text-primary hover:border-primary hover:bg-primary/5 transition-all gap-2"
-                                        >
-                                            <Plus className="w-5 h-5" />
-                                            <span className="text-xs font-bold">Add New Address</span>
-                                        </Link>
-                                    </div>
+                                                <Plus className="w-5 h-5" />
+                                                <span className="text-xs font-bold">Add New Address</span>
+                                            </Link>
+                                        </div>
+                                    )}
                                     <button
                                         onClick={() => setSelectingSaved(false)}
                                         className="text-xs font-bold text-gray-400 hover:text-gray-900"
