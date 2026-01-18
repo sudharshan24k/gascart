@@ -2,7 +2,6 @@ import React, { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { api } from '../services/api';
 import { Package, ChevronLeft, MapPin, CreditCard, Clock, CheckCircle, Truck, Info, FileText } from 'lucide-react';
-import { motion } from 'framer-motion';
 
 const OrderTracking: React.FC = () => {
     const { id } = useParams<{ id: string }>();
@@ -47,15 +46,6 @@ const OrderTracking: React.FC = () => {
         }
     };
 
-    const getStatusIcon = (status: string) => {
-        switch (status.toLowerCase()) {
-            case 'pending': return <Clock className="h-6 w-6" />;
-            case 'processing': return <Info className="h-6 w-6" />;
-            case 'shipped': return <Truck className="h-6 w-6" />;
-            case 'delivered': return <CheckCircle className="h-6 w-6" />;
-            default: return <Package className="h-6 w-6" />;
-        }
-    };
 
     const steps = [
         { key: 'pending', label: 'Order Placed', icon: <Clock className="h-5 w-5" /> },

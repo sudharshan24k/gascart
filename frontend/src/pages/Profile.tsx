@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate, Link } from 'react-router-dom';
 import { api } from '../services/api';
-import { User, Package, FileText, Smartphone, Mail, LogOut, Loader2, Save, MapPin, Plus, Trash2, Home, Briefcase, ChevronRight, CheckCircle } from 'lucide-react';
+import { User, Package, FileText, Smartphone, Mail, LogOut, Loader2, Save, MapPin, Plus, Trash2, Home, Briefcase, CheckCircle } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 const Profile: React.FC = () => {
