@@ -41,6 +41,16 @@ app.use('/api/v1/vendors', vendorRoutes);
 app.use('/api/v1/documents', documentRoutes);
 app.use('/api/v1/users', userRoutes);
 
+// Error Handling Middleware
+app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
+    console.error(`[Error] ${req.method} ${req.url}:`, err);
+    res.status(err.status || 500).json({
+        status: 'error',
+        message: err.message || 'Internal Server Error',
+        ...(config.env === 'development' && { stack: err.stack })
+    });
+});
+
 // Start Server
 // Server startup moved to server.ts for Vercel compatibility
 

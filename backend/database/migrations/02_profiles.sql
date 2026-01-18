@@ -21,6 +21,19 @@ CREATE TABLE IF NOT EXISTS public.profiles (
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
 );
 
+-- Admin Check Helper (Prevents RLS Recursion)
+CREATE OR REPLACE FUNCTION public.is_admin()
+RETURNS BOOLEAN AS $$
+BEGIN
+    RETURN (
+        EXISTS (
+            SELECT 1 FROM public.profiles
+            WHERE id = auth.uid() AND role = 'admin'
+        )
+    );
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
 -- RLS: Profiles
 ALTER TABLE public.profiles ENABLE ROW LEVEL SECURITY;
 
@@ -34,13 +47,13 @@ CREATE POLICY "Users can update own profile"
     ON public.profiles FOR UPDATE 
     USING (auth.uid() = id);
 
+-- Drop existing policy if any to avoid errors during re-migration
+DROP POLICY IF EXISTS "Admins can manage all profiles" ON public.profiles;
+
 -- Admins can manage all profiles
 CREATE POLICY "Admins can manage all profiles" 
     ON public.profiles FOR ALL 
-    USING (EXISTS (
-        SELECT 1 FROM public.profiles 
-        WHERE id = auth.uid() AND role = 'admin'
-    ));
+    USING (public.is_admin());
 
 -- Auto-create profile on user signup (trigger)
 CREATE OR REPLACE FUNCTION public.handle_new_user()

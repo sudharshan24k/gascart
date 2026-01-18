@@ -12,21 +12,26 @@ export const supabase = createClient(supabaseUrl, supabaseKey, {
     }
 });
 
+const getBaseUrl = () => {
+    const url = import.meta.env.VITE_API_URL || 'http://localhost:3000/api/v1';
+    return url.endsWith('/') ? url.slice(0, -1) : url;
+};
+
 export const api = {
     products: {
         list: async (params: Record<string, string>) => {
             const query = new URLSearchParams(params).toString();
-            const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3000/api/v1';
+            const apiUrl = getBaseUrl();
             const res = await fetch(`${apiUrl}/products?${query}`);
             return res.json();
         },
         get: async (id: string) => {
-            const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3000/api/v1';
+            const apiUrl = getBaseUrl();
             const res = await fetch(`${apiUrl}/products/${id}`);
             return res.json();
         },
         create: async (token: string, data: any) => {
-            const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3000/api/v1';
+            const apiUrl = getBaseUrl();
             const res = await fetch(`${apiUrl}/products`, {
                 method: 'POST',
                 headers: {
@@ -40,7 +45,7 @@ export const api = {
     },
     cart: {
         get: async (token: string | null, sessionId: string) => {
-            const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3000/api/v1';
+            const apiUrl = getBaseUrl();
             const headers: any = { 'x-session-id': sessionId };
             if (token) headers['Authorization'] = `Bearer ${token}`;
 
@@ -48,7 +53,7 @@ export const api = {
             return res.json();
         },
         add: async (token: string | null, sessionId: string, data: { productId: string; quantity: number, variant?: any }) => {
-            const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3000/api/v1';
+            const apiUrl = getBaseUrl();
             const headers: any = {
                 'x-session-id': sessionId,
                 'Content-Type': 'application/json'
@@ -63,7 +68,7 @@ export const api = {
             return res.json();
         },
         update: async (token: string | null, sessionId: string, itemId: string, quantity: number) => {
-            const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3000/api/v1';
+            const apiUrl = getBaseUrl();
             const headers: any = {
                 'x-session-id': sessionId,
                 'Content-Type': 'application/json'
@@ -78,7 +83,7 @@ export const api = {
             return res.json();
         },
         remove: async (token: string | null, sessionId: string, itemId: string) => {
-            const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3000/api/v1';
+            const apiUrl = getBaseUrl();
             const headers: any = { 'x-session-id': sessionId };
             if (token) headers['Authorization'] = `Bearer ${token}`;
 
@@ -93,7 +98,7 @@ export const api = {
         create: async (data: any) => {
             const token = (await supabase.auth.getSession()).data.session?.access_token;
             if (!token) throw new Error('Not authenticated');
-            const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3000/api/v1';
+            const apiUrl = getBaseUrl();
             const res = await fetch(`${apiUrl}/orders`, {
                 method: 'POST',
                 headers: {
@@ -107,7 +112,7 @@ export const api = {
         list: async () => {
             const token = (await supabase.auth.getSession()).data.session?.access_token;
             if (!token) throw new Error('Not authenticated');
-            const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3000/api/v1';
+            const apiUrl = getBaseUrl();
             const res = await fetch(`${apiUrl}/orders`, {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
@@ -116,7 +121,7 @@ export const api = {
         get: async (id: string) => {
             const token = (await supabase.auth.getSession()).data.session?.access_token;
             if (!token) throw new Error('Not authenticated');
-            const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3000/api/v1';
+            const apiUrl = getBaseUrl();
             const res = await fetch(`${apiUrl}/orders/${id}`, {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
@@ -125,7 +130,7 @@ export const api = {
         cancel: async (id: string) => {
             const token = (await supabase.auth.getSession()).data.session?.access_token;
             if (!token) throw new Error('Not authenticated');
-            const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3000/api/v1';
+            const apiUrl = getBaseUrl();
             const res = await fetch(`${apiUrl}/orders/${id}/cancel`, {
                 method: 'POST',
                 headers: { 'Authorization': `Bearer ${token}` }
@@ -133,13 +138,13 @@ export const api = {
             return res.json();
         },
         getInvoiceUrl: (id: string) => {
-            const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3000/api/v1';
+            const apiUrl = getBaseUrl();
             return `${apiUrl}/orders/${id}/invoice`;
         }
     },
     rfqs: {
         submit: async (token: string, data: any) => {
-            const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3000/api/v1';
+            const apiUrl = getBaseUrl();
             const res = await fetch(`${apiUrl}/rfqs`, {
                 method: 'POST',
                 headers: {
@@ -151,7 +156,7 @@ export const api = {
             return res.json();
         },
         my: async (token: string) => {
-            const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3000/api/v1';
+            const apiUrl = getBaseUrl();
             const res = await fetch(`${apiUrl}/rfqs/my`, {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
@@ -162,7 +167,7 @@ export const api = {
         getProfile: async () => {
             const token = (await supabase.auth.getSession()).data.session?.access_token;
             if (!token) throw new Error('Not authenticated');
-            const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3000/api/v1';
+            const apiUrl = getBaseUrl();
             const res = await fetch(`${apiUrl}/users/me`, {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
@@ -171,7 +176,7 @@ export const api = {
         updateProfile: async (data: { full_name?: string; phone?: string }) => {
             const token = (await supabase.auth.getSession()).data.session?.access_token;
             if (!token) throw new Error('Not authenticated');
-            const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3000/api/v1';
+            const apiUrl = getBaseUrl();
             const res = await fetch(`${apiUrl}/users/me`, {
                 method: 'PATCH',
                 headers: {
@@ -186,7 +191,7 @@ export const api = {
             list: async () => {
                 const token = (await supabase.auth.getSession()).data.session?.access_token;
                 if (!token) throw new Error('Not authenticated');
-                const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3000/api/v1';
+                const apiUrl = getBaseUrl();
                 const res = await fetch(`${apiUrl}/users/addresses`, {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
@@ -195,7 +200,7 @@ export const api = {
             add: async (data: any) => {
                 const token = (await supabase.auth.getSession()).data.session?.access_token;
                 if (!token) throw new Error('Not authenticated');
-                const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3000/api/v1';
+                const apiUrl = getBaseUrl();
                 const res = await fetch(`${apiUrl}/users/addresses`, {
                     method: 'POST',
                     headers: {
@@ -209,7 +214,7 @@ export const api = {
             update: async (id: string, data: any) => {
                 const token = (await supabase.auth.getSession()).data.session?.access_token;
                 if (!token) throw new Error('Not authenticated');
-                const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3000/api/v1';
+                const apiUrl = getBaseUrl();
                 const res = await fetch(`${apiUrl}/users/addresses/${id}`, {
                     method: 'PATCH',
                     headers: {
@@ -223,7 +228,7 @@ export const api = {
             delete: async (id: string) => {
                 const token = (await supabase.auth.getSession()).data.session?.access_token;
                 if (!token) throw new Error('Not authenticated');
-                const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3000/api/v1';
+                const apiUrl = getBaseUrl();
                 const res = await fetch(`${apiUrl}/users/addresses/${id}`, {
                     method: 'DELETE',
                     headers: { 'Authorization': `Bearer ${token}` }
@@ -234,7 +239,7 @@ export const api = {
     },
     vendors: {
         submitEnquiry: async (data: any) => {
-            const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3000/api/v1';
+            const apiUrl = getBaseUrl();
             const res = await fetch(`${apiUrl}/vendors/enquiry`, {
                 method: 'POST',
                 headers: {
@@ -251,7 +256,7 @@ export const api = {
     },
     documents: {
         list: async () => {
-            const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3000/api/v1';
+            const apiUrl = getBaseUrl();
             const res = await fetch(`${apiUrl}/documents`);
             return res.json();
         }
@@ -259,12 +264,12 @@ export const api = {
     articles: {
         list: async (params: Record<string, string>) => {
             const query = new URLSearchParams(params).toString();
-            const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3000/api/v1';
+            const apiUrl = getBaseUrl();
             const res = await fetch(`${apiUrl}/articles?${query}`);
             return res.json();
         },
         get: async (slug: string) => {
-            const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3000/api/v1';
+            const apiUrl = getBaseUrl();
             const res = await fetch(`${apiUrl}/articles/${slug}`);
             return res.json();
         }
