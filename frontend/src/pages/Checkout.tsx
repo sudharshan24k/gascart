@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useCart } from '../context/CartContext';
-import { Lock, CreditCard, ChevronRight, CheckCircle2, ShieldCheck, Loader2 } from 'lucide-react';
+import { Lock, CreditCard, ChevronRight, CheckCircle2, ShieldCheck, Loader2, MapPin, Plus } from 'lucide-react';
 import { api } from '../services/api';
 import { motion } from 'framer-motion';
 
@@ -21,6 +21,9 @@ const Checkout: React.FC = () => {
         country: 'United States',
         phone: ''
     });
+    const [addresses, setAddresses] = useState<any[]>([]);
+    const [loadingAddresses, setLoadingAddresses] = useState(true);
+    const [selectingSaved, setSelectingSaved] = useState(false);
 
     const [processingOrder, setProcessingOrder] = useState(false);
 
@@ -35,7 +38,40 @@ const Checkout: React.FC = () => {
         if (!loading && items.length === 0) {
             navigate('/cart');
         }
+        fetchAddresses();
     }, [items, loading, navigate]);
+
+    const fetchAddresses = async () => {
+        try {
+            const res = await api.users.addresses.list();
+            if (res.status === 'success') {
+                setAddresses(res.data);
+                // Auto-fill with default address if exists
+                const defaultAddr = res.data.find((a: any) => a.is_default);
+                if (defaultAddr) {
+                    applyAddress(defaultAddr);
+                }
+            }
+        } catch (err) {
+            console.error('Failed to fetch addresses', err);
+        } finally {
+            setLoadingAddresses(false);
+        }
+    };
+
+    const applyAddress = (addr: any) => {
+        setFormData({
+            full_name: addr.full_name,
+            email: formData.email, // Keep email if already entered
+            address_line1: `${addr.address_line1}${addr.address_line2 ? ', ' + addr.address_line2 : ''}`,
+            city: addr.city,
+            state: addr.state,
+            zip_code: addr.postal_code,
+            country: addr.country,
+            phone: addr.phone
+        });
+        setSelectingSaved(false);
+    };
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
         setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -98,10 +134,53 @@ const Checkout: React.FC = () => {
                                     <span className="w-8 h-8 bg-gray-900 text-white rounded-full flex items-center justify-center text-sm">1</span>
                                     Shipping Details
                                 </h2>
-                                {step > 1 && <CheckCircle2 className="w-6 h-6 text-green-500" />}
+                                <div className="flex items-center gap-3">
+                                    {addresses.length > 0 && step === 1 && !selectingSaved && (
+                                        <button
+                                            onClick={() => setSelectingSaved(true)}
+                                            className="text-xs font-bold text-primary hover:underline flex items-center gap-1"
+                                        >
+                                            <MapPin className="w-3 h-3" /> Use Saved Address
+                                        </button>
+                                    )}
+                                    {step > 1 && <CheckCircle2 className="w-6 h-6 text-green-500" />}
+                                </div>
                             </div>
 
-                            {step === 1 && (
+                            {step === 1 && selectingSaved ? (
+                                <div className="space-y-4">
+                                    <div className="grid md:grid-cols-2 gap-4">
+                                        {addresses.map((addr) => (
+                                            <button
+                                                key={addr.id}
+                                                onClick={() => applyAddress(addr)}
+                                                className="text-left p-4 bg-gray-50 rounded-2xl border border-gray-100 hover:border-primary hover:bg-white transition-all group"
+                                            >
+                                                <div className="flex justify-between items-start mb-2">
+                                                    <span className="text-[10px] font-black uppercase tracking-widest text-primary bg-primary/10 px-2 py-0.5 rounded-full">{addr.label || 'Home'}</span>
+                                                    {addr.is_default && <span className="text-[10px] font-bold text-gray-400">Default</span>}
+                                                </div>
+                                                <p className="font-bold text-gray-900 text-sm">{addr.full_name}</p>
+                                                <p className="text-xs text-gray-500 line-clamp-1">{addr.address_line1}</p>
+                                                <p className="text-xs text-gray-500">{addr.city}, {addr.state}</p>
+                                            </button>
+                                        ))}
+                                        <Link
+                                            to="/profile"
+                                            className="flex flex-col items-center justify-center p-4 rounded-2xl border border-dashed border-gray-200 text-gray-400 hover:text-primary hover:border-primary hover:bg-primary/5 transition-all gap-2"
+                                        >
+                                            <Plus className="w-5 h-5" />
+                                            <span className="text-xs font-bold">Add New Address</span>
+                                        </Link>
+                                    </div>
+                                    <button
+                                        onClick={() => setSelectingSaved(false)}
+                                        className="text-xs font-bold text-gray-400 hover:text-gray-900"
+                                    >
+                                        ← Enter address manually
+                                    </button>
+                                </div>
+                            ) : step === 1 && (
                                 <div className="grid md:grid-cols-2 gap-6">
                                     <div className="md:col-span-2">
                                         <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">Full Name</label>

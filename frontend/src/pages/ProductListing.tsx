@@ -246,6 +246,10 @@ const ProductListing: React.FC = () => {
                                                     <span className="bg-gray-900/80 backdrop-blur text-white text-[10px] font-black px-4 py-2 rounded-xl uppercase tracking-widest flex items-center gap-2">
                                                         <ClipboardList className="w-3 h-3 text-primary" /> Technical RFQ
                                                     </span>
+                                                ) : product.purchase_model === 'both' ? (
+                                                    <span className="bg-blue-600/80 backdrop-blur text-white text-[10px] font-black px-4 py-2 rounded-xl uppercase tracking-widest flex items-center gap-2">
+                                                        <GitCompare className="w-3 h-3" /> Direct + RFQ
+                                                    </span>
                                                 ) : (
                                                     <span className="bg-green-600/80 backdrop-blur text-white text-[10px] font-black px-4 py-2 rounded-xl uppercase tracking-widest flex items-center gap-2">
                                                         <ShieldCheck className="w-3 h-3" /> Direct Buy
@@ -288,7 +292,7 @@ const ProductListing: React.FC = () => {
                                                 <div className="flex items-center justify-between mt-8 pt-8 border-t border-gray-50">
                                                     <div className="flex flex-col">
                                                         <span className="text-[10px] text-gray-400 font-bold uppercase tracking-tighter">
-                                                            {product.purchase_model === 'rfq' ? 'Project Est.' : 'Ex-Works Price'}
+                                                            {product.purchase_model === 'rfq' ? 'Project Est.' : product.purchase_model === 'both' ? 'Price/Est.' : 'Ex-Works Price'}
                                                         </span>
                                                         <span className="text-2xl font-black text-gray-900">${Number(product.price).toLocaleString()}</span>
                                                     </div>
@@ -297,7 +301,7 @@ const ProductListing: React.FC = () => {
                                                             type: 'ADD_ITEM',
                                                             payload: { id: product.id, name: product.name, price: Number(product.price), quantity: 1, image: mainImage, vendor: vendorName }
                                                         })}
-                                                        className={`p-4 rounded-2xl transition-all shadow-xl hover:-translate-y-1 active:scale-95 ${product.purchase_model === 'rfq' ? 'bg-gray-100 text-gray-400 hover:bg-primary hover:text-white' : 'bg-gray-900 text-white hover:bg-primary'
+                                                        className={`p-4 rounded-2xl transition-all shadow-xl hover:-translate-y-1 active:scale-95 ${product.purchase_model === 'rfq' ? 'bg-gray-100 text-gray-400 hover:bg-primary hover:text-white' : product.purchase_model === 'both' ? 'bg-primary text-white shadow-primary/20' : 'bg-gray-900 text-white hover:bg-primary'
                                                             }`}
                                                     >
                                                         {product.purchase_model === 'rfq' ? <ClipboardList className="w-6 h-6" /> : <Plus className="w-6 h-6" />}

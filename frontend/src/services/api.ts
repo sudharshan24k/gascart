@@ -3,7 +3,14 @@ import { createClient } from '@supabase/supabase-js';
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || '';
 const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY || '';
 
-export const supabase = createClient(supabaseUrl, supabaseKey);
+export const supabase = createClient(supabaseUrl, supabaseKey, {
+    auth: {
+        storage: window.sessionStorage,
+        autoRefreshToken: true,
+        persistSession: true,
+        detectSessionInUrl: true
+    }
+});
 
 export const api = {
     products: {
@@ -105,6 +112,29 @@ export const api = {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
             return res.json();
+        },
+        get: async (id: string) => {
+            const token = (await supabase.auth.getSession()).data.session?.access_token;
+            if (!token) throw new Error('Not authenticated');
+            const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3000/api/v1';
+            const res = await fetch(`${apiUrl}/orders/${id}`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            return res.json();
+        },
+        cancel: async (id: string) => {
+            const token = (await supabase.auth.getSession()).data.session?.access_token;
+            if (!token) throw new Error('Not authenticated');
+            const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3000/api/v1';
+            const res = await fetch(`${apiUrl}/orders/${id}/cancel`, {
+                method: 'POST',
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            return res.json();
+        },
+        getInvoiceUrl: (id: string) => {
+            const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3000/api/v1';
+            return `${apiUrl}/orders/${id}/invoice`;
         }
     },
     rfqs: {
@@ -151,6 +181,55 @@ export const api = {
                 body: JSON.stringify(data)
             });
             return res.json();
+        },
+        addresses: {
+            list: async () => {
+                const token = (await supabase.auth.getSession()).data.session?.access_token;
+                if (!token) throw new Error('Not authenticated');
+                const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3000/api/v1';
+                const res = await fetch(`${apiUrl}/users/addresses`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                return res.json();
+            },
+            add: async (data: any) => {
+                const token = (await supabase.auth.getSession()).data.session?.access_token;
+                if (!token) throw new Error('Not authenticated');
+                const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3000/api/v1';
+                const res = await fetch(`${apiUrl}/users/addresses`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify(data)
+                });
+                return res.json();
+            },
+            update: async (id: string, data: any) => {
+                const token = (await supabase.auth.getSession()).data.session?.access_token;
+                if (!token) throw new Error('Not authenticated');
+                const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3000/api/v1';
+                const res = await fetch(`${apiUrl}/users/addresses/${id}`, {
+                    method: 'PATCH',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify(data)
+                });
+                return res.json();
+            },
+            delete: async (id: string) => {
+                const token = (await supabase.auth.getSession()).data.session?.access_token;
+                if (!token) throw new Error('Not authenticated');
+                const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3000/api/v1';
+                const res = await fetch(`${apiUrl}/users/addresses/${id}`, {
+                    method: 'DELETE',
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                return res.json();
+            }
         }
     },
     vendors: {

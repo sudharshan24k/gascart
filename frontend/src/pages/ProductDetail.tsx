@@ -56,7 +56,10 @@ const ProductDetail: React.FC = () => {
     if (!product) return <div className="pt-32 text-center text-red-500 font-bold">Industrial asset not found</div>;
 
     const isInComparison = state.comparisonItems.some(i => i.id === product.id);
-    const isDirectBuy = product.purchase_model === 'direct';
+    const purchaseModel = product.purchase_model || 'rfq';
+    const isDirectBuy = purchaseModel === 'direct';
+    const isRFQ = purchaseModel === 'rfq';
+    const isBoth = purchaseModel === 'both';
 
     return (
         <div className="min-h-screen pt-32 pb-24 bg-gray-50">
@@ -170,52 +173,40 @@ const ProductDetail: React.FC = () => {
 
                             {/* Action Buttons */}
                             <div className="flex flex-col gap-4">
-                                {isDirectBuy ? (
-                                    <>
-                                        <button
-                                            onClick={async () => {
-                                                await addToCart(product.id, 1, selectedVariant);
-                                                // Optional: simple alert or toast
-                                                alert('Added to cart lead gen commitment');
-                                                window.location.href = '/cart';
-                                            }}
-                                            className="w-full bg-primary hover:bg-primary-dark text-white font-black py-5 px-8 rounded-2xl shadow-xl transition-all flex flex-col items-center justify-center transform hover:-translate-y-1"
-                                        >
-                                            <span className="text-lg">Reserve with 50% Advance</span>
-                                            <span className="text-xs opacity-80 font-medium tracking-tight">Lead Gen Commitment: ${(activePrice * 0.5).toLocaleString()}</span>
-                                        </button>
-                                        <button
-                                            onClick={() => dispatch({
-                                                type: 'ADD_ITEM',
-                                                payload: { id: product.id, name: product.name, price: product.price, quantity: 1, image: product.images?.[0], vendor: product.vendor }
-                                            })}
-                                            className="w-full bg-white border-2 border-gray-100 hover:border-primary text-gray-700 font-bold py-5 px-8 rounded-2xl transition-all flex items-center justify-center gap-3"
-                                        >
-                                            <ClipboardList className="w-5 h-5" />
-                                            Add to Enquiry List
-                                        </button>
-                                    </>
-                                ) : (
-                                    <>
-                                        <button
-                                            onClick={() => setShowRFQModal(true)}
-                                            className="w-full bg-gray-900 hover:bg-primary text-white font-black py-6 px-8 rounded-2xl shadow-2xl transition-all flex items-center justify-center gap-3 transform hover:-translate-y-1"
-                                        >
-                                            <Send className="w-5 h-5" />
-                                            Initiate Technical RFQ
-                                        </button>
-                                        <button
-                                            onClick={() => dispatch({
-                                                type: 'ADD_ITEM',
-                                                payload: { id: product.id, name: product.name, price: product.price, quantity: 1, image: product.images?.[0], vendor: product.vendor }
-                                            })}
-                                            className="w-full bg-white border-2 border-gray-100 hover:border-gray-900 text-gray-700 font-bold py-5 px-8 rounded-2xl transition-all flex items-center justify-center gap-3"
-                                        >
-                                            <ClipboardList className="w-5 h-5" />
-                                            Add to Enquiry List for Technical Review
-                                        </button>
-                                    </>
+                                {(isDirectBuy || isBoth) && (
+                                    <button
+                                        onClick={async () => {
+                                            await addToCart(product.id, 1, selectedVariant);
+                                            alert('Added to cart lead gen commitment');
+                                            window.location.href = '/cart';
+                                        }}
+                                        className="w-full bg-primary hover:bg-primary-dark text-white font-black py-5 px-8 rounded-2xl shadow-xl transition-all flex flex-col items-center justify-center transform hover:-translate-y-1"
+                                    >
+                                        <span className="text-lg">Reserve with 50% Advance</span>
+                                        <span className="text-xs opacity-80 font-medium tracking-tight">Lead Gen Commitment: ${(activePrice * 0.5).toLocaleString()}</span>
+                                    </button>
                                 )}
+
+                                {(isRFQ || isBoth) && (
+                                    <button
+                                        onClick={() => setShowRFQModal(true)}
+                                        className="w-full bg-gray-900 hover:bg-primary text-white font-black py-6 px-8 rounded-2xl shadow-2xl transition-all flex items-center justify-center gap-3 transform hover:-translate-y-1"
+                                    >
+                                        <Send className="w-5 h-5" />
+                                        Initiate Technical RFQ
+                                    </button>
+                                )}
+
+                                <button
+                                    onClick={() => dispatch({
+                                        type: 'ADD_ITEM',
+                                        payload: { id: product.id, name: product.name, price: product.price, quantity: 1, image: product.images?.[0], vendor: product.vendor }
+                                    })}
+                                    className="w-full bg-white border-2 border-gray-100 hover:border-primary text-gray-700 font-bold py-5 px-8 rounded-2xl transition-all flex items-center justify-center gap-3"
+                                >
+                                    <ClipboardList className="w-5 h-5" />
+                                    Add to Enquiry List {isRFQ || isBoth ? 'for Technical Review' : ''}
+                                </button>
 
                                 <button
                                     onClick={() => dispatch({

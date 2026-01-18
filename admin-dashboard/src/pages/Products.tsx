@@ -264,6 +264,10 @@ const AdminProducts = () => {
                                             <span className="flex items-center gap-2 text-sm font-bold text-gray-700">
                                                 <ClipboardList className="w-4 h-4 text-primary" /> Technical RFQ Only
                                             </span>
+                                        ) : product.purchase_model === 'both' ? (
+                                            <span className="flex items-center gap-2 text-sm font-bold text-blue-600">
+                                                <GitCompare className="w-4 h-4" /> Direct + RFQ
+                                            </span>
                                         ) : (
                                             <span className="flex items-center gap-2 text-sm font-bold text-gray-900">
                                                 <CheckCircle className="w-4 h-4 text-green-500" /> Direct Buy Ready
@@ -392,10 +396,17 @@ const AdminProducts = () => {
                                                 >
                                                     <CheckCircle className="w-4 h-4" /> Direct Commerce
                                                 </button>
+                                                <button
+                                                    type="button"
+                                                    onClick={() => setFormData({ ...formData, purchase_model: 'both' })}
+                                                    className={`w-full p-4 rounded-xl text-xs font-black uppercase tracking-widest flex items-center gap-3 transition-all ${formData.purchase_model === 'both' ? 'bg-blue-600 text-white shadow-lg' : 'bg-white text-gray-400 border border-gray-100'}`}
+                                                >
+                                                    <GitCompare className="w-4 h-4" /> Both (Hybrid)
+                                                </button>
                                             </div>
                                         </div>
 
-                                        {formData.purchase_model === 'rfq' && (
+                                        {(formData.purchase_model === 'rfq' || formData.purchase_model === 'both') && (
                                             <div className="pt-4 border-t border-gray-100">
                                                 <div className="flex justify-between items-center mb-4">
                                                     <label className="block text-xs font-black text-gray-400 uppercase tracking-widest">RFQ Fields</label>

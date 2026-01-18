@@ -13,6 +13,8 @@ import ArticleDetail from './pages/ArticleDetail';
 import Resources from './pages/Resources';
 import VendorEnquiry from './pages/VendorEnquiry';
 import Compare from './pages/Compare';
+import MyOrders from './pages/MyOrders';
+import OrderTracking from './pages/OrderTracking';
 
 import EnquiryList from './pages/EnquiryList';
 import SubmitRFQ from './pages/SubmitRFQ';
@@ -64,6 +66,8 @@ function App() {
                                 <Route path="checkout" element={<Checkout />} />
                                 <Route path="order-success" element={<OrderSuccess />} />
                                 <Route path="profile" element={<Profile />} />
+                                <Route path="my-orders" element={<MyOrders />} />
+                                <Route path="order-tracking/:id" element={<OrderTracking />} />
                             </Route>
                         </Routes>
                     </Router>

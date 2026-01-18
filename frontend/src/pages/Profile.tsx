@@ -1,20 +1,21 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { api } from '../services/api';
-import { User, Package, FileText, Smartphone, Mail, LogOut, Loader2, Save } from 'lucide-react';
+import { User, Package, FileText, Smartphone, Mail, LogOut, Loader2, Save, MapPin, Plus, Trash2, Home, Briefcase, ChevronRight, CheckCircle } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 const Profile: React.FC = () => {
     const { session, signOut } = useAuth();
     const navigate = useNavigate();
-    const [activeTab, setActiveTab] = useState<'overview' | 'orders' | 'rfqs'>('overview');
+    const [activeTab, setActiveTab] = useState<'overview' | 'orders' | 'rfqs' | 'addresses'>('overview');
     const [loading, setLoading] = useState(true);
 
     // Data State
     const [profile, setProfile] = useState<any>(null);
     const [orders, setOrders] = useState<any[]>([]);
     const [rfqs, setRfqs] = useState<any[]>([]);
+    const [addresses, setAddresses] = useState<any[]>([]);
 
     // Form State
     const [formData, setFormData] = useState({
@@ -22,6 +23,21 @@ const Profile: React.FC = () => {
         phone: ''
     });
     const [updating, setUpdating] = useState(false);
+    const [isAddingAddress, setIsAddingAddress] = useState(false);
+    const [editingAddress, setEditingAddress] = useState<any>(null);
+    const [addressFormData, setAddressFormData] = useState({
+        type: 'shipping',
+        label: '',
+        full_name: '',
+        address_line1: '',
+        address_line2: '',
+        city: '',
+        state: '',
+        postal_code: '',
+        country: 'India',
+        phone: '',
+        is_default: false
+    });
 
     useEffect(() => {
         if (!session) {
@@ -35,10 +51,11 @@ const Profile: React.FC = () => {
         setLoading(true);
         try {
             // Parallel Fetch
-            const [profileRes, ordersRes, rfqsRes] = await Promise.all([
+            const [profileRes, ordersRes, rfqsRes, addressesRes] = await Promise.all([
                 api.users.getProfile(),
                 api.orders.list(),
-                api.rfqs.my(session?.access_token || '')
+                api.rfqs.my(session?.access_token || ''),
+                api.users.addresses.list()
             ]);
 
             if (profileRes.status === 'success') {
@@ -50,6 +67,7 @@ const Profile: React.FC = () => {
             }
             if (ordersRes.status === 'success') setOrders(ordersRes.data);
             if (rfqsRes.status === 'success') setRfqs(rfqsRes.data);
+            if (addressesRes.status === 'success') setAddresses(addressesRes.data);
 
         } catch (err) {
             console.error('Failed to load profile data', err);
@@ -73,6 +91,69 @@ const Profile: React.FC = () => {
         } finally {
             setUpdating(false);
         }
+    };
+
+    const handleSaveAddress = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setUpdating(true);
+        try {
+            if (editingAddress) {
+                const res = await api.users.addresses.update(editingAddress.id, addressFormData);
+                if (res.status === 'success') {
+                    setAddresses(addresses.map(a => a.id === editingAddress.id ? res.data : res.data.is_default ? { ...a, is_default: false } : a));
+                    setEditingAddress(null);
+                    setIsAddingAddress(false);
+                }
+            } else {
+                const res = await api.users.addresses.add(addressFormData);
+                if (res.status === 'success') {
+                    setAddresses([res.data, ...addresses.map(a => res.data.is_default ? { ...a, is_default: false } : a)]);
+                    setIsAddingAddress(false);
+                }
+            }
+        } catch (err) {
+            console.error('Address save failed', err);
+            alert('Failed to save address');
+        } finally {
+            setUpdating(false);
+        }
+    };
+
+    const handleDeleteAddress = async (id: string) => {
+        if (!confirm('Are you sure you want to delete this address?')) return;
+        try {
+            const res = await api.users.addresses.delete(id);
+            if (res.status === 'success') {
+                setAddresses(addresses.filter(a => a.id !== id));
+            }
+        } catch (err) {
+            console.error('Delete failed', err);
+            alert('Failed to delete address');
+        }
+    };
+
+    const openAddAddress = () => {
+        setEditingAddress(null);
+        setAddressFormData({
+            type: 'shipping',
+            label: '',
+            full_name: profile?.full_name || '',
+            address_line1: '',
+            address_line2: '',
+            city: '',
+            state: '',
+            postal_code: '',
+            country: 'India',
+            phone: profile?.phone || '',
+            is_default: addresses.length === 0
+        });
+        setIsAddingAddress(true);
+    };
+
+    const openEditAddress = (address: any) => {
+        setEditingAddress(address);
+        setAddressFormData({ ...address });
+        setIsAddingAddress(true);
     };
 
     if (loading) {
@@ -120,6 +201,12 @@ const Profile: React.FC = () => {
                                     className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-colors font-medium ${activeTab === 'rfqs' ? 'bg-primary text-white shadow-lg shadow-primary/25' : 'text-gray-600 hover:bg-gray-50'}`}
                                 >
                                     <FileText className="w-5 h-5" /> RFQs <span className="ml-auto bg-white/20 px-2 rounded-md text-xs">{rfqs.length}</span>
+                                </button>
+                                <button
+                                    onClick={() => setActiveTab('addresses')}
+                                    className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-colors font-medium ${activeTab === 'addresses' ? 'bg-primary text-white shadow-lg shadow-primary/25' : 'text-gray-600 hover:bg-gray-50'}`}
+                                >
+                                    <MapPin className="w-5 h-5" /> Addresses <span className="ml-auto bg-white/20 px-2 rounded-md text-xs">{addresses.length}</span>
                                 </button>
                                 <hr className="border-gray-100 my-2" />
                                 <button
@@ -245,54 +332,248 @@ const Profile: React.FC = () => {
                                                         </div>
                                                     ))}
                                                 </div>
+
+                                                <div className="mt-6 pt-6 border-t border-gray-50 flex gap-4">
+                                                    <Link
+                                                        to={`/order-tracking/${order.id}`}
+                                                        className="flex-grow text-center py-3 bg-primary text-white rounded-xl font-bold hover:bg-primary-dark transition-all text-sm"
+                                                    >
+                                                        Track Order
+                                                    </Link>
+                                                    <a
+                                                        href={api.orders.getInvoiceUrl(order.id)}
+                                                        download
+                                                        className="px-6 py-3 border border-gray-200 text-gray-600 rounded-xl font-bold hover:bg-gray-50 transition-all text-sm"
+                                                    >
+                                                        Invoice
+                                                    </a>
+                                                </div>
                                             </div>
                                         ))
                                     )}
                                 </motion.div>
                             )}
 
-                            {activeTab === 'rfqs' && (
+                            {activeTab === 'addresses' && (
                                 <motion.div
-                                    key="rfqs"
+                                    key="addresses"
                                     initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}
                                     className="space-y-6"
                                 >
-                                    <h2 className="text-xl font-bold text-gray-900">RFQ History</h2>
-                                    {rfqs.length === 0 ? (
+                                    <div className="flex items-center justify-between">
+                                        <h2 className="text-xl font-bold text-gray-900">Saved Addresses</h2>
+                                        <button
+                                            onClick={openAddAddress}
+                                            className="flex items-center gap-2 px-6 py-3 bg-primary text-white rounded-xl font-bold hover:bg-primary-dark transition-all shadow-lg shadow-primary/20 text-sm"
+                                        >
+                                            <Plus className="w-4 h-4" /> Add New Address
+                                        </button>
+                                    </div>
+
+                                    {addresses.length === 0 ? (
                                         <div className="bg-white p-12 rounded-[32px] text-center border border-gray-100">
-                                            <FileText className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-                                            <h3 className="text-lg font-bold text-gray-900 mb-2">No RFQs submitted</h3>
-                                            <p className="text-gray-500">Submit technical requests for quotes to see them here.</p>
+                                            <MapPin className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+                                            <h3 className="text-lg font-bold text-gray-900 mb-2">No saved addresses</h3>
+                                            <p className="text-gray-500">Add your shipping and billing addresses for a faster checkout.</p>
                                         </div>
                                     ) : (
-                                        rfqs.map((rfq: any) => (
-                                            <div key={rfq.id} className="bg-white p-6 rounded-[24px] border border-gray-100 shadow-sm hover:shadow-md transition-shadow">
-                                                <div className="flex flex-wrap items-center justify-between gap-4">
-                                                    <div className="flex items-center gap-4">
-                                                        <div className="w-12 h-12 bg-blue-50 text-blue-500 rounded-xl flex items-center justify-center">
-                                                            <FileText className="w-6 h-6" />
+                                        <div className="grid md:grid-cols-2 gap-6">
+                                            {addresses.map((address) => (
+                                                <div key={address.id} className={`bg-white p-6 rounded-[24px] border transition-all ${address.is_default ? 'border-primary shadow-md' : 'border-gray-100 shadow-sm hover:shadow-md'}`}>
+                                                    <div className="flex items-start justify-between mb-4">
+                                                        <div className="flex items-center gap-3">
+                                                            <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${address.is_default ? 'bg-primary text-white' : 'bg-gray-50 text-gray-400'}`}>
+                                                                {address.label?.toLowerCase() === 'work' ? <Briefcase className="w-5 h-5" /> : <Home className="w-5 h-5" />}
+                                                            </div>
+                                                            <div>
+                                                                <h3 className="font-bold text-gray-900 capitalize">{address.label || 'Home'}</h3>
+                                                                <p className="text-[10px] font-black uppercase tracking-widest text-primary">{address.type}</p>
+                                                            </div>
                                                         </div>
-                                                        <div>
-                                                            <h3 className="font-bold text-gray-900">{rfq.products?.name || 'Custom Request'}</h3>
-                                                            <p className="text-xs text-gray-500 font-mono">ID: {rfq.id.slice(0, 8)}</p>
+                                                        <div className="flex items-center gap-1">
+                                                            <button
+                                                                onClick={() => openEditAddress(address)}
+                                                                className="p-2 text-gray-400 hover:text-primary transition-colors"
+                                                            >
+                                                                <Save className="w-4 h-4" />
+                                                            </button>
+                                                            <button
+                                                                onClick={() => handleDeleteAddress(address.id)}
+                                                                className="p-2 text-gray-400 hover:text-red-500 transition-colors"
+                                                            >
+                                                                <Trash2 className="w-4 h-4" />
+                                                            </button>
                                                         </div>
                                                     </div>
-                                                    <div className="text-right">
-                                                        <span className={`block px-4 py-2 rounded-full text-xs font-bold capitalize mb-1 inline-block ${rfq.status === 'quoted' ? 'bg-green-100 text-green-600' :
-                                                                rfq.status === 'new' ? 'bg-blue-100 text-blue-600' : 'bg-gray-100 text-gray-600'
-                                                            }`}>
-                                                            {rfq.status}
-                                                        </span>
-                                                        <p className="text-xs text-gray-400 font-bold">{new Date(rfq.created_at).toLocaleDateString()}</p>
+
+                                                    <div className="space-y-1 text-sm text-gray-600 font-medium">
+                                                        <p className="font-bold text-gray-900">{address.full_name}</p>
+                                                        <p>{address.address_line1}</p>
+                                                        {address.address_line2 && <p>{address.address_line2}</p>}
+                                                        <p>{address.city}, {address.state} {address.postal_code}</p>
+                                                        <p>{address.country}</p>
+                                                        <p className="pt-2 text-gray-500 flex items-center gap-2">
+                                                            <Smartphone className="w-3.5 h-3.5" /> {address.phone}
+                                                        </p>
                                                     </div>
+
+                                                    {address.is_default && (
+                                                        <div className="mt-4 pt-4 border-t border-gray-50 flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-primary">
+                                                            <CheckCircle className="w-3 h-3" /> Default Address
+                                                        </div>
+                                                    )}
                                                 </div>
-                                                {/* Specs Preview could go here */}
-                                            </div>
-                                        ))
+                                            ))}
+                                        </div>
                                     )}
                                 </motion.div>
                             )}
                         </AnimatePresence>
+
+                        {/* Add/Edit Address Modal */}
+                        {isAddingAddress && (
+                            <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm">
+                                <motion.div
+                                    initial={{ opacity: 0, scale: 0.95 }}
+                                    animate={{ opacity: 1, scale: 1 }}
+                                    className="bg-white rounded-[32px] w-full max-w-xl max-h-[90vh] overflow-hidden shadow-2xl flex flex-col"
+                                >
+                                    <div className="p-8 border-b border-gray-50 flex justify-between items-center">
+                                        <h3 className="text-xl font-bold text-gray-900">{editingAddress ? 'Edit Address' : 'Add New Address'}</h3>
+                                        <button onClick={() => setIsAddingAddress(false)} className="p-2 hover:bg-gray-50 rounded-full text-gray-400">
+                                            <Plus className="w-6 h-6 rotate-45" />
+                                        </button>
+                                    </div>
+
+                                    <form onSubmit={handleSaveAddress} className="flex-grow overflow-y-auto p-8 space-y-6">
+                                        <div className="grid grid-cols-2 gap-4">
+                                            <div>
+                                                <label className="block text-xs font-black uppercase tracking-widest text-gray-500 mb-2">Label</label>
+                                                <input
+                                                    type="text"
+                                                    value={addressFormData.label}
+                                                    onChange={(e) => setAddressFormData({ ...addressFormData, label: e.target.value })}
+                                                    placeholder="Home, Work, etc."
+                                                    className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl focus:ring-2 focus:ring-primary/20 outline-none font-medium"
+                                                    required
+                                                />
+                                            </div>
+                                            <div>
+                                                <label className="block text-xs font-black uppercase tracking-widest text-gray-500 mb-2">Type</label>
+                                                <select
+                                                    value={addressFormData.type}
+                                                    onChange={(e) => setAddressFormData({ ...addressFormData, type: e.target.value })}
+                                                    className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl focus:ring-2 focus:ring-primary/20 outline-none font-medium"
+                                                >
+                                                    <option value="shipping">Shipping</option>
+                                                    <option value="billing">Billing</option>
+                                                    <option value="both">Both</option>
+                                                </select>
+                                            </div>
+                                        </div>
+
+                                        <div>
+                                            <label className="block text-xs font-black uppercase tracking-widest text-gray-500 mb-2">Full Name</label>
+                                            <input
+                                                type="text"
+                                                value={addressFormData.full_name}
+                                                onChange={(e) => setAddressFormData({ ...addressFormData, full_name: e.target.value })}
+                                                className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl focus:ring-2 focus:ring-primary/20 outline-none font-medium"
+                                                required
+                                            />
+                                        </div>
+
+                                        <div>
+                                            <label className="block text-xs font-black uppercase tracking-widest text-gray-500 mb-2">Address Line 1</label>
+                                            <input
+                                                type="text"
+                                                value={addressFormData.address_line1}
+                                                onChange={(e) => setAddressFormData({ ...addressFormData, address_line1: e.target.value })}
+                                                className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl focus:ring-2 focus:ring-primary/20 outline-none font-medium"
+                                                required
+                                            />
+                                        </div>
+
+                                        <div>
+                                            <label className="block text-xs font-black uppercase tracking-widest text-gray-500 mb-2">Address Line 2 (Optional)</label>
+                                            <input
+                                                type="text"
+                                                value={addressFormData.address_line2}
+                                                onChange={(e) => setAddressFormData({ ...addressFormData, address_line2: e.target.value })}
+                                                className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl focus:ring-2 focus:ring-primary/20 outline-none font-medium"
+                                            />
+                                        </div>
+
+                                        <div className="grid grid-cols-2 gap-4">
+                                            <div>
+                                                <label className="block text-xs font-black uppercase tracking-widest text-gray-500 mb-2">City</label>
+                                                <input
+                                                    type="text"
+                                                    value={addressFormData.city}
+                                                    onChange={(e) => setAddressFormData({ ...addressFormData, city: e.target.value })}
+                                                    className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl focus:ring-2 focus:ring-primary/20 outline-none font-medium"
+                                                    required
+                                                />
+                                            </div>
+                                            <div>
+                                                <label className="block text-xs font-black uppercase tracking-widest text-gray-500 mb-2">State</label>
+                                                <input
+                                                    type="text"
+                                                    value={addressFormData.state}
+                                                    onChange={(e) => setAddressFormData({ ...addressFormData, state: e.target.value })}
+                                                    className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl focus:ring-2 focus:ring-primary/20 outline-none font-medium"
+                                                    required
+                                                />
+                                            </div>
+                                        </div>
+
+                                        <div className="grid grid-cols-2 gap-4">
+                                            <div>
+                                                <label className="block text-xs font-black uppercase tracking-widest text-gray-500 mb-2">Postal Code</label>
+                                                <input
+                                                    type="text"
+                                                    value={addressFormData.postal_code}
+                                                    onChange={(e) => setAddressFormData({ ...addressFormData, postal_code: e.target.value })}
+                                                    className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl focus:ring-2 focus:ring-primary/20 outline-none font-medium"
+                                                    required
+                                                />
+                                            </div>
+                                            <div>
+                                                <label className="block text-xs font-black uppercase tracking-widest text-gray-500 mb-2">Phone</label>
+                                                <input
+                                                    type="tel"
+                                                    value={addressFormData.phone}
+                                                    onChange={(e) => setAddressFormData({ ...addressFormData, phone: e.target.value })}
+                                                    className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl focus:ring-2 focus:ring-primary/20 outline-none font-medium"
+                                                    required
+                                                />
+                                            </div>
+                                        </div>
+
+                                        <div className="flex items-center gap-3 pt-2">
+                                            <input
+                                                type="checkbox"
+                                                id="is_default"
+                                                checked={addressFormData.is_default}
+                                                onChange={(e) => setAddressFormData({ ...addressFormData, is_default: e.target.checked })}
+                                                className="w-5 h-5 rounded border-gray-300 text-primary focus:ring-primary/20"
+                                            />
+                                            <label htmlFor="is_default" className="text-sm font-bold text-gray-700 cursor-pointer">Set as default address</label>
+                                        </div>
+
+                                        <div className="pt-6">
+                                            <button
+                                                type="submit"
+                                                disabled={updating}
+                                                className="w-full py-4 bg-gray-900 text-white rounded-xl font-bold hover:bg-primary transition-all disabled:opacity-70"
+                                            >
+                                                {updating ? 'Saving...' : editingAddress ? 'Update Address' : 'Save Address'}
+                                            </button>
+                                        </div>
+                                    </form>
+                                </motion.div>
+                            </div>
+                        )}
                     </div>
                 </div>
             </div>

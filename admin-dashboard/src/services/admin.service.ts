@@ -247,9 +247,24 @@ export const updateOrderStatus = async (id: string, status: string) => {
     return response.data.data;
 };
 
+export const updateTracking = async (id: string, carrier: string, tracking_number: string) => {
+    const response = await axios.patch(`${API_URL}/orders/admin/${id}/tracking`, { carrier, tracking_number }, {
+        headers: getAuthHeader()
+    });
+    return response.data.data;
+};
+
 export const updateProductInventory = async (id: string, adjustment: number) => {
     const response = await axios.patch(`${API_URL}/products/${id}/inventory`, { adjustment }, {
         headers: getAuthHeader()
     });
     return response.data.data;
+};
+
+export const getOrderInvoiceUrl = (id: string) => {
+    return `${API_URL}/orders/${id}/invoice`;
+};
+
+export const getExportOrdersUrl = () => {
+    return `${API_URL}/orders/admin/export`;
 };
