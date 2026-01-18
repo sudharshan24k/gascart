@@ -22,6 +22,7 @@ const Checkout: React.FC = () => {
         phone: ''
     });
     const [addresses, setAddresses] = useState<any[]>([]);
+    const [loadingAddresses, setLoadingAddresses] = useState(true);
     const [selectingSaved, setSelectingSaved] = useState(false);
 
     const [processingOrder, setProcessingOrder] = useState(false);
