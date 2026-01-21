@@ -4,7 +4,8 @@ import {
     getConsultants,
     getConsultant,
     updateConsultant,
-    deleteConsultant
+    deleteConsultant,
+    getMyConsultantProfile
 } from '../controllers/consultants.controller';
 import { requireAuth, requireAdmin } from '../middlewares/auth.middleware';
 
@@ -12,6 +13,9 @@ const router = Router();
 
 // Public route for registration
 router.post('/register', registerConsultant);
+
+// Protected routes
+router.get('/my-profile', requireAuth, getMyConsultantProfile);
 
 // Protected routes (Admin only)
 router.get('/', requireAuth, requireAdmin, getConsultants);

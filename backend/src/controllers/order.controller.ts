@@ -128,12 +128,27 @@ export const getMyOrders = async (req: Request, res: Response, next: NextFunctio
 
 export const getAllOrders = async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const { data, error } = await supabase
+        const { data: orders, error } = await supabase
             .from('orders')
-            .select('*, profiles:user_id(full_name, email), order_items(*, product:products(name))')
+            .select('*, order_items(*, product:products(name))')
             .order('created_at', { ascending: false });
 
         if (error) throw error;
+
+        // Manually fetch profiles
+        const userIds = [...new Set(orders.map((o: any) => o.user_id))];
+        const { data: profiles, error: profileError } = await supabase
+            .from('profiles')
+            .select('id, full_name, email')
+            .in('id', userIds);
+
+        if (profileError) throw profileError;
+
+        const profileMap = new Map(profiles.map((p: any) => [p.id, p]));
+        const data = orders.map((o: any) => ({
+            ...o,
+            profiles: profileMap.get(o.user_id) || { full_name: 'Unknown', email: 'Unknown' }
+        }));
 
         res.json({ status: 'success', results: data.length, data });
     } catch (err) {
@@ -192,10 +207,10 @@ export const downloadInvoice = async (req: Request, res: Response, next: NextFun
         const userRole = (req as any).user.role;
         const { id } = req.params;
 
-        // Fetch order with items and profile info
+        // Fetch order with items
         let query = supabase
             .from('orders')
-            .select('*, profiles:user_id(full_name, email), order_items(*, product:products(name))')
+            .select('*, order_items(*, product:products(name))')
             .eq('id', id);
 
         // If not admin, restrict to owner
@@ -208,6 +223,15 @@ export const downloadInvoice = async (req: Request, res: Response, next: NextFun
         if (error || !order) {
             return res.status(404).json({ status: 'fail', message: 'Order not found' });
         }
+
+        // Fetch profile manually
+        const { data: profile } = await supabase
+            .from('profiles')
+            .select('full_name, email')
+            .eq('id', order.user_id)
+            .single();
+
+        order.profiles = profile;
 
         const doc = new PDFDocument({ margin: 50 });
 
@@ -341,17 +365,27 @@ export const updateTracking = async (req: Request, res: Response, next: NextFunc
 
 export const exportOrdersCSV = async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const { data, error } = await supabase
+        const { data: orders, error } = await supabase
             .from('orders')
-            .select('id, total_amount, status, payment_status, created_at, profiles:user_id(full_name, email)')
+            .select('id, total_amount, status, payment_status, created_at, user_id')
             .order('created_at', { ascending: false });
 
         if (error) throw error;
 
+        // Manually fetch profiles
+        const userIds = [...new Set(orders.map((o: any) => o.user_id))];
+        const { data: profiles, error: profileError } = await supabase
+            .from('profiles')
+            .select('id, full_name, email')
+            .in('id', userIds);
+
+        if (profileError) throw profileError;
+        const profileMap = new Map(profiles.map((p: any) => [p.id, p]));
+
         // Simple CSV generation
         const headers = 'Order ID,Date,Customer,Email,Amount,Status,Payment Status\n';
-        const rows = data.map(o => {
-            const profile: any = Array.isArray(o.profiles) ? o.profiles[0] : o.profiles;
+        const rows = orders.map((o: any) => {
+            const profile = profileMap.get(o.user_id);
             return `${o.id},${new Date(o.created_at).toISOString()},${profile?.full_name || ''},${profile?.email || ''},${o.total_amount},${o.status},${o.payment_status}`;
         }).join('\n');
 

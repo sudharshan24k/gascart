@@ -294,7 +294,7 @@ const ProductListing: React.FC = () => {
                                                         <span className="text-[10px] text-gray-400 font-bold uppercase tracking-tighter">
                                                             {product.purchase_model === 'rfq' ? 'Project Est.' : product.purchase_model === 'both' ? 'Price/Est.' : 'Ex-Works Price'}
                                                         </span>
-                                                        <span className="text-2xl font-black text-gray-900">${Number(product.price).toLocaleString()}</span>
+                                                        <span className="text-2xl font-black text-gray-900">₹{Number(product.price).toLocaleString()}</span>
                                                     </div>
                                                     <button
                                                         onClick={() => dispatch({

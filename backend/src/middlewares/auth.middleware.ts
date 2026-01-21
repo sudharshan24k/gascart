@@ -8,6 +8,12 @@ export interface AuthRequest extends Request {
 export const requireAuth = async (req: AuthRequest, res: Response, next: NextFunction) => {
     const authHeader = req.headers['authorization'];
 
+    // Development bypass for hardcoded admin
+    if (process.env.NODE_ENV === 'development' && authHeader === 'Bearer development-token') {
+        req.user = { id: '00000000-0000-0000-0000-000000000000', email: 'admin@admin.com' };
+        return next();
+    }
+
     if (!authHeader) {
         return res.status(401).json({ message: 'Authorization header missing' });
     }
@@ -32,6 +38,11 @@ export const requireAdmin = async (req: AuthRequest, res: Response, next: NextFu
     // First ensure user is authenticated
     if (!req.user) {
         return res.status(401).json({ message: 'Authentication required' });
+    }
+
+    // Development bypass for hardcoded admin
+    if (process.env.NODE_ENV === 'development' && req.user.email === 'admin@admin.com') {
+        return next();
     }
 
     try {
@@ -61,6 +72,11 @@ export const restrictTo = (...roles: string[]) => {
     return async (req: AuthRequest, res: Response, next: NextFunction) => {
         if (!req.user) {
             return res.status(401).json({ message: 'Authentication required' });
+        }
+
+        // Development bypass for hardcoded admin
+        if (process.env.NODE_ENV === 'development' && req.user.email === 'admin@admin.com') {
+            return next();
         }
 
         try {

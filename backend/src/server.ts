@@ -1,4 +1,4 @@
-import app from './app';
+import app from './app'; // Force restart
 import { config } from './config/env';
 
 const port = config.port;

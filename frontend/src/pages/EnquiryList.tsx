@@ -69,7 +69,7 @@ const EnquiryList = () => {
                                         </div>
                                         <div className="text-right">
                                             <span className="text-xs text-gray-400 font-bold block">ESTIMATED PRICE</span>
-                                            <span className="font-black text-2xl text-gray-900">${(item.price * item.quantity).toLocaleString()}</span>
+                                            <span className="font-black text-2xl text-gray-900">₹{(item.price * item.quantity).toLocaleString()}</span>
                                         </div>
                                     </div>
                                 </div>
@@ -93,7 +93,7 @@ const EnquiryList = () => {
                                 </div>
                                 <div className="pt-6 border-t border-gray-50 flex justify-between items-center">
                                     <span className="font-bold text-gray-900 text-lg">Total Budget Est.</span>
-                                    <span className="font-black text-3xl text-primary">${state.total.toLocaleString()}</span>
+                                    <span className="font-black text-3xl text-primary">₹{state.total.toLocaleString()}</span>
                                 </div>
                             </div>
 

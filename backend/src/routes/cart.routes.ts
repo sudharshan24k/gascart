@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { addToCart, getCart, updateCartItem, removeCartItem } from '../controllers/cart.controller';
-import { requireAuth } from '../middlewares/auth.middleware';
+import { optionalAuth } from '../middlewares/optionalAuth.middleware';
 
 const router = Router();
 
@@ -13,9 +13,9 @@ const router = Router();
 // For this MVP, let's assuming guests don't send Bearer token. 
 
 // Guest/User agnostic
-router.post('/', addToCart);
-router.get('/', getCart);
-router.patch('/:itemId', updateCartItem);
-router.delete('/:itemId', removeCartItem);
+router.post('/items', optionalAuth, addToCart);
+router.get('/', optionalAuth, getCart);
+router.patch('/items/:itemId', optionalAuth, updateCartItem);
+router.delete('/items/:itemId', optionalAuth, removeCartItem);
 
 export default router;

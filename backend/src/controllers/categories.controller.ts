@@ -17,13 +17,17 @@ export const getCategories = async (req: Request, res: Response, next: NextFunct
 
 export const createCategory = async (req: Request, res: Response, next: NextFunction) => {
     try {
+        console.log('[CategoriesController] Creating category with body:', req.body);
         const { data, error } = await supabase
             .from('categories')
             .insert([req.body])
             .select()
             .single();
 
-        if (error) throw error;
+        if (error) {
+            console.error('[CategoriesController] Insert error:', error);
+            throw error;
+        }
         res.status(201).json({ status: 'success', data });
     } catch (err) {
         next(err);

@@ -8,6 +8,7 @@ import Contact from './pages/Contact';
 import Consultants from './pages/Consultants';
 import ExpertProfile from './pages/ExpertProfile';
 import ConsultantRegistration from './pages/ConsultantRegistration';
+import ConsultantDashboard from './pages/ConsultantDashboard';
 import Learn from './pages/Learn'; // Re-applied import to trigger refresh
 import ArticleDetail from './pages/ArticleDetail';
 import Resources from './pages/Resources';
@@ -49,6 +50,7 @@ function App() {
                                 <Route path="experts" element={<Consultants />} />
                                 <Route path="experts/:id" element={<ExpertProfile />} />
                                 <Route path="consultant-registration" element={<ConsultantRegistration />} />
+                                <Route path="consultant-dashboard" element={<ConsultantDashboard />} />
                                 <Route path="resources" element={<Resources />} />
                                 <Route path="vendor-enquiry" element={<VendorEnquiry />} />
                                 <Route path="contact" element={<Contact />} />

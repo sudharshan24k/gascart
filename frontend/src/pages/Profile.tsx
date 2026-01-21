@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate, Link } from 'react-router-dom';
 import { api } from '../services/api';
+import { formatDateIST } from '../utils/dateUtils';
 import { User, Package, FileText, Smartphone, Mail, LogOut, Loader2, Save, MapPin, Plus, Trash2, Home, Briefcase, CheckCircle } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -16,6 +17,7 @@ const Profile: React.FC = () => {
     const [orders, setOrders] = useState<any[]>([]);
     const [rfqs, setRfqs] = useState<any[]>([]);
     const [addresses, setAddresses] = useState<any[]>([]);
+    const [consultantProfile, setConsultantProfile] = useState<any>(null);
 
     // Form State
     const [formData, setFormData] = useState({
@@ -68,6 +70,17 @@ const Profile: React.FC = () => {
             if (ordersRes.status === 'success') setOrders(ordersRes.data);
             if (rfqsRes.status === 'success') setRfqs(rfqsRes.data);
             if (addressesRes.status === 'success') setAddresses(addressesRes.data);
+
+            // Check for consultant profile
+            try {
+                const consultantRes = await api.consultants.getMyProfile();
+                if (consultantRes.status === 'success') {
+                    setConsultantProfile(consultantRes.data);
+                }
+            } catch (err) {
+                // Silently fail if not a consultant or error
+                console.log('Not a consultant or failed to check');
+            }
 
         } catch (err) {
             console.error('Failed to load profile data', err);
@@ -208,6 +221,14 @@ const Profile: React.FC = () => {
                                 >
                                     <MapPin className="w-5 h-5" /> Addresses <span className="ml-auto bg-white/20 px-2 rounded-md text-xs">{addresses.length}</span>
                                 </button>
+                                {consultantProfile && (
+                                    <Link
+                                        to="/consultant-dashboard"
+                                        className="w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-colors font-medium text-gray-600 hover:bg-gray-50 mt-2 border-t border-gray-50 pt-4"
+                                    >
+                                        <Briefcase className="w-5 h-5 text-primary" /> Consultant Dashboard
+                                    </Link>
+                                )}
                                 <hr className="border-gray-100 my-2" />
                                 <button
                                     onClick={signOut}
@@ -305,7 +326,7 @@ const Profile: React.FC = () => {
                                                     </div>
                                                     <div>
                                                         <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-1">Date</p>
-                                                        <p className="text-sm font-bold text-gray-900">{new Date(order.created_at).toLocaleDateString()}</p>
+                                                        <p className="text-sm font-bold text-gray-900">{formatDateIST(order.created_at)}</p>
                                                     </div>
                                                     <div>
                                                         <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-1">Total</p>

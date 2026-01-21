@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
-import { Eye, Search, X, Package, Truck, CheckCircle, FileText, Download } from 'lucide-react';
-import { fetchOrders, updateOrderStatus, getOrderInvoiceUrl } from '../services/admin.service';
+import { Eye, Search, X, Package, FileText, Download } from 'lucide-react';
+import { fetchOrders, updateOrderStatus, getOrderInvoiceUrl, updateTracking, getExportOrdersUrl } from '../services/admin.service';
+import { formatDateIST } from '../utils/dateUtils';
+
 
 const AdminOrders = () => {
     const [orders, setOrders] = useState<any[]>([]);
@@ -141,14 +143,14 @@ const AdminOrders = () => {
                                 <tr key={order.id} className="hover:bg-gray-50/50 transition-colors group">
                                     <td className="py-8 px-10">
                                         <div className="font-bold text-gray-900 text-sm font-mono mb-1">#{order.id.slice(0, 8)}...</div>
-                                        <div className="text-xs text-gray-400 font-bold">{new Date(order.created_at).toLocaleDateString()}</div>
+                                        <div className="text-xs text-gray-400 font-bold">{formatDateIST(order.created_at)}</div>
                                     </td>
                                     <td className="py-8 px-10">
                                         <div className="font-bold text-gray-900">{order.profiles?.full_name || 'Guest'}</div>
                                         <div className="text-xs text-gray-400 font-medium">{order.profiles?.email}</div>
                                     </td>
                                     <td className="py-8 px-10">
-                                        <div className="font-black text-lg text-gray-900">${order.total_amount}</div>
+                                        <div className="font-black text-lg text-gray-900">₹{order.total_amount}</div>
                                         <div className={`text-[10px] font-black uppercase tracking-widest ${order.payment_status === 'paid' ? 'text-green-500' : 'text-amber-500'}`}>
                                             {order.payment_status}
                                         </div>
@@ -244,7 +246,7 @@ const AdminOrders = () => {
                                         <div className="bg-primary/5 p-6 rounded-3xl border border-primary/10 flex items-center justify-between mt-4">
                                             <div>
                                                 <p className="text-[10px] font-black text-primary uppercase tracking-widest mb-1">Total Amount</p>
-                                                <p className="text-3xl font-black text-gray-900">${selectedOrder.total_amount}</p>
+                                                <p className="text-3xl font-black text-gray-900">₹{selectedOrder.total_amount}</p>
                                             </div>
                                             <a
                                                 href={getOrderInvoiceUrl(selectedOrder.id)}
@@ -304,8 +306,8 @@ const AdminOrders = () => {
                                         <p className="text-xs text-gray-400 font-bold">Quantity: {item.quantity}</p>
                                     </div>
                                     <div className="text-right">
-                                        <p className="font-black text-gray-900 text-lg">${item.price_at_purchase * item.quantity}</p>
-                                        <p className="text-[10px] text-gray-400 font-black tracking-widest">${item.price_at_purchase}/unit</p>
+                                        <p className="font-black text-gray-900 text-lg">₹{item.price_at_purchase * item.quantity}</p>
+                                        <p className="text-[10px] text-gray-400 font-black tracking-widest">₹{item.price_at_purchase}/unit</p>
                                     </div>
                                 </div>
                             ))}

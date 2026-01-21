@@ -1,5 +1,5 @@
 import React from 'react';
-import { PenTool, Box, Activity, Settings, CheckSquare } from 'lucide-react';
+import { PenTool, Box, Activity, Settings, CheckSquare, ClipboardList, Users } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 const Services: React.FC = () => {
@@ -18,6 +18,16 @@ const Services: React.FC = () => {
             icon: CheckSquare,
             title: "Commissioning & Training",
             description: "Rigorous testing and commissioning protocols ensure your plant operates at peak performance. We provide comprehensive training for your operational staff.",
+        },
+        {
+            icon: ClipboardList,
+            title: "RFQ Preparation",
+            description: "Expert guidance to create comprehensive RFQs. We help align your technical expectations and commercial requirements to ensure vendors provide accurate, all-inclusive quotes.",
+        },
+        {
+            icon: Users,
+            title: "Vendor Selection",
+            description: "Unbiased evaluation of suppliers. We help you balance technical specs, experience, price, and delivery terms based on your specific priorities for capital equipment.",
         },
         {
             icon: Activity,

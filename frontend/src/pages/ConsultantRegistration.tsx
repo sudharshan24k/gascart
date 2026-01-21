@@ -1,11 +1,13 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { UserPlus, Mail, Phone, Briefcase, FileText, CheckCircle, MapPin } from 'lucide-react';
-import axios from 'axios';
-
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api/v1';
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
+import { api } from '../services/api';
 
 const ConsultantRegistration: React.FC = () => {
+    const { user } = useAuth();
+    const navigate = useNavigate();
     const [submitting, setSubmitting] = useState(false);
     const [submitted, setSubmitted] = useState(false);
     const [formData, setFormData] = useState({
@@ -23,7 +25,10 @@ const ConsultantRegistration: React.FC = () => {
         e.preventDefault();
         setSubmitting(true);
         try {
-            await axios.post(`${API_URL}/consultants/register`, formData);
+            await api.consultants.register({
+                ...formData,
+                user_id: user?.id
+            });
             setSubmitted(true);
         } catch (err) {
             console.error('Registration failed', err);
@@ -57,12 +62,22 @@ const ConsultantRegistration: React.FC = () => {
                     <p className="text-gray-600 mb-8 leading-relaxed">
                         Thank you for your interest in joining Gascart as a consultant. Our team will review your profile and get back to you within 2-3 business days.
                     </p>
-                    <button
-                        onClick={() => window.location.href = '/consultants'}
-                        className="bg-primary hover:bg-primary-dark text-white font-bold py-3 px-8 rounded-full transition-all"
-                    >
-                        View Consultants
-                    </button>
+                    <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                        <button
+                            onClick={() => navigate('/experts')}
+                            className="bg-primary hover:bg-primary-dark text-white font-bold py-3 px-8 rounded-full transition-all"
+                        >
+                            View Consultants
+                        </button>
+                        {user && (
+                            <button
+                                onClick={() => navigate('/consultant-dashboard')}
+                                className="bg-gray-900 hover:bg-black text-white font-bold py-3 px-8 rounded-full transition-all"
+                            >
+                                Go to Dashboard
+                            </button>
+                        )}
+                    </div>
                 </motion.div>
             </div>
         );
@@ -212,8 +227,8 @@ const ConsultantRegistration: React.FC = () => {
                                             type="button"
                                             onClick={() => handleCategoryToggle(cat)}
                                             className={`px-4 py-2 rounded-xl text-sm font-bold transition-all ${formData.service_categories.includes(cat)
-                                                    ? 'bg-primary text-white'
-                                                    : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
+                                                ? 'bg-primary text-white'
+                                                : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
                                                 }`}
                                         >
                                             {cat}

@@ -107,13 +107,13 @@ const SubmitRFQ = () => {
                                     {state.items.map(item => (
                                         <div key={item.id} className="flex justify-between items-center text-sm">
                                             <span className="opacity-70">{item.name} × {item.quantity}</span>
-                                            <span className="font-bold">${(item.price * item.quantity).toLocaleString()}</span>
+                                            <span className="font-bold">₹{(item.price * item.quantity).toLocaleString()}</span>
                                         </div>
                                     ))}
                                 </div>
                                 <div className="border-t border-white/10 pt-6 flex justify-between items-center">
                                     <span className="text-lg font-bold opacity-60">Enquiry Total</span>
-                                    <span className="text-3xl font-black text-primary">${state.total.toLocaleString()}</span>
+                                    <span className="text-3xl font-black text-primary">₹{state.total.toLocaleString()}</span>
                                 </div>
                             </div>
                             <div className="absolute top-0 right-0 w-32 h-32 bg-primary/10 rounded-full -mr-16 -mt-16 blur-3xl"></div>
@@ -137,7 +137,19 @@ const SubmitRFQ = () => {
                                 ))}
                             </ul>
                         </div>
+                        <div className="bg-blue-50 p-8 rounded-[32px] border border-blue-100 shadow-sm">
+                            <h4 className="font-bold text-blue-900 mb-2 flex items-center gap-2">
+                                <Info className="w-5 h-5 text-blue-500" /> Need Help with your RFQ?
+                            </h4>
+                            <p className="text-sm text-blue-700 mb-4">
+                                Our experts can help you draft a comprehensive Request for Quote to ensure you get the best technical and commercial offers.
+                            </p>
+                            <Link to="/services" className="text-sm font-bold text-blue-800 hover:underline">
+                                Learn about RFQ Preparation →
+                            </Link>
+                        </div>
                     </div>
+
                 </div>
             </div>
         </div>

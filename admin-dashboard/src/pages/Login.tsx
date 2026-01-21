@@ -17,6 +17,14 @@ const Login = () => {
         const password = formData.get('password') as string;
 
         try {
+            // Hardcoded admin credentials check
+            if (email === 'admin@admin.com' && password === 'admin') {
+                console.log('Logging in with hardcoded admin credentials');
+                localStorage.setItem('admin_logged_in', 'true');
+                navigate('/');
+                return;
+            }
+
             await authService.signIn(email, password);
             navigate('/');
         } catch (err: any) {

@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { api } from '../services/api';
+import { formatDateIST } from '../utils/dateUtils';
 import { Package, ChevronLeft, MapPin, CreditCard, Clock, CheckCircle, Truck, Info, FileText } from 'lucide-react';
 
 const OrderTracking: React.FC = () => {
@@ -96,7 +97,7 @@ const OrderTracking: React.FC = () => {
                                     }`}>
                                     {order.status}
                                 </span>
-                                <p className="text-sm opacity-80">Placed on {new Date(order.created_at).toLocaleDateString()}</p>
+                                <p className="text-sm opacity-80">Placed on {formatDateIST(order.created_at)}</p>
                                 {order.status === 'pending' && (
                                     <button
                                         onClick={handleCancelOrder}
@@ -160,7 +161,7 @@ const OrderTracking: React.FC = () => {
                                                     <p className="text-gray-500 text-sm mb-4 line-clamp-1">{item.product?.description}</p>
                                                     <div className="flex justify-between items-center">
                                                         <span className="text-sm font-semibold px-3 py-1 bg-white rounded-lg border border-neutral-dark/10">Qty: {item.quantity}</span>
-                                                        <span className="font-bold text-primary">${item.price_at_purchase.toFixed(2)}</span>
+                                                        <span className="font-bold text-primary">₹{item.price_at_purchase.toFixed(2)}</span>
                                                     </div>
                                                 </div>
                                             </div>
@@ -176,7 +177,7 @@ const OrderTracking: React.FC = () => {
                                     <div className="space-y-4 mb-6">
                                         <div className="flex justify-between text-gray-600">
                                             <span>Subtotal</span>
-                                            <span>${order.total_amount.toFixed(2)}</span>
+                                            <span>₹{order.total_amount.toFixed(2)}</span>
                                         </div>
                                         <div className="flex justify-between text-gray-600">
                                             <span>Shipping</span>
@@ -184,7 +185,7 @@ const OrderTracking: React.FC = () => {
                                         </div>
                                         <div className="pt-4 border-t border-neutral-dark/10 flex justify-between items-center">
                                             <span className="font-bold text-lg">Total</span>
-                                            <span className="font-display font-bold text-2xl text-primary">${order.total_amount.toFixed(2)}</span>
+                                            <span className="font-display font-bold text-2xl text-primary">₹{order.total_amount.toFixed(2)}</span>
                                         </div>
                                     </div>
                                     <a

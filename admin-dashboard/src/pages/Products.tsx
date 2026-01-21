@@ -10,7 +10,8 @@ import {
     ClipboardList,
     ArrowUpDown,
     Building2,
-    Loader2
+    Loader2,
+    ArrowLeftRight
 } from 'lucide-react';
 import {
     fetchAdminProducts,
@@ -266,7 +267,7 @@ const AdminProducts = () => {
                                             </span>
                                         ) : product.purchase_model === 'both' ? (
                                             <span className="flex items-center gap-2 text-sm font-bold text-blue-600">
-                                                <GitCompare className="w-4 h-4" /> Direct + RFQ
+                                                <ArrowLeftRight className="w-4 h-4" /> Direct + RFQ
                                             </span>
                                         ) : (
                                             <span className="flex items-center gap-2 text-sm font-bold text-gray-900">
@@ -276,7 +277,7 @@ const AdminProducts = () => {
                                     </td>
                                     <td className="py-8 px-10">
                                         <div className="flex flex-col">
-                                            <span className="text-lg font-bold text-gray-900">${parseFloat(product.price).toLocaleString()}</span>
+                                            <span className="text-lg font-bold text-gray-900">₹{parseFloat(product.price).toLocaleString()}</span>
                                             <span className="text-[10px] text-gray-400 font-bold uppercase tracking-tight">Stock: {product.stock_quantity} units</span>
                                         </div>
                                     </td>
@@ -353,7 +354,7 @@ const AdminProducts = () => {
                                             </select>
                                         </div>
                                         <div>
-                                            <label className="block text-xs font-black text-gray-400 uppercase tracking-widest mb-3">Ex-Works Price ($)</label>
+                                            <label className="block text-xs font-black text-gray-400 uppercase tracking-widest mb-3">Ex-Works Price (₹)</label>
                                             <input
                                                 required
                                                 type="number"
@@ -401,7 +402,7 @@ const AdminProducts = () => {
                                                     onClick={() => setFormData({ ...formData, purchase_model: 'both' })}
                                                     className={`w-full p-4 rounded-xl text-xs font-black uppercase tracking-widest flex items-center gap-3 transition-all ${formData.purchase_model === 'both' ? 'bg-blue-600 text-white shadow-lg' : 'bg-white text-gray-400 border border-gray-100'}`}
                                                 >
-                                                    <GitCompare className="w-4 h-4" /> Both (Hybrid)
+                                                    <ArrowLeftRight className="w-4 h-4" /> Both (Hybrid)
                                                 </button>
                                             </div>
                                         </div>
@@ -523,7 +524,7 @@ const AdminProducts = () => {
                                                 <div key={v.id} className="p-6 bg-gray-50 rounded-2xl border border-gray-100 relative group space-y-4">
                                                     <div className="grid grid-cols-2 gap-4">
                                                         <div>
-                                                            <label className="block text-[10px] font-black text-gray-400 uppercase mb-2">Variant Price ($)</label>
+                                                            <label className="block text-[10px] font-black text-gray-400 uppercase mb-2">Variant Price (₹)</label>
                                                             <input
                                                                 type="number"
                                                                 className="w-full px-4 py-2 bg-white rounded-lg text-sm font-bold"

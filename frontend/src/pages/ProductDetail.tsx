@@ -13,7 +13,8 @@ import {
     CheckCircle2,
     BookOpen,
     ArrowUpRight,
-    Send
+    Send,
+    ShoppingCart
 } from 'lucide-react';
 import { api } from '../services/api';
 import { useEnquiry } from '../context/EnquiryContext';
@@ -123,7 +124,7 @@ const ProductDetail: React.FC = () => {
                             </h1>
 
                             <div className="flex items-baseline gap-2 mb-6">
-                                <span className="text-4xl font-bold text-gray-900">${activePrice.toLocaleString()}</span>
+                                <span className="text-4xl font-bold text-gray-900">₹{activePrice.toLocaleString()}</span>
                                 <span className="text-gray-400 font-bold text-xs uppercase tracking-widest">Net ex-works</span>
                             </div>
 
@@ -177,13 +178,15 @@ const ProductDetail: React.FC = () => {
                                     <button
                                         onClick={async () => {
                                             await addToCart(product.id, 1, selectedVariant);
-                                            alert('Added to cart lead gen commitment');
                                             window.location.href = '/cart';
                                         }}
                                         className="w-full bg-primary hover:bg-primary-dark text-white font-black py-5 px-8 rounded-2xl shadow-xl transition-all flex flex-col items-center justify-center transform hover:-translate-y-1"
                                     >
-                                        <span className="text-lg">Reserve with 50% Advance</span>
-                                        <span className="text-xs opacity-80 font-medium tracking-tight">Lead Gen Commitment: ${(activePrice * 0.5).toLocaleString()}</span>
+                                        <div className="flex items-center gap-3">
+                                            <ShoppingCart className="w-6 h-6" />
+                                            <span className="text-lg">Add to Cart</span>
+                                        </div>
+                                        <span className="text-xs opacity-80 font-medium tracking-tight">Available for Immediate Dispatch</span>
                                     </button>
                                 )}
 

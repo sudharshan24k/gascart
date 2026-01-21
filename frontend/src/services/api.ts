@@ -273,5 +273,25 @@ export const api = {
             const res = await fetch(`${apiUrl}/articles/${slug}`);
             return res.json();
         }
+    },
+    consultants: {
+        register: async (data: any) => {
+            const apiUrl = getBaseUrl();
+            const res = await fetch(`${apiUrl}/consultants/register`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            });
+            return res.json();
+        },
+        getMyProfile: async () => {
+            const token = (await supabase.auth.getSession()).data.session?.access_token;
+            if (!token) throw new Error('Not authenticated');
+            const apiUrl = getBaseUrl();
+            const res = await fetch(`${apiUrl}/consultants/my-profile`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            return res.json();
+        }
     }
 };

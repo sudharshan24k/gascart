@@ -146,7 +146,7 @@ const RFQManagement: React.FC = () => {
                                         </button>
                                     </td>
                                     <td className="px-10 py-8 text-sm text-gray-400 font-black font-mono">
-                                        {new Date(rfq.created_at).toLocaleDateString()}
+                                        {formatDateIST(rfq.created_at)}
                                     </td>
                                     <td className="px-10 py-8 text-right">
                                         <select

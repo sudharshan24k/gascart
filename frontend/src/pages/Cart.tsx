@@ -69,7 +69,7 @@ const Cart = () => {
                                         </div>
                                         <div className="mt-4 flex items-center justify-between sm:justify-start gap-6">
                                             <p className="text-lg font-bold text-gray-900">
-                                                ${item.product.price.toFixed(2)}
+                                                ₹{item.product.price.toFixed(2)}
                                             </p>
 
                                             {/* Mobile Quantity Control (visible on small screens) */}
@@ -135,7 +135,7 @@ const Cart = () => {
                         <dl className="space-y-4 text-sm text-gray-600">
                             <div className="flex justify-between pb-4 border-b border-gray-100">
                                 <dt>Subtotal ({items.reduce((acc, item) => acc + item.quantity, 0)} items)</dt>
-                                <dd className="font-bold text-gray-900">${cartTotal.toFixed(2)}</dd>
+                                <dd className="font-bold text-gray-900">₹{cartTotal.toFixed(2)}</dd>
                             </div>
                             <div className="flex justify-between">
                                 <dt>Shipping</dt>
@@ -147,7 +147,7 @@ const Cart = () => {
                             </div>
                             <div className="pt-4 flex justify-between items-center text-base font-bold text-gray-900 border-t border-gray-100 mt-4">
                                 <dt>Total</dt>
-                                <dd className="text-2xl text-primary-600">${cartTotal.toFixed(2)}</dd>
+                                <dd className="text-2xl text-primary-600">₹{cartTotal.toFixed(2)}</dd>
                             </div>
                         </dl>
 

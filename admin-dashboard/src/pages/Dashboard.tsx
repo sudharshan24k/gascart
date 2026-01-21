@@ -90,13 +90,13 @@ const AdminDashboard = () => {
                 <div className="lg:col-span-1 space-y-6">
                     <h3 className="font-bold text-xl text-gray-900">Quick Actions</h3>
                     <div className="grid gap-4">
-                        <Link to="/admin/products?action=add" className="flex items-center gap-4 p-4 bg-white rounded-2xl border border-gray-100 hover:border-primary/50 hover:shadow-md transition-all group">
+                        <Link to="/products" className="flex items-center gap-4 p-4 bg-white rounded-2xl border border-gray-100 hover:border-primary/50 hover:shadow-md transition-all group">
                             <div className="p-3 bg-primary/10 rounded-xl text-primary group-hover:bg-primary group-hover:text-white transition-colors">
                                 <Plus className="w-5 h-5" />
                             </div>
                             <span className="font-bold text-gray-700">Add Product</span>
                         </Link>
-                        <Link to="/admin/consultants?status=pending" className="flex items-center gap-4 p-4 bg-white rounded-2xl border border-gray-100 hover:border-primary/50 hover:shadow-md transition-all group">
+                        <Link to="/consultants" className="flex items-center gap-4 p-4 bg-white rounded-2xl border border-gray-100 hover:border-primary/50 hover:shadow-md transition-all group">
                             <div className="p-3 bg-primary/10 rounded-xl text-primary group-hover:bg-primary group-hover:text-white transition-colors">
                                 <ClipboardCheck className="w-5 h-5" />
                             </div>

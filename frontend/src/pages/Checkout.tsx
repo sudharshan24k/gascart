@@ -1,12 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useCart } from '../context/CartContext';
+import { useAuth } from '../context/AuthContext';
 import { Lock, CreditCard, ChevronRight, CheckCircle2, ShieldCheck, Loader2, MapPin, Plus } from 'lucide-react';
 import { api } from '../services/api';
 import { motion } from 'framer-motion';
 
 const Checkout: React.FC = () => {
     const { items, loading } = useCart();
+    const { session } = useAuth();
     const navigate = useNavigate();
     const [step, setStep] = useState(1); // 1: Shipping, 2: Payment
 
@@ -32,7 +34,7 @@ const Checkout: React.FC = () => {
     const shippingCost = subtotal > 50000 ? 500 : 0; // Flat fee logic example or free
     const tax = subtotal * 0.08; // Mock tax 8%
     const total = subtotal + shippingCost + tax;
-    const advancePayment = total * 0.5; // Lead Gen Commitment
+
 
     useEffect(() => {
         if (!loading && items.length === 0) {
@@ -42,6 +44,10 @@ const Checkout: React.FC = () => {
     }, [items, loading, navigate]);
 
     const fetchAddresses = async () => {
+        if (!session) {
+            setLoadingAddresses(false);
+            return;
+        }
         try {
             const res = await api.users.addresses.list();
             if (res.status === 'success') {
@@ -265,7 +271,7 @@ const Checkout: React.FC = () => {
                             <div className="flex items-center justify-between mb-8">
                                 <h2 className="text-2xl font-bold text-gray-900 flex items-center gap-3">
                                     <span className="w-8 h-8 bg-gray-900 text-white rounded-full flex items-center justify-center text-sm">2</span>
-                                    Secure Payment (50% Advance)
+                                    Secure Payment
                                 </h2>
                                 <Lock className="w-5 h-5 text-gray-400" />
                             </div>
@@ -325,13 +331,13 @@ const Checkout: React.FC = () => {
                                 {items.map(item => (
                                     <div key={item.id} className="flex gap-4">
                                         <div className="w-16 h-16 bg-gray-50 rounded-xl overflow-hidden flex-shrink-0">
-                                            <img src={item.product?.image_url || 'https://via.placeholder.com/150'} className="w-full h-full object-cover" alt="" />
+                                            <img src={item.product?.image_url || 'https://placehold.co/150'} className="w-full h-full object-cover" alt="" />
                                         </div>
                                         <div className="flex-grow">
                                             <h4 className="font-bold text-sm text-gray-900 line-clamp-1">{item.product?.name}</h4>
                                             <div className="flex justify-between mt-1">
                                                 <span className="text-xs text-gray-500 font-bold">Qty: {item.quantity}</span>
-                                                <span className="text-xs font-bold text-gray-900">${(item.product?.price * item.quantity).toLocaleString()}</span>
+                                                <span className="text-xs font-bold text-gray-900">₹{(item.product?.price * item.quantity).toLocaleString()}</span>
                                             </div>
                                         </div>
                                     </div>
@@ -341,26 +347,26 @@ const Checkout: React.FC = () => {
                             <div className="space-y-3 pt-6 border-t border-gray-100">
                                 <div className="flex justify-between text-sm">
                                     <span className="text-gray-500 font-medium">Subtotal</span>
-                                    <span className="font-bold text-gray-900">${subtotal.toLocaleString()}</span>
+                                    <span className="font-bold text-gray-900">₹{subtotal.toLocaleString()}</span>
                                 </div>
                                 <div className="flex justify-between text-sm">
                                     <span className="text-gray-500 font-medium">Shipping</span>
-                                    <span className="font-bold text-gray-900">{shippingCost === 0 ? 'Free' : `$${shippingCost}`}</span>
+                                    <span className="font-bold text-gray-900">{shippingCost === 0 ? 'Free' : `₹${shippingCost}`}</span>
                                 </div>
                                 <div className="flex justify-between text-sm">
                                     <span className="text-gray-500 font-medium">Tax (Est. 8%)</span>
-                                    <span className="font-bold text-gray-900">${tax.toLocaleString()}</span>
+                                    <span className="font-bold text-gray-900">₹{tax.toLocaleString()}</span>
                                 </div>
                             </div>
 
                             <div className="mt-6 pt-6 border-t border-dashed border-gray-200">
                                 <div className="flex justify-between items-end mb-2">
                                     <span className="font-black text-gray-900 text-lg">Total</span>
-                                    <span className="font-black text-gray-900 text-2xl">${total.toLocaleString()}</span>
+                                    <span className="font-black text-gray-900 text-2xl">₹{total.toLocaleString()}</span>
                                 </div>
                                 <div className="bg-primary/10 p-4 rounded-xl flex justify-between items-center">
-                                    <span className="text-xs font-black text-primary uppercase tracking-widest">Pay Today (50%)</span>
-                                    <span className="text-lg font-bold text-primary">${advancePayment.toLocaleString()}</span>
+                                    <span className="text-xs font-black text-primary uppercase tracking-widest">Total Payable</span>
+                                    <span className="text-lg font-bold text-primary">₹{total.toLocaleString()}</span>
                                 </div>
                             </div>
                         </div>

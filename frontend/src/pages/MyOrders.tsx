@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
+import { formatDateIST } from '../utils/dateUtils';
 import { api } from '../services/api';
 import { Package, ChevronRight, FileText, Clock } from 'lucide-react';
 import { motion } from 'framer-motion';
@@ -78,7 +79,7 @@ const MyOrders: React.FC = () => {
                                     <div className="flex flex-wrap items-center justify-between gap-4 mb-6 pb-6 border-b border-neutral-light">
                                         <div>
                                             <p className="text-sm text-gray-500 uppercase tracking-wider mb-1">Order Date</p>
-                                            <p className="font-bold">{new Date(order.created_at).toLocaleDateString()}</p>
+                                            <p className="font-bold">{formatDateIST(order.created_at)}</p>
                                         </div>
                                         <div>
                                             <p className="text-sm text-gray-500 uppercase tracking-wider mb-1">Order #</p>
@@ -92,7 +93,7 @@ const MyOrders: React.FC = () => {
                                         </div>
                                         <div>
                                             <p className="text-sm text-gray-500 uppercase tracking-wider mb-1">Total</p>
-                                            <p className="font-bold text-primary">${order.total_amount.toFixed(2)}</p>
+                                            <p className="font-bold text-primary">₹{order.total_amount.toFixed(2)}</p>
                                         </div>
                                     </div>
 

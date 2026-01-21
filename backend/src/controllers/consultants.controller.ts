@@ -3,7 +3,7 @@ import { supabase } from '../config/supabase';
 
 export const registerConsultant = async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const { first_name, last_name, email, phone, experience_years, bio, service_categories, location } = req.body;
+        const { first_name, last_name, email, phone, experience_years, bio, service_categories, location, user_id } = req.body;
 
         const { data, error } = await supabase
             .from('consultants')
@@ -16,6 +16,7 @@ export const registerConsultant = async (req: Request, res: Response, next: Next
                 bio,
                 service_categories,
                 location,
+                user_id: user_id || null,
                 status: 'pending'
             }])
             .select()
@@ -24,6 +25,22 @@ export const registerConsultant = async (req: Request, res: Response, next: Next
         if (error) throw error;
 
         res.status(201).json({ status: 'success', data });
+    } catch (err) {
+        next(err);
+    }
+};
+
+export const getMyConsultantProfile = async (req: any, res: Response, next: NextFunction) => {
+    try {
+        const { data, error } = await supabase
+            .from('consultants')
+            .select('*')
+            .eq('user_id', req.user.id)
+            .single();
+
+        if (error && error.code !== 'PGRST116') throw error; // PGRST116 is not found
+
+        res.json({ status: 'success', data: data || null });
     } catch (err) {
         next(err);
     }
