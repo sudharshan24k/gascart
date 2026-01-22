@@ -6,12 +6,14 @@ const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
 const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
 if (!supabaseUrl || !supabaseKey) {
-    console.warn('Supabase URL or Key missing in frontend environment');
+    console.error('CRITICAL: Supabase URL or Key missing in frontend environment. Check your .env file or Vercel project settings.');
 }
 
+// Fallback to empty string or dummy value to prevent "URL required" error crashing the app immediately
+// This allows the app to load even if broken, so usage can see console errors
 export const supabase = createClient(
-    supabaseUrl || '',
-    supabaseKey || ''
+    supabaseUrl || 'https://placeholder.supabase.co',
+    supabaseKey || 'placeholder-key'
 );
 
 export const api = {

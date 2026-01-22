@@ -104,6 +104,18 @@ export const createOrder = async (req: Request, res: Response, next: NextFunctio
             }
         });
 
+        // 7. Send Email Notification (Async - do not block response)
+        // Fetch user email if not in request
+        supabase.from('profiles').select('email').eq('id', userId).single()
+            .then(({ data: profile }) => {
+                if (profile?.email) {
+                    import('../services/email.service').then(({ sendOrderConfirmation }) => {
+                        sendOrderConfirmation(profile.email, order.id, total_amount)
+                            .catch((err: any) => console.error('Failed to send order confirmation email:', err));
+                    });
+                }
+            });
+
     } catch (err) {
         next(err);
     }

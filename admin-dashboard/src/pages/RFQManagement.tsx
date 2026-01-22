@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { fetchRFQs, updateAdminRFQStatus } from '../services/admin.service';
 import { ClipboardList, Download, Search, Mail, Eye } from 'lucide-react';
 import axios from 'axios';
+import { formatDateIST } from '../utils/dateUtils';
 
 const RFQManagement: React.FC = () => {
     const [rfqs, setRfqs] = useState<any[]>([]);

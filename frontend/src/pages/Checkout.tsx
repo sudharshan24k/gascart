@@ -84,6 +84,13 @@ const Checkout: React.FC = () => {
     };
 
     const handlePlaceOrder = async () => {
+        // Basic Validation
+        if (!formData.address_line1 || !formData.city || !formData.state || !formData.zip_code || !formData.phone) {
+            alert('Please complete all shipping details.');
+            setStep(1);
+            return;
+        }
+
         setProcessingOrder(true);
         try {
             // Simulate Payment Gateway Delay
@@ -94,16 +101,18 @@ const Checkout: React.FC = () => {
                 shipping_address: formData,
                 billing_address: formData, // Simplified for MVP
                 payment_method: 'credit_card',
-                // Backend calculates total based on cart, but we can send if verification needed
+                payment_status: 'paid' // MVP: Assume payment success immediately
             });
 
             if (res.status === 'success') {
-                // Determine how to clear cart. Context handles this automatically if backend deletes it?
-                // Context reads from API. If backend clears cart, context.items needs refresh.
-                // We reload page or trigger a fetch if context exposed it. 
-                // Context doesn't expose refreshCart.
-                // Let's do a window reload for now to ensure state sync as critical path MVP
-                window.location.href = '/order-success';
+                // Force a hard reload if needed or just navigate.
+                // Since we need to clear the cart in the Context, and Context often relies on refetching:
+                // If backend clears cart, a re-fetch of cart would show empty.
+                // However, for a clean slate, let's navigate with state.
+                navigate('/order-success', { state: { orderId: res.data.order_id } });
+                // We might want to dispatch an event or call a context method here to refresh cart count immediately, 
+                // but navigation should handle it if the Success page checks/updates things or if we reload.
+                // Ideally: refreshCart(); 
             } else {
                 alert('Order failed: ' + res.message);
             }
@@ -252,7 +261,7 @@ const Checkout: React.FC = () => {
                                     <div className="md:col-span-2 pt-4">
                                         <button
                                             onClick={() => setStep(2)}
-                                            disabled={!formData.address_line1 || !formData.city} // Simple validation
+                                            disabled={!formData.address_line1 || !formData.city || !formData.state || !formData.zip_code || !formData.phone}
                                             className="bg-gray-900 text-white px-8 py-4 rounded-xl font-bold hover:bg-primary transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                                         >
                                             Continue to Payment

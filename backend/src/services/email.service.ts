@@ -58,3 +58,30 @@ export const notifyAdminOfRFQ = async (rfqData: any, pdfBuffer?: Buffer) => {
         }] : []
     });
 };
+
+export const sendOrderConfirmation = async (email: string, orderId: string, amount: number) => {
+    await sendEmail({
+        to: email,
+        subject: `Order Confirmation - #${orderId.slice(0, 8).toUpperCase()}`,
+        text: `Thank you for your order! 
+        
+        Order ID: ${orderId.toUpperCase()}
+        Total Amount: $${amount.toFixed(2)}
+        
+        We have received your order and it is being processed. You can track your order status in your profile.
+        
+        Best regards,
+        Gascart Team`,
+        html: `
+            <div style="font-family: Arial, sans-serif; padding: 20px; color: #333;">
+                <h2 style="color: #1a1a1a;">Order Confirmed!</h2>
+                <p>Thank you for your purchase. We're getting it ready.</p>
+                <div style="background: #f5f5f5; padding: 15px; border-radius: 8px; margin: 20px 0;">
+                    <p><strong>Order ID:</strong> #${orderId.toUpperCase()}</p>
+                    <p><strong>Total Amount:</strong> $${amount.toFixed(2)}</p>
+                </div>
+                <p>You can track your order status in your <a href="${process.env.FRONTEND_URL || 'http://localhost:5173'}/order-tracking/${orderId}">Dashboard</a>.</p>
+            </div>
+        `
+    });
+};
