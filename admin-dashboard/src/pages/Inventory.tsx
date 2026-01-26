@@ -4,13 +4,10 @@ import {
     AlertTriangle,
     CheckCircle,
     Package,
-    Minus,
-    Plus,
     RefreshCw,
     Layers,
-    ChevronRight,
     X,
-    Settings2,
+    MapPin,
     TrendingUp,
     TrendingDown,
     Activity,
@@ -44,7 +41,7 @@ const Inventory = () => {
         }
     };
 
-    const handleStockUpdate = async (id: string, updates: { adjustment?: number; absolute?: number; low_stock_threshold?: number }) => {
+    const handleStockUpdate = async (id: string, updates: { adjustment?: number; absolute?: number; low_stock_threshold?: number; variants?: any[]; warehouse_location?: string }) => {
         setUpdating(id);
         try {
             const updatedProduct = await updateProductInventory(id, updates);
@@ -247,7 +244,7 @@ const Inventory = () => {
                                             </td>
                                             <td className="py-10 px-12" onClick={(e) => e.stopPropagation()}>
                                                 <div className="flex flex-col items-center group/qty relative">
-                                                    {isEditing ? (
+                                                    {isEditing && editingQuantity ? (
                                                         <div className="flex items-center gap-3 animate-in zoom-in-95 duration-200">
                                                             <input
                                                                 autoFocus

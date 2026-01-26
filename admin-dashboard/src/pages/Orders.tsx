@@ -2,7 +2,6 @@ import { useState, useEffect } from 'react';
 import { Eye, Search, X, Package, FileText, Download, Users, ShoppingCart } from 'lucide-react';
 import { fetchOrders, updateOrderStatus, getOrderInvoiceUrl, updateTracking, downloadOrders, exportInvoicesZIP } from '../services/admin.service';
 import { formatDateIST } from '../utils/dateUtils';
-import { supabase } from '../services/api';
 
 
 const AdminOrders = () => {

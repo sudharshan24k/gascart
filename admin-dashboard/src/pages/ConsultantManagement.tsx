@@ -5,14 +5,12 @@ import {
     Clock,
     User,
     Mail,
-    Phone,
     MapPin,
     Edit2,
     Ban,
     Briefcase,
     ChevronRight,
     X,
-    ExternalLink,
     ShieldCheck
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';

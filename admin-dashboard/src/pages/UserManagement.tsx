@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { supabase } from '../services/api';
-import { Users, Search, ShoppingBag, ChevronRight, FileText, X } from 'lucide-react';
+import { Search, ShoppingBag, ChevronRight, FileText, X } from 'lucide-react';
 import { formatDateIST } from '../utils/dateUtils';
 import {
     fetchAllUsers,

@@ -8,14 +8,10 @@ import {
     CheckCircle,
     Package,
     ClipboardList,
-    ArrowUpDown,
-    Building2,
-    Loader2,
     ArrowLeftRight,
     Filter,
     RotateCcw,
     ShieldCheck,
-    Briefcase,
     FileText,
     Link as LinkIcon
 } from 'lucide-react';
@@ -41,7 +37,6 @@ const AdminProducts = () => {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingProduct, setEditingProduct] = useState<any>(null);
     const [productVendors, setProductVendors] = useState<any[]>([]);
-    const [vendorsLoading, setVendorsLoading] = useState(false);
     const [showFilters, setShowFilters] = useState(false);
     const [filters, setFilters] = useState({
         category: '',
@@ -90,7 +85,6 @@ const AdminProducts = () => {
     };
 
     const loadProductVendors = async (productId: string) => {
-        setVendorsLoading(true);
         try {
             const data = await fetchProductVendors(productId);
             setProductVendors(data || []);
@@ -98,7 +92,6 @@ const AdminProducts = () => {
             console.error('Failed to load product vendors', err);
             setProductVendors([]);
         } finally {
-            setVendorsLoading(false);
         }
     };
 
