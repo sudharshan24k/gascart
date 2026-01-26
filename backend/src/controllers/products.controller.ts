@@ -127,32 +127,47 @@ export const deleteProduct = async (req: Request, res: Response, next: NextFunct
 export const updateInventory = async (req: Request, res: Response, next: NextFunction) => {
     try {
         const { id } = req.params;
-        const { adjustment } = req.body;
+        const { adjustment, absolute, low_stock_threshold } = req.body;
 
-        if (typeof adjustment !== 'number') {
-            return res.status(400).json({ message: 'Adjustment must be a number' });
+        const updates: any = {};
+        if (absolute !== undefined && typeof absolute === 'number') updates.stock_quantity = Math.max(0, absolute);
+        if (low_stock_threshold !== undefined && typeof low_stock_threshold === 'number') updates.low_stock_threshold = Math.max(0, low_stock_threshold);
+
+        if (Object.keys(updates).length > 0) {
+            const { data, error } = await supabase
+                .from('products')
+                .update(updates)
+                .eq('id', id)
+                .select()
+                .single();
+
+            if (error) throw error;
+            return res.json({ status: 'success', data });
         }
 
-        const { data: product, error: fetchError } = await supabase
-            .from('products')
-            .select('stock_quantity')
-            .eq('id', id)
-            .single();
+        if (adjustment !== undefined && typeof adjustment === 'number') {
+            const { data: product, error: fetchError } = await supabase
+                .from('products')
+                .select('stock_quantity')
+                .eq('id', id)
+                .single();
 
-        if (fetchError) throw fetchError;
+            if (fetchError) throw fetchError;
 
-        const newStock = Math.max(0, (product.stock_quantity || 0) + adjustment);
+            const newStock = Math.max(0, (product.stock_quantity || 0) + adjustment);
 
-        const { data, error } = await supabase
-            .from('products')
-            .update({ stock_quantity: newStock })
-            .eq('id', id)
-            .select()
-            .single();
+            const { data, error } = await supabase
+                .from('products')
+                .update({ stock_quantity: newStock })
+                .eq('id', id)
+                .select()
+                .single();
 
-        if (error) throw error;
+            if (error) throw error;
+            return res.json({ status: 'success', data });
+        }
 
-        res.json({ status: 'success', data });
+        return res.status(400).json({ message: 'Must provide either adjustment or absolute value' });
     } catch (err) {
         next(err);
     }

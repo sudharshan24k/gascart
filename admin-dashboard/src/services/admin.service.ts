@@ -206,8 +206,8 @@ export const updateTracking = async (id: string, carrier: string, tracking_numbe
     return response.data.data;
 };
 
-export const updateProductInventory = async (id: string, adjustment: number) => {
-    const response = await adminApi.patch(`/products/${id}/inventory`, { adjustment });
+export const updateProductInventory = async (id: string, updates: { adjustment?: number; absolute?: number; low_stock_threshold?: number }) => {
+    const response = await adminApi.patch(`/products/${id}/inventory`, updates);
     return response.data.data;
 };
 
