@@ -88,6 +88,30 @@ const Inventory = () => {
         return true;
     });
 
+    const handleExportCSV = () => {
+        const headers = ['Asset ID', 'Name', 'Category', 'Stock Level', 'Threshold', 'Unit Price', 'Total Valuation'];
+        const rows = filteredProducts.map(p => [
+            p.id,
+            p.name,
+            p.categories?.name || 'Unspecified',
+            p.stock_quantity || 0,
+            p.low_stock_threshold || 10,
+            p.price || 0,
+            (p.stock_quantity || 0) * (p.price || 0)
+        ]);
+
+        const csvContent = [headers, ...rows].map(e => e.join(',')).join('\n');
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.setAttribute('href', url);
+        link.setAttribute('download', `inventory_audit_${new Date().toISOString().split('T')[0]}.csv`);
+        link.style.visibility = 'hidden';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    };
+
     return (
         <div className="max-w-7xl mx-auto pb-20">
             {/* Header Area */}
@@ -96,13 +120,21 @@ const Inventory = () => {
                     <h2 className="text-4xl font-black text-gray-900 tracking-tight">Inventory Intelligence</h2>
                     <p className="text-gray-500 mt-1 font-bold italic">Real-time stock governance and supply chain monitoring.</p>
                 </div>
-                <button
-                    onClick={loadData}
-                    className="p-5 bg-white hover:bg-gray-50 text-gray-400 hover:text-primary rounded-[24px] shadow-xl shadow-gray-200/50 border border-gray-100 transition-all active:scale-90 group"
-                    title="Synchronize Database"
-                >
-                    <RefreshCw className={`w-6 h-6 transition-transform duration-700 group-hover:rotate-180 ${loading ? 'animate-spin text-primary' : ''}`} />
-                </button>
+                <div className="flex gap-4">
+                    <button
+                        onClick={handleExportCSV}
+                        className="flex items-center gap-3 px-6 py-4 bg-white hover:bg-gray-50 text-gray-900 border border-gray-100 rounded-[24px] text-[10px] font-black uppercase tracking-widest shadow-xl shadow-gray-200/50 transition-all active:scale-95"
+                    >
+                        <Layers className="w-4 h-4 text-primary" /> Export Audit
+                    </button>
+                    <button
+                        onClick={loadData}
+                        className="p-5 bg-white hover:bg-gray-50 text-gray-400 hover:text-primary rounded-[24px] shadow-xl shadow-gray-200/50 border border-gray-100 transition-all active:scale-90 group"
+                        title="Synchronize Database"
+                    >
+                        <RefreshCw className={`w-6 h-6 transition-transform duration-700 group-hover:rotate-180 ${loading ? 'animate-spin text-primary' : ''}`} />
+                    </button>
+                </div>
             </div>
 
             {/* Premium Stats Grid */}
@@ -314,20 +346,79 @@ const Inventory = () => {
 
                             <div className="flex-grow overflow-y-auto p-12 space-y-12 custom-scrollbar">
                                 <section className="grid grid-cols-2 gap-8">
-                                    <div className="bg-gray-50/50 p-8 rounded-[32px] border border-gray-100">
-                                        <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">Current Manifest</p>
-                                        <p className="text-4xl font-black text-gray-900">{selectedProduct.stock_quantity?.toLocaleString()}</p>
-                                        <p className="text-[10px] font-bold text-gray-400 mt-1 uppercase">Technical Units</p>
+                                    <div className="bg-gray-50/50 p-8 rounded-[32px] border border-gray-100 flex flex-col justify-between">
+                                        <div>
+                                            <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">Omni-Channel Stock</p>
+                                            <p className="text-4xl font-black text-gray-900">{selectedProduct.stock_quantity?.toLocaleString()}</p>
+                                        </div>
+                                        <div className="mt-4 w-full h-1.5 bg-gray-200 rounded-full overflow-hidden">
+                                            <motion.div
+                                                initial={{ width: 0 }}
+                                                animate={{ width: `${Math.min(100, (selectedProduct.stock_quantity / (selectedProduct.low_stock_threshold || 10)) * 50)}%` }}
+                                                className={`h-full ${selectedProduct.stock_quantity <= (selectedProduct.low_stock_threshold || 10) ? 'bg-amber-500' : 'bg-emerald-500'}`}
+                                            />
+                                        </div>
                                     </div>
                                     <div className="bg-primary/5 p-8 rounded-[32px] border border-primary/10">
-                                        <p className="text-[10px] font-black text-primary uppercase tracking-widest mb-2">Buy Protocol</p>
-                                        <p className="text-xl font-black text-primary uppercase">{selectedProduct.purchase_model || 'RFQ Only'}</p>
-                                        <p className="text-[10px] font-bold text-primary/40 mt-1 uppercase">Acquisition Model</p>
+                                        <p className="text-[10px] font-black text-primary uppercase tracking-widest mb-2">Valuation Metrics</p>
+                                        <p className="text-2xl font-black text-primary">₹{((selectedProduct.stock_quantity || 0) * (selectedProduct.price || 0)).toLocaleString()}</p>
+                                        <p className="text-[10px] font-bold text-primary/40 mt-1 uppercase">Total Capital Liquidity</p>
+                                    </div>
+                                    <div className="col-span-2 bg-gray-900 overflow-hidden p-8 rounded-[32px] text-white flex justify-between items-center group/loc shadow-xl shadow-gray-900/10">
+                                        <div>
+                                            <p className="text-[10px] font-black uppercase tracking-widest text-white/40 mb-2">Physical Anchorage</p>
+                                            <input
+                                                type="text"
+                                                className="bg-transparent text-xl font-black outline-none border-b border-transparent focus:border-white/20 transition-all w-full decoration-none"
+                                                placeholder="SPECIFY BAY / SHELF"
+                                                value={selectedProduct.warehouse_location || ''}
+                                                onChange={(e) => {
+                                                    const val = e.target.value;
+                                                    setProducts(prev => prev.map(p => p.id === selectedProduct.id ? { ...p, warehouse_location: val } : p));
+                                                    setSelectedProduct({ ...selectedProduct, warehouse_location: val });
+                                                }}
+                                                onBlur={(e) => handleStockUpdate(selectedProduct.id, { warehouse_location: e.target.value })}
+                                            />
+                                        </div>
+                                        <MapPin className="w-8 h-8 text-white/20 group-hover/loc:text-primary transition-colors" />
                                     </div>
                                 </section>
 
+                                {selectedProduct.variants?.length > 0 && (
+                                    <section className="space-y-6">
+                                        <h4 className="text-[11px] font-black uppercase tracking-[0.2em] text-gray-400 px-1 border-l-4 border-blue-500 pl-4">Variant Configuration Stock</h4>
+                                        <div className="grid grid-cols-1 gap-4">
+                                            {selectedProduct.variants.map((variant: any, idx: number) => (
+                                                <div key={variant.id || idx} className="p-6 bg-white border border-gray-100 rounded-[28px] flex items-center justify-between group/variant hover:border-primary/20 transition-all shadow-sm">
+                                                    <div>
+                                                        <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Config: {Object.values(variant.attributes || {}).join(' / ') || 'Base Variant'}</p>
+                                                        <p className="text-sm font-black text-gray-900">SKU: {variant.sku || 'N/A'}</p>
+                                                    </div>
+                                                    <div className="flex items-center gap-4">
+                                                        <input
+                                                            type="number"
+                                                            className="w-20 text-center py-2 bg-gray-50 rounded-xl font-black text-sm outline-none border-2 border-transparent focus:border-primary/10"
+                                                            value={variant.stock || 0}
+                                                            onChange={(e) => {
+                                                                const newVariants = [...selectedProduct.variants];
+                                                                newVariants[idx].stock = parseInt(e.target.value) || 0;
+                                                                const totalStock = newVariants.reduce((sum: number, v: any) => sum + (v.stock || 0), 0);
+                                                                handleStockUpdate(selectedProduct.id, {
+                                                                    absolute: totalStock,
+                                                                    variants: newVariants
+                                                                });
+                                                            }}
+                                                        />
+                                                        <span className="text-[9px] font-black text-gray-300 uppercase">Qty</span>
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </section>
+                                )}
+
                                 <section className="space-y-8">
-                                    <h4 className="text-[11px] font-black uppercase tracking-[0.2em] text-gray-400 px-1 border-l-4 border-primary pl-4">Governance Controls</h4>
+                                    <h4 className="text-[11px] font-black uppercase tracking-[0.2em] text-gray-400 px-1 border-l-4 border-amber-500 pl-4">Governance Protocol</h4>
 
                                     <div className="space-y-6">
                                         <div className="p-8 bg-white border border-gray-100 rounded-[32px] space-y-4 shadow-sm">
@@ -336,9 +427,9 @@ const Inventory = () => {
                                                     <div className="w-10 h-10 bg-amber-50 rounded-xl flex items-center justify-center">
                                                         <BellRing className="w-5 h-5 text-amber-500" />
                                                     </div>
-                                                    <p className="text-xs font-black text-gray-700 uppercase tracking-widest">Low Stock Threshold</p>
+                                                    <p className="text-xs font-black text-gray-700 uppercase tracking-widest">Critical Alert Threshold</p>
                                                 </div>
-                                                <span className="text-sm font-black text-primary bg-primary/5 px-4 py-1 rounded-full">{selectedProduct.low_stock_threshold || 10} Units</span>
+                                                <span className="text-sm font-black text-amber-600 bg-amber-50 px-4 py-1 rounded-full">{selectedProduct.low_stock_threshold || 10} Units</span>
                                             </div>
                                             <input
                                                 type="range"
@@ -346,9 +437,13 @@ const Inventory = () => {
                                                 max="100"
                                                 value={selectedProduct.low_stock_threshold || 10}
                                                 onChange={(e) => handleStockUpdate(selectedProduct.id, { low_stock_threshold: parseInt(e.target.value) })}
-                                                className="w-full h-2 bg-gray-100 rounded-lg appearance-none cursor-pointer accent-primary"
+                                                className="w-full h-2 bg-gray-100 rounded-lg appearance-none cursor-pointer accent-amber-500"
                                             />
-                                            <p className="text-[9px] text-gray-400 font-bold italic">Alerts will trigger when inventory drops below this calibrated level.</p>
+                                            <div className="flex justify-between text-[8px] font-black text-gray-300 uppercase px-1">
+                                                <span>Zero Floor</span>
+                                                <span>Moderate</span>
+                                                <span>High Buffer</span>
+                                            </div>
                                         </div>
 
                                         <div className="p-8 bg-gray-900 rounded-[32px] text-white flex justify-between items-center shadow-2xl shadow-gray-900/20">

@@ -127,11 +127,13 @@ export const deleteProduct = async (req: Request, res: Response, next: NextFunct
 export const updateInventory = async (req: Request, res: Response, next: NextFunction) => {
     try {
         const { id } = req.params;
-        const { adjustment, absolute, low_stock_threshold } = req.body;
+        const { adjustment, absolute, low_stock_threshold, variants, warehouse_location } = req.body;
 
         const updates: any = {};
         if (absolute !== undefined && typeof absolute === 'number') updates.stock_quantity = Math.max(0, absolute);
         if (low_stock_threshold !== undefined && typeof low_stock_threshold === 'number') updates.low_stock_threshold = Math.max(0, low_stock_threshold);
+        if (variants !== undefined && Array.isArray(variants)) updates.variants = variants;
+        if (warehouse_location !== undefined) updates.warehouse_location = warehouse_location;
 
         if (Object.keys(updates).length > 0) {
             const { data, error } = await supabase
