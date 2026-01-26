@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { UserPlus, Mail, Phone, Briefcase, FileText, CheckCircle, MapPin } from 'lucide-react';
+import { UserPlus, Mail, Phone, Briefcase, FileText, CheckCircle, MapPin, Award, Building2, Layers, Image as ImageIcon } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { api } from '../services/api';
@@ -18,7 +18,11 @@ const ConsultantRegistration: React.FC = () => {
         experience_years: '',
         bio: '',
         location: '',
-        service_categories: [] as string[]
+        service_categories: [] as string[],
+        qualification: '',
+        company_name: '',
+        projects_completed: '',
+        profile_image: ''
     });
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -27,6 +31,7 @@ const ConsultantRegistration: React.FC = () => {
         try {
             await api.consultants.register({
                 ...formData,
+                projects_completed: parseInt(formData.projects_completed) || 0,
                 user_id: user?.id
             });
             setSubmitted(true);
@@ -104,7 +109,7 @@ const ConsultantRegistration: React.FC = () => {
                             {[
                                 { title: 'Exclusive Projects', desc: 'Get access to high-value Bio-CNG plant setups and industrial conversions.' },
                                 { title: 'Technical Support', desc: 'Collaborate with our in-house engineering team on complex system designs.' },
-                                { title: 'Premium Comission', desc: 'Earn industry-leading commissions for project consultancy and equipment sales.' }
+                                { title: 'Premium Commission', desc: 'Earn industry-leading commissions for project consultancy and equipment sales.' }
                             ].map((benefit, i) => (
                                 <div key={i} className="flex items-start gap-4">
                                     <div className="w-6 h-6 bg-primary/10 rounded-full flex items-center justify-center mt-1 flex-shrink-0">
@@ -135,6 +140,7 @@ const ConsultantRegistration: React.FC = () => {
                         <h2 className="text-2xl font-bold text-gray-900 mb-8">Consultant Registration</h2>
 
                         <form onSubmit={handleSubmit} className="space-y-6">
+                            {/* Basic Info */}
                             <div className="grid grid-cols-2 gap-4">
                                 <div>
                                     <label className="block text-sm font-bold text-gray-700 mb-2">First Name</label>
@@ -158,34 +164,98 @@ const ConsultantRegistration: React.FC = () => {
                                 </div>
                             </div>
 
-                            <div>
-                                <label className="block text-sm font-bold text-gray-700 mb-2 flex items-center gap-2">
-                                    <Mail className="w-4 h-4" /> Email Address
-                                </label>
-                                <input
-                                    required
-                                    type="email"
-                                    placeholder="john@example.com"
-                                    className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary outline-none transition-all"
-                                    value={formData.email}
-                                    onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                                />
-                            </div>
-
                             <div className="grid grid-cols-2 gap-4">
                                 <div>
                                     <label className="block text-sm font-bold text-gray-700 mb-2 flex items-center gap-2">
-                                        <Phone className="w-4 h-4" /> Phone Number
+                                        <Mail className="w-4 h-4" /> Email
+                                    </label>
+                                    <input
+                                        required
+                                        type="email"
+                                        className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary outline-none transition-all"
+                                        value={formData.email}
+                                        onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-bold text-gray-700 mb-2 flex items-center gap-2">
+                                        <Phone className="w-4 h-4" /> Phone
                                     </label>
                                     <input
                                         required
                                         type="tel"
-                                        placeholder="+91..."
                                         className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary outline-none transition-all"
                                         value={formData.phone}
                                         onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
                                     />
                                 </div>
+                            </div>
+
+                            {/* Additional Details */}
+                            <div className="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label className="block text-sm font-bold text-gray-700 mb-2 flex items-center gap-2">
+                                        <Building2 className="w-4 h-4" /> Company Name
+                                    </label>
+                                    <input
+                                        required
+                                        type="text"
+                                        placeholder="Current organization"
+                                        className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary outline-none transition-all"
+                                        value={formData.company_name}
+                                        onChange={(e) => setFormData({ ...formData, company_name: e.target.value })}
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-bold text-gray-700 mb-2 flex items-center gap-2">
+                                        <Award className="w-4 h-4" /> Highest Qualification
+                                    </label>
+                                    <input
+                                        required
+                                        type="text"
+                                        placeholder="e.g. M.Tech in Energy"
+                                        className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary outline-none transition-all"
+                                        value={formData.qualification}
+                                        onChange={(e) => setFormData({ ...formData, qualification: e.target.value })}
+                                    />
+                                </div>
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label className="block text-sm font-bold text-gray-700 mb-2 flex items-center gap-2">
+                                        <Briefcase className="w-4 h-4" /> Industry Experience (Years)
+                                    </label>
+                                    <select
+                                        required
+                                        className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary outline-none transition-all appearance-none"
+                                        value={formData.experience_years}
+                                        onChange={(e) => setFormData({ ...formData, experience_years: e.target.value })}
+                                    >
+                                        <option value="">Select experience</option>
+                                        <option value="1-3">1-3 Years</option>
+                                        <option value="3-7">3-7 Years</option>
+                                        <option value="7-12">7-12 Years</option>
+                                        <option value="12-15">12-15 Years</option>
+                                        <option value="15+">15+ Years</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-bold text-gray-700 mb-2 flex items-center gap-2">
+                                        <Layers className="w-4 h-4" /> Projects Completed
+                                    </label>
+                                    <input
+                                        required
+                                        type="number"
+                                        placeholder="Number of plants"
+                                        className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary outline-none transition-all"
+                                        value={formData.projects_completed}
+                                        onChange={(e) => setFormData({ ...formData, projects_completed: e.target.value })}
+                                    />
+                                </div>
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-4">
                                 <div>
                                     <label className="block text-sm font-bold text-gray-700 mb-2 flex items-center gap-2">
                                         <MapPin className="w-4 h-4" /> Location
@@ -199,29 +269,24 @@ const ConsultantRegistration: React.FC = () => {
                                         onChange={(e) => setFormData({ ...formData, location: e.target.value })}
                                     />
                                 </div>
-                            </div>
-
-                            <div>
-                                <label className="block text-sm font-bold text-gray-700 mb-2 flex items-center gap-2">
-                                    <Briefcase className="w-4 h-4" /> Industry Experience (Years)
-                                </label>
-                                <select
-                                    required
-                                    className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary outline-none transition-all appearance-none"
-                                    value={formData.experience_years}
-                                    onChange={(e) => setFormData({ ...formData, experience_years: e.target.value })}
-                                >
-                                    <option value="">Select experience</option>
-                                    <option value="1-3">1-3 Years</option>
-                                    <option value="3-7">3-7 Years</option>
-                                    <option value="7+">7+ Years</option>
-                                </select>
+                                <div>
+                                    <label className="block text-sm font-bold text-gray-700 mb-2 flex items-center gap-2">
+                                        <ImageIcon className="w-4 h-4" /> Profile Image URL
+                                    </label>
+                                    <input
+                                        type="url"
+                                        placeholder="https://..."
+                                        className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary outline-none transition-all"
+                                        value={formData.profile_image}
+                                        onChange={(e) => setFormData({ ...formData, profile_image: e.target.value })}
+                                    />
+                                </div>
                             </div>
 
                             <div>
                                 <label className="block text-sm font-bold text-gray-700 mb-2">Service Categories</label>
                                 <div className="flex flex-wrap gap-2">
-                                    {['CNG', 'Bio-CNG', 'LPG', 'Equipment', 'Services'].map(cat => (
+                                    {['CNG', 'Bio-CNG', 'LPG', 'Equipment', 'Plant Design', 'Safety Audit', 'Project Finance'].map(cat => (
                                         <button
                                             key={cat}
                                             type="button"
@@ -239,10 +304,11 @@ const ConsultantRegistration: React.FC = () => {
 
                             <div>
                                 <label className="block text-sm font-bold text-gray-700 mb-2 flex items-center gap-2">
-                                    <FileText className="w-4 h-4" /> Brief Profile / Bio
+                                    <FileText className="w-4 h-4" /> Professional Bio
                                 </label>
                                 <textarea
-                                    placeholder="Tell us about your background..."
+                                    required
+                                    placeholder="Tell us about your background, expertise and achievements..."
                                     rows={4}
                                     className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary outline-none transition-all resize-none"
                                     value={formData.bio}

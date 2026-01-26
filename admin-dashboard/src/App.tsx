@@ -13,30 +13,71 @@ import VendorManagement from './pages/VendorManagement';
 import DocumentCenter from './pages/DocumentCenter';
 import RFQConfigurator from './pages/RFQConfigurator';
 import Inventory from './pages/Inventory';
+import UserManagement from './pages/UserManagement';
 import Login from './pages/Login';
 
 const ProtectedRoute = () => {
     const [loading, setLoading] = useState(true);
     const [isAuthenticated, setIsAuthenticated] = useState(false);
+    const [error, setError] = useState<string | null>(null);
 
     useEffect(() => {
         const checkAuth = async () => {
             const { data: { session } } = await supabase.auth.getSession();
             const isHardcodedAdmin = localStorage.getItem('admin_logged_in') === 'true';
-            setIsAuthenticated(!!session || isHardcodedAdmin);
+
+            if (session) {
+                // If using actual Supabase session, verify status from profile
+                const { data: profile } = await supabase
+                    .from('profiles')
+                    .select('account_status')
+                    .eq('id', session.user.id)
+                    .single();
+
+                if (profile?.account_status === 'banned') {
+                    setError('Your account has been banned.');
+                    await supabase.auth.signOut();
+                    setIsAuthenticated(false);
+                } else if (profile?.account_status === 'deactivated') {
+                    setError('Your account is deactivated.');
+                    await supabase.auth.signOut();
+                    setIsAuthenticated(false);
+                } else {
+                    setIsAuthenticated(true);
+                }
+            } else {
+                setIsAuthenticated(isHardcodedAdmin);
+            }
             setLoading(false);
         };
         checkAuth();
 
-        const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+        const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
             const isHardcodedAdmin = localStorage.getItem('admin_logged_in') === 'true';
-            setIsAuthenticated(!!session || isHardcodedAdmin);
+            if (session) {
+                const { data: profile } = await supabase
+                    .from('profiles')
+                    .select('account_status')
+                    .eq('id', session.user.id)
+                    .single();
+
+                if (profile?.account_status === 'banned' || profile?.account_status === 'deactivated') {
+                    await supabase.auth.signOut();
+                    setIsAuthenticated(false);
+                } else {
+                    setIsAuthenticated(true);
+                }
+            } else {
+                setIsAuthenticated(isHardcodedAdmin);
+            }
         });
 
         return () => subscription.unsubscribe();
     }, []);
 
     if (loading) return <div className="flex items-center justify-center min-h-screen">Loading...</div>;
+
+    if (error) return <Navigate to="/login" state={{ error }} replace />;
 
     if (!isAuthenticated) return <Navigate to="/login" replace />;
 
@@ -61,6 +102,7 @@ function App() {
                         <Route path="consultants" element={<ConsultantManagement />} />
                         <Route path="inventory" element={<Inventory />} />
                         <Route path="orders" element={<Orders />} />
+                        <Route path="users" element={<UserManagement />} />
                     </Route>
                 </Route>
                 <Route path="*" element={<Navigate to="/" replace />} />

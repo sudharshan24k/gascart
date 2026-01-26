@@ -8,7 +8,7 @@ const Home: React.FC = () => {
     return (
         <div className="flex flex-col">
             {/* Hero Section */}
-            <section className="relative bg-gradient-to-r from-primary-dark to-primary h-[600px] flex items-center text-white overflow-hidden">
+            <section className="relative bg-gradient-to-r from-primary-dark to-primary min-h-[500px] md:h-[600px] flex items-center text-white overflow-hidden">
                 <div className="absolute inset-0 bg-black opacity-20"></div>
                 <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative z-10 grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
                     <motion.div
@@ -16,13 +16,13 @@ const Home: React.FC = () => {
                         animate={{ opacity: 1, x: 0 }}
                         transition={{ duration: 0.8 }}
                     >
-                        <h1 className="text-5xl md:text-6xl font-display font-bold mb-6 leading-tight">
+                        <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-display font-bold mb-4 md:mb-6 leading-tight">
                             Clean Biomethane & <span className="text-primary-light">Bio-CNG Tech</span>
                         </h1>
-                        <p className="text-xl md:text-2xl mb-8 text-gray-100 opacity-90 max-w-lg">
+                        <p className="text-base sm:text-lg md:text-xl lg:text-2xl mb-6 md:mb-8 text-gray-100 opacity-90 max-w-lg">
                             Pioneering Sustainable Energy for a Greener Tomorrow. High-efficiency gasification solutions for your industrial needs.
                         </p>
-                        <div className="flex flex-col sm:flex-row gap-4">
+                        <div className="flex flex-col sm:flex-row gap-3 md:gap-4">
                             <Link to="/shop" className="bg-secondary hover:bg-secondary-dark text-white px-8 py-4 rounded-full font-bold text-lg transition-all transform hover:scale-105 shadow-lg text-center flex items-center justify-center">
                                 Shop Products
                             </Link>

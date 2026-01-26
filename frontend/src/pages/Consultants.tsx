@@ -1,56 +1,46 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
-import { UserPlus, Star, MapPin, Search, Filter, Building2 } from 'lucide-react';
-
-const expertConsultants = [
-    {
-        id: 1,
-        name: "Dr. Rajesh Kumar",
-        role: "Senior Biogas Expert",
-        location: "Pune, Maharashtra",
-        exp: "15+ Years",
-        rating: 4.9,
-        image: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&q=80&w=200&h=200",
-        tags: ["Anaerobic Digestion", "Plant Design"],
-        vendor: "BioGreen Engineering"
-    },
-    {
-        id: 2,
-        name: "Sanjay Singhania",
-        role: "Bio-CNG Infrastructure Lead",
-        location: "Ahmedabad, Gujarat",
-        exp: "10 Years",
-        rating: 4.8,
-        image: "https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?auto=format&fit=crop&q=80&w=200&h=200",
-        tags: ["Compression Systems", "Distribution"],
-        vendor: "Indra Infrastructure"
-    },
-    {
-        id: 3,
-        name: "Priya Sharma",
-        role: "Waste Management Specialist",
-        location: "Bangalore, Karnataka",
-        exp: "8 Years",
-        rating: 4.9,
-        image: "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&q=80&w=200&h=200",
-        tags: ["Feedstock Optimization", "Sustainability"],
-        vendor: "Waste2Value Solutions"
-    },
-    {
-        id: 4,
-        name: "Anita Desai",
-        role: "Renewable Energy Consultant",
-        location: "New Delhi",
-        exp: "12 Years",
-        rating: 4.7,
-        image: "https://images.unsplash.com/photo-1580489944761-15a19d654956?auto=format&fit=crop&q=80&w=200&h=200",
-        tags: ["Government Subsidies", "Project Finance"],
-        vendor: "Green Capital Advisors"
-    }
-];
+import { UserPlus, Star, MapPin, Search, Filter, Building2, Loader2, User } from 'lucide-react';
+import { api } from '../services/api';
 
 const Consultants: React.FC = () => {
+    const [consultants, setConsultants] = useState<any[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [searchTerm, setSearchTerm] = useState('');
+
+    useEffect(() => {
+        loadConsultants();
+    }, []);
+
+    const loadConsultants = async () => {
+        setLoading(true);
+        try {
+            // Only show approved consultants
+            const res = await api.consultants.list({ status: 'approved' });
+            if (res.status === 'success') {
+                setConsultants(res.data);
+            }
+        } catch (err) {
+            console.error('Failed to load consultants', err);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const filteredConsultants = consultants.filter(c => {
+        const fullName = `${c.first_name || ''} ${c.last_name || ''}`.toLowerCase();
+        const search = searchTerm.toLowerCase();
+        const bio = (c.bio || '').toLowerCase();
+        const location = (c.location || '').toLowerCase();
+        const categories = (c.service_categories || []).join(' ').toLowerCase();
+
+        return fullName.includes(search) ||
+            bio.includes(search) ||
+            location.includes(search) ||
+            categories.includes(search);
+    });
+
     return (
         <div className="min-h-screen pt-32 pb-24 bg-gray-50">
             <div className="container mx-auto px-4 max-w-7xl">
@@ -78,6 +68,8 @@ const Consultants: React.FC = () => {
                         <input
                             type="text"
                             placeholder="Search by expertise, name or location..."
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
                             className="w-full pl-12 pr-4 py-4 bg-gray-50 border-none rounded-2xl outline-none ring-2 ring-transparent focus:ring-primary/10 transition-all font-medium"
                         />
                     </div>
@@ -89,57 +81,96 @@ const Consultants: React.FC = () => {
                 </div>
 
                 {/* Grid */}
-                <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
-                    {expertConsultants.map((expert, i) => (
-                        <motion.div
-                            key={expert.id}
-                            initial={{ opacity: 0, y: 20 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ delay: i * 0.1 }}
-                            className="bg-white rounded-3xl overflow-hidden shadow-sm border border-gray-100 hover:shadow-xl transition-all group p-6"
+                {loading ? (
+                    <div className="flex items-center justify-center py-20">
+                        <Loader2 className="w-12 h-12 text-primary animate-spin" />
+                    </div>
+                ) : filteredConsultants.length > 0 ? (
+                    <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
+                        {filteredConsultants.map((expert, i) => (
+                            <motion.div
+                                key={expert.id}
+                                initial={{ opacity: 0, y: 20 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ delay: i * 0.1 }}
+                                className="bg-white rounded-3xl overflow-hidden shadow-sm border border-gray-100 hover:shadow-xl transition-all group p-6 flex flex-col h-full"
+                            >
+                                <div className="relative mb-6">
+                                    {expert.profile_image ? (
+                                        <img
+                                            src={expert.profile_image}
+                                            alt={`${expert.first_name} ${expert.last_name}`}
+                                            className="w-24 h-24 rounded-2xl object-cover"
+                                        />
+                                    ) : (
+                                        <div className="w-24 h-24 rounded-2xl bg-gray-100 flex items-center justify-center text-gray-400">
+                                            <User className="w-12 h-12" />
+                                        </div>
+                                    )}
+                                    <div className="absolute top-0 right-0 bg-primary/10 text-primary px-3 py-1 rounded-full text-[10px] font-bold">
+                                        {expert.experience_years}+ Yrs Exp
+                                    </div>
+                                </div>
+
+                                <div className="mb-6 flex-grow">
+                                    <h3 className="text-xl font-bold text-gray-900 group-hover:text-primary transition-colors">
+                                        {expert.first_name} {expert.last_name}
+                                    </h3>
+                                    <div className="flex items-center gap-1 text-gray-400 text-xs mt-1">
+                                        <MapPin className="w-3 h-3" /> {expert.location || 'Remote'}
+                                    </div>
+                                    {expert.company_name && (
+                                        <div className="flex items-center gap-2 mt-3 p-2 bg-gray-50 rounded-xl">
+                                            <Building2 className="w-4 h-4 text-primary" />
+                                            <span className="text-xs font-bold text-gray-600 truncate">{expert.company_name}</span>
+                                        </div>
+                                    )}
+                                    <p className="text-sm text-gray-500 mt-4 line-clamp-3">
+                                        {expert.bio}
+                                    </p>
+                                </div>
+
+                                <div className="flex flex-wrap gap-2 mb-8">
+                                    {(expert.service_categories || []).slice(0, 3).map((tag: string) => (
+                                        <span key={tag} className="text-[10px] font-bold bg-secondary/5 text-secondary px-2 py-1 rounded-lg">
+                                            {tag}
+                                        </span>
+                                    ))}
+                                    {(expert.service_categories || []).length > 3 && (
+                                        <span className="text-[10px] font-bold bg-gray-50 text-gray-400 px-2 py-1 rounded-lg">
+                                            +{(expert.service_categories || []).length - 3}
+                                        </span>
+                                    )}
+                                </div>
+
+                                <div className="pt-6 border-t border-gray-50 flex items-center justify-between gap-4 mt-auto">
+                                    <div className="flex items-center gap-1">
+                                        <Star className="w-4 h-4 text-secondary fill-secondary" />
+                                        <span className="font-bold text-sm">{expert.rating || 'New'}</span>
+                                    </div>
+                                    <Link
+                                        to={`/experts/${expert.id}`}
+                                        className="flex-grow bg-gray-900 hover:bg-primary text-white py-3 rounded-xl transition-all font-bold text-sm text-center"
+                                    >
+                                        View Profile
+                                    </Link>
+                                </div>
+                            </motion.div>
+                        ))}
+                    </div>
+                ) : (
+                    <div className="text-center py-20 bg-white rounded-3xl border border-dashed border-gray-200">
+                        <User className="w-16 h-16 text-gray-200 mx-auto mb-4" />
+                        <h3 className="text-xl font-bold text-gray-900 mb-2">No Experts Found</h3>
+                        <p className="text-gray-500">We couldn't find any verified experts matching your criteria.</p>
+                        <button
+                            onClick={() => { setSearchTerm(''); loadConsultants(); }}
+                            className="mt-6 text-primary font-bold hover:underline"
                         >
-                            <div className="relative mb-6">
-                                <img
-                                    src={expert.image}
-                                    alt={expert.name}
-                                    className="w-24 h-24 rounded-2xl object-cover"
-                                />
-                                <div className="absolute top-0 right-0 bg-primary/10 text-primary px-3 py-1 rounded-full text-[10px] font-bold">
-                                    {expert.exp} Exp
-                                </div>
-                            </div>
-
-                            <div className="mb-6">
-                                <h3 className="text-xl font-bold text-gray-900 group-hover:text-primary transition-colors">{expert.name}</h3>
-                                <div className="flex items-center gap-1 text-gray-400 text-xs mt-1">
-                                    <MapPin className="w-3 h-3" /> {expert.location}
-                                </div>
-                                <div className="flex items-center gap-2 mt-3 p-2 bg-gray-50 rounded-xl">
-                                    <Building2 className="w-4 h-4 text-primary" />
-                                    <span className="text-xs font-bold text-gray-600 truncate">{expert.vendor}</span>
-                                </div>
-                            </div>
-
-                            <div className="flex flex-wrap gap-2 mb-8">
-                                {expert.tags.map(tag => (
-                                    <span key={tag} className="text-[10px] font-bold bg-secondary/5 text-secondary px-2 py-1 rounded-lg">
-                                        {tag}
-                                    </span>
-                                ))}
-                            </div>
-
-                            <div className="pt-6 border-t border-gray-50 flex items-center justify-between gap-4">
-                                <div className="flex items-center gap-1">
-                                    <Star className="w-4 h-4 text-secondary fill-secondary" />
-                                    <span className="font-bold text-sm">{expert.rating}</span>
-                                </div>
-                                <button className="flex-grow bg-gray-900 hover:bg-primary text-white py-3 rounded-xl transition-all font-bold text-sm">
-                                    Add to RFQ
-                                </button>
-                            </div>
-                        </motion.div>
-                    ))}
-                </div>
+                            Clear all filters
+                        </button>
+                    </div>
+                )}
             </div>
         </div>
     );

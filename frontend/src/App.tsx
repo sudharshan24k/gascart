@@ -11,7 +11,6 @@ import ConsultantRegistration from './pages/ConsultantRegistration';
 import ConsultantDashboard from './pages/ConsultantDashboard';
 import Learn from './pages/Learn'; // Re-applied import to trigger refresh
 import ArticleDetail from './pages/ArticleDetail';
-import Resources from './pages/Resources';
 import VendorEnquiry from './pages/VendorEnquiry';
 import Compare from './pages/Compare';
 import MyOrders from './pages/MyOrders';
@@ -31,6 +30,8 @@ import Cart from './pages/Cart';
 import Checkout from './pages/Checkout';
 import OrderSuccess from './pages/OrderSuccess';
 import Profile from './pages/Profile';
+import PaymentSuccess from './pages/PaymentSuccess';
+import PaymentCancel from './pages/PaymentCancel';
 
 function App() {
     // Default Marketplace Routes
@@ -51,7 +52,6 @@ function App() {
                                 <Route path="experts/:id" element={<ExpertProfile />} />
                                 <Route path="consultant-registration" element={<ConsultantRegistration />} />
                                 <Route path="consultant-dashboard" element={<ConsultantDashboard />} />
-                                <Route path="resources" element={<Resources />} />
                                 <Route path="vendor-enquiry" element={<VendorEnquiry />} />
                                 <Route path="contact" element={<Contact />} />
 
@@ -70,6 +70,8 @@ function App() {
                                 <Route path="profile" element={<Profile />} />
                                 <Route path="my-orders" element={<MyOrders />} />
                                 <Route path="order-tracking/:id" element={<OrderTracking />} />
+                                <Route path="payment-success" element={<PaymentSuccess />} />
+                                <Route path="payment-cancel" element={<PaymentCancel />} />
                             </Route>
                         </Routes>
                     </Router>

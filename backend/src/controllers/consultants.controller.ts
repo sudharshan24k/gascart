@@ -3,7 +3,21 @@ import { supabase } from '../config/supabase';
 
 export const registerConsultant = async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const { first_name, last_name, email, phone, experience_years, bio, service_categories, location, user_id } = req.body;
+        const {
+            first_name,
+            last_name,
+            email,
+            phone,
+            experience_years,
+            bio,
+            service_categories,
+            location,
+            user_id,
+            qualification,
+            projects_completed,
+            company_name,
+            profile_image
+        } = req.body;
 
         const { data, error } = await supabase
             .from('consultants')
@@ -17,8 +31,13 @@ export const registerConsultant = async (req: Request, res: Response, next: Next
                 service_categories,
                 location,
                 user_id: user_id || null,
+                qualification,
+                projects_completed: projects_completed || 0,
+                company_name,
+                profile_image,
                 status: 'pending'
             }])
+
             .select()
             .single();
 
@@ -52,12 +71,22 @@ export const getConsultants = async (req: Request, res: Response, next: NextFunc
 
         let query = supabase.from('consultants').select('*');
 
-        if (status) query = query.eq('status', status);
-        if (is_visible !== undefined) query = query.eq('is_visible', is_visible === 'true');
+        // If no status is specified, default to 'approved' for public safety
+        // In a real app, you might want to allow admins to see everything
+        const finalStatus = status || 'approved';
+        query = query.eq('status', finalStatus);
+
+        if (is_visible !== undefined) {
+            query = query.eq('is_visible', is_visible === 'true');
+        } else if (!status) {
+            // Default to visible for public view if not specified
+            query = query.eq('is_visible', true);
+        }
 
         const { data, error } = await query.order('created_at', { ascending: false });
 
         if (error) throw error;
+
 
         res.json({ status: 'success', data });
     } catch (err) {

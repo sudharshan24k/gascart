@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { Link, useParams } from 'react-router-dom';
 import {
     Award,
     MessageSquare,
@@ -8,26 +8,61 @@ import {
     ChevronLeft,
     Building2,
     Calendar,
-    CheckCircle2
+    CheckCircle2,
+    Loader2,
+    User
 } from 'lucide-react';
+import { api } from '../services/api';
 
 const ExpertProfile: React.FC = () => {
+    const { id } = useParams<{ id: string }>();
+    const [expert, setExpert] = useState<any>(null);
+    const [loading, setLoading] = useState(true);
     const [enquirySent, setEnquirySent] = useState(false);
 
-    // Mock Data based on the experts list
-    const expert = {
-        name: "Dr. Rajesh Kumar",
-        role: "Senior Biogas Expert",
-        location: "Pune, Maharashtra",
-        exp: "15+ Years",
-        rating: 4.9,
-        image: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&q=80&w=400&h=400",
-        bio: "Dr. Rajesh has over 15 years of experience in anaerobic digestion and biogas plant modeling. He has successfully commissioned over 40 industrial-scale Bio-CNG plants across Southeast Asia.",
-        expertise: ["Anaerobic Digestion", "Plant Design", "Safety Audits", "Methane Optimization"],
-        vendor: "BioGreen Engineering",
-        projects: 42,
-        education: "Ph.D. in Renewable Energy Systems"
+    useEffect(() => {
+        if (id) {
+            loadExpert(id);
+        }
+    }, [id]);
+
+    const loadExpert = async (expertId: string) => {
+        setLoading(true);
+        try {
+            const res = await api.consultants.get(expertId);
+            if (res.status === 'success') {
+                setExpert(res.data);
+            }
+        } catch (err) {
+            console.error('Failed to load expert profile', err);
+        } finally {
+            setLoading(false);
+        }
     };
+
+    if (loading) {
+        return (
+            <div className="pt-32 pb-24 min-h-screen bg-gray-50 flex items-center justify-center">
+                <Loader2 className="w-12 h-12 text-primary animate-spin" />
+            </div>
+        );
+    }
+
+    if (!expert) {
+        return (
+            <div className="pt-32 pb-24 min-h-screen bg-gray-50 text-center">
+                <div className="container mx-auto px-4">
+                    <h2 className="text-3xl font-bold text-gray-900 mb-4">Expert Not Found</h2>
+                    <p className="text-gray-500 mb-8">The expert profile you are looking for does not exist or has been removed.</p>
+                    <Link to="/experts" className="bg-primary text-white px-8 py-3 rounded-xl font-bold">
+                        Back to Experts
+                    </Link>
+                </div>
+            </div>
+        );
+    }
+
+    const fullName = `${expert.first_name || ''} ${expert.last_name || ''}`;
 
     return (
         <div className="pt-32 pb-24 min-h-screen bg-gray-50">
@@ -42,39 +77,49 @@ const ExpertProfile: React.FC = () => {
                     <div className="lg:col-span-1 space-y-8">
                         <div className="bg-white p-8 rounded-[40px] shadow-sm border border-gray-100 text-center">
                             <div className="relative inline-block mb-8">
-                                <img
-                                    src={expert.image}
-                                    alt={expert.name}
-                                    className="w-48 h-48 rounded-[32px] object-cover mx-auto shadow-xl"
-                                />
+                                {expert.profile_image ? (
+                                    <img
+                                        src={expert.profile_image}
+                                        alt={fullName}
+                                        className="w-48 h-48 rounded-[32px] object-cover mx-auto shadow-xl"
+                                    />
+                                ) : (
+                                    <div className="w-48 h-48 rounded-[32px] bg-gray-100 flex items-center justify-center text-gray-400 mx-auto shadow-xl">
+                                        <User className="w-24 h-24" />
+                                    </div>
+                                )}
                                 <div className="absolute -bottom-4 left-1/2 -translate-x-1/2 bg-primary text-white px-6 py-2 rounded-full text-xs font-black shadow-lg">
                                     VERIFIED EXPERT
                                 </div>
                             </div>
 
-                            <h1 className="text-3xl font-bold text-gray-900 mb-2">{expert.name}</h1>
-                            <p className="text-gray-500 font-medium mb-6 uppercase tracking-widest text-xs">{expert.role}</p>
+                            <h1 className="text-3xl font-bold text-gray-900 mb-2">{fullName}</h1>
+                            <p className="text-gray-500 font-medium mb-6 uppercase tracking-widest text-xs">
+                                {expert.service_categories?.[0] || 'Consultant'}
+                            </p>
 
                             <div className="flex items-center justify-center gap-6 py-6 border-y border-gray-50 mb-8">
                                 <div className="text-center">
-                                    <p className="text-2xl font-bold text-gray-900">{expert.exp}</p>
+                                    <p className="text-2xl font-bold text-gray-900">{expert.experience_years}+</p>
                                     <p className="text-[10px] text-gray-400 font-black">EXPERIENCE</p>
                                 </div>
                                 <div className="w-px h-10 bg-gray-100"></div>
                                 <div className="text-center">
-                                    <p className="text-2xl font-bold text-gray-900">{expert.projects}</p>
+                                    <p className="text-2xl font-bold text-gray-900">{expert.projects_completed || '0'}</p>
                                     <p className="text-[10px] text-gray-400 font-black">PROJECTS</p>
                                 </div>
                             </div>
 
                             <div className="space-y-4">
-                                <div className="flex items-center gap-3 text-sm text-gray-600 font-medium bg-gray-50 p-4 rounded-2xl">
-                                    <Building2 className="w-5 h-5 text-primary" />
-                                    {expert.vendor}
-                                </div>
+                                {expert.company_name && (
+                                    <div className="flex items-center gap-3 text-sm text-gray-600 font-medium bg-gray-50 p-4 rounded-2xl">
+                                        <Building2 className="w-5 h-5 text-primary" />
+                                        {expert.company_name}
+                                    </div>
+                                )}
                                 <div className="flex items-center gap-3 text-sm text-gray-600 font-medium bg-gray-50 p-4 rounded-2xl">
                                     <MapPin className="w-5 h-5 text-blue-500" />
-                                    {expert.location}
+                                    {expert.location || 'Remote'}
                                 </div>
                             </div>
                         </div>
@@ -82,7 +127,7 @@ const ExpertProfile: React.FC = () => {
                         <div className="bg-secondary-900 p-8 rounded-[32px] text-white shadow-xl">
                             <h3 className="font-bold text-xl mb-6">Expertise Domains</h3>
                             <div className="flex flex-wrap gap-2">
-                                {expert.expertise.map(skill => (
+                                {(expert.service_categories || []).map((skill: string) => (
                                     <span key={skill} className="bg-white/10 px-4 py-2 rounded-xl text-xs font-bold">
                                         {skill}
                                     </span>
@@ -96,26 +141,28 @@ const ExpertProfile: React.FC = () => {
                         <section className="bg-white p-12 rounded-[40px] shadow-sm border border-gray-100">
                             <h2 className="text-3xl font-bold text-gray-900 mb-8">Professional Summary</h2>
                             <p className="text-gray-600 text-lg leading-relaxed mb-10">
-                                {expert.bio}
+                                {expert.bio || 'No professional summary provided.'}
                             </p>
 
                             <div className="grid md:grid-cols-2 gap-8">
-                                <div className="flex items-start gap-4">
-                                    <div className="w-12 h-12 bg-primary/10 rounded-2xl flex items-center justify-center shrink-0">
-                                        <Award className="w-6 h-6 text-primary" />
+                                {expert.qualification && (
+                                    <div className="flex items-start gap-4">
+                                        <div className="w-12 h-12 bg-primary/10 rounded-2xl flex items-center justify-center shrink-0">
+                                            <Award className="w-6 h-6 text-primary" />
+                                        </div>
+                                        <div>
+                                            <p className="text-xs font-black text-gray-400 mb-1">QUALIFICATION</p>
+                                            <p className="font-bold text-gray-900">{expert.qualification}</p>
+                                        </div>
                                     </div>
-                                    <div>
-                                        <p className="text-xs font-black text-gray-400 mb-1">QUALIFICATION</p>
-                                        <p className="font-bold text-gray-900">{expert.education}</p>
-                                    </div>
-                                </div>
+                                )}
                                 <div className="flex items-start gap-4">
                                     <div className="w-12 h-12 bg-blue-100 rounded-2xl flex items-center justify-center shrink-0">
                                         <Star className="w-6 h-6 text-blue-600" />
                                     </div>
                                     <div>
                                         <p className="text-xs font-black text-gray-400 mb-1">CLIENT RATING</p>
-                                        <p className="font-bold text-gray-900">{expert.rating} / 5.0 Average</p>
+                                        <p className="font-bold text-gray-900">{expert.rating || '4.5'} / 5.0 Average</p>
                                     </div>
                                 </div>
                             </div>
@@ -129,7 +176,7 @@ const ExpertProfile: React.FC = () => {
                                     <div className="w-16 h-16 bg-green-100 text-green-600 rounded-full flex items-center justify-center mx-auto mb-6">
                                         <CheckCircle2 className="w-8 h-8" />
                                     </div>
-                                    <h3 className="text-2xl font-bold text-gray-900 mb-2">Request Sent to {expert.name}</h3>
+                                    <h3 className="text-2xl font-bold text-gray-900 mb-2">Request Sent to {fullName}</h3>
                                     <p className="text-gray-500">The consultant will review your project details and contact you via the platform hub.</p>
                                 </div>
                             ) : (
@@ -160,7 +207,7 @@ const ExpertProfile: React.FC = () => {
                                         />
                                     </div>
                                     <button type="submit" className="bg-primary text-white font-black px-12 py-5 rounded-[20px] shadow-2xl shadow-primary/30 hover:-translate-y-1 transition-all flex items-center gap-3">
-                                        <MessageSquare className="w-6 h-6" /> Start Consultation Enqiury
+                                        <MessageSquare className="w-6 h-6" /> Start Consultation Enquiry
                                     </button>
                                 </form>
                             )}

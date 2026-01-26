@@ -284,6 +284,17 @@ export const api = {
             });
             return res.json();
         },
+        list: async (params: Record<string, string> = {}) => {
+            const query = new URLSearchParams(params).toString();
+            const apiUrl = getBaseUrl();
+            const res = await fetch(`${apiUrl}/consultants?${query}`);
+            return res.json();
+        },
+        get: async (id: string) => {
+            const apiUrl = getBaseUrl();
+            const res = await fetch(`${apiUrl}/consultants/${id}`);
+            return res.json();
+        },
         getMyProfile: async () => {
             const token = (await supabase.auth.getSession()).data.session?.access_token;
             if (!token) throw new Error('Not authenticated');
@@ -293,5 +304,38 @@ export const api = {
             });
             return res.json();
         }
+    },
+    categories: {
+        list: async () => {
+            const apiUrl = getBaseUrl();
+            const res = await fetch(`${apiUrl}/categories`);
+            return res.json();
+        }
+    },
+    payments: {
+        createCheckoutSession: async (data: { items: any[], successUrl: string, cancelUrl: string, shippingDetails: any, billingDetails: any }) => {
+            const token = (await supabase.auth.getSession()).data.session?.access_token;
+            if (!token) throw new Error('Not authenticated');
+            const apiUrl = getBaseUrl();
+            const res = await fetch(`${apiUrl}/payments/create-checkout-session`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify(data)
+            });
+            return res.json();
+        },
+        getSessionStatus: async (sessionId: string) => {
+            const token = (await supabase.auth.getSession()).data.session?.access_token;
+            if (!token) throw new Error('Not authenticated');
+            const apiUrl = getBaseUrl();
+            const res = await fetch(`${apiUrl}/payments/session-status/${sessionId}`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            return res.json();
+        }
     }
 };
+

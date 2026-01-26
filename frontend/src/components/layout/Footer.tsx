@@ -4,11 +4,11 @@ import { Leaf, Mail, MapPin, Phone, Linkedin, Twitter, Facebook } from 'lucide-r
 
 const Footer: React.FC = () => {
     return (
-        <footer className="bg-gray-900 text-white pt-16 pb-8 border-t border-gray-800">
-            <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12">
+        <footer className="bg-gray-900 text-white pt-12 md:pt-16 pb-8 border-t border-gray-800">
+            <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-7xl">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 md:gap-12">
                     {/* Company Info */}
-                    <div>
+                    <div className="sm:col-span-2 lg:col-span-1">
                         <div className="flex items-center mb-6">
                             <Leaf className="h-8 w-8 text-primary" />
                             <span className="ml-2 text-2xl font-bold">Gascart</span>

@@ -84,7 +84,6 @@ const Checkout: React.FC = () => {
     };
 
     const handlePlaceOrder = async () => {
-        // Basic Validation
         if (!formData.address_line1 || !formData.city || !formData.state || !formData.zip_code || !formData.phone) {
             alert('Please complete all shipping details.');
             setStep(1);
@@ -93,32 +92,28 @@ const Checkout: React.FC = () => {
 
         setProcessingOrder(true);
         try {
-            // Simulate Payment Gateway Delay
-            await new Promise(resolve => setTimeout(resolve, 2000));
-
-            // Call API
-            const res = await api.orders.create({
-                shipping_address: formData,
-                billing_address: formData, // Simplified for MVP
-                payment_method: 'credit_card',
-                payment_status: 'paid' // MVP: Assume payment success immediately
+            const res = await api.payments.createCheckoutSession({
+                items: items.map(item => ({
+                    id: item.product.id,
+                    name: item.product.name,
+                    price: item.product.price,
+                    quantity: item.quantity,
+                    image: item.product.image_url
+                })),
+                successUrl: `${window.location.origin}/payment-success`,
+                cancelUrl: `${window.location.origin}/payment-cancel`,
+                shippingDetails: formData,
+                billingDetails: formData
             });
 
-            if (res.status === 'success') {
-                // Force a hard reload if needed or just navigate.
-                // Since we need to clear the cart in the Context, and Context often relies on refetching:
-                // If backend clears cart, a re-fetch of cart would show empty.
-                // However, for a clean slate, let's navigate with state.
-                navigate('/order-success', { state: { orderId: res.data.order_id } });
-                // We might want to dispatch an event or call a context method here to refresh cart count immediately, 
-                // but navigation should handle it if the Success page checks/updates things or if we reload.
-                // Ideally: refreshCart(); 
+            if (res.url) {
+                window.location.href = res.url;
             } else {
-                alert('Order failed: ' + res.message);
+                throw new Error(res.error || 'Failed to create checkout session');
             }
         } catch (err: any) {
             console.error('Checkout error:', err);
-            alert('Checkout failed. Please try again.');
+            alert('Checkout failed: ' + err.message);
         } finally {
             setProcessingOrder(false);
         }

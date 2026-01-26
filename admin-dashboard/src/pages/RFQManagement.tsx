@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { fetchRFQs, updateAdminRFQStatus } from '../services/admin.service';
+import { fetchRFQs, updateAdminRFQStatus, downloadRFQs } from '../services/admin.service';
 import { ClipboardList, Download, Search, Mail, Eye } from 'lucide-react';
-import axios from 'axios';
 import { formatDateIST } from '../utils/dateUtils';
 
 const RFQManagement: React.FC = () => {
@@ -38,14 +37,9 @@ const RFQManagement: React.FC = () => {
 
     const handleExport = async () => {
         try {
-            const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api/v1';
-            const token = localStorage.getItem('supabase.auth.token');
-            const response = await axios.get(`${API_URL}/rfqs/export`, {
-                headers: { Authorization: `Bearer ${token}` },
-                responseType: 'blob'
-            });
+            const data = await downloadRFQs();
 
-            const url = window.URL.createObjectURL(new Blob([response.data]));
+            const url = window.URL.createObjectURL(new Blob([data]));
             const link = document.createElement('a');
             link.href = url;
             link.setAttribute('download', `gascart_rfqs_${new Date().toISOString().split('T')[0]}.csv`);
@@ -53,6 +47,7 @@ const RFQManagement: React.FC = () => {
             link.click();
             link.remove();
         } catch (err) {
+            console.error('Export failed', err);
             alert('Export failed');
         }
     };

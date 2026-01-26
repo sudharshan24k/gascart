@@ -17,8 +17,8 @@ const Header: React.FC = () => {
         { name: 'Home', path: '/' },
         { name: 'Learn', path: '/learn' },
         { name: 'Marketplace', path: '/shop' },
-        { name: 'Resources', path: '/resources' },
         { name: 'Experts', path: '/experts' },
+        { name: 'Vendor', path: '/vendor-enquiry' },
     ];
 
     const handleSignOut = async () => {
@@ -27,9 +27,9 @@ const Header: React.FC = () => {
     };
 
     return (
-        <nav className="bg-white/80 backdrop-blur-md shadow-sm fixed w-full z-50 transition-all duration-300 border-b border-gray-100">
+        <nav className="bg-white/90 backdrop-blur-lg shadow-sm fixed top-0 w-full transition-all duration-300 border-b border-gray-100" style={{ zIndex: 'var(--z-fixed)' }}>
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                <div className="flex justify-between h-20">
+                <div className="flex justify-between items-center h-20 md:h-20">
                     <div className="flex items-center">
                         <Link to="/" className="flex-shrink-0 flex items-center group">
                             <Leaf className="h-8 w-8 text-primary group-hover:scale-110 transition-transform duration-300" />
@@ -38,22 +38,23 @@ const Header: React.FC = () => {
                     </div>
 
                     {/* Desktop Menu */}
-                    <div className="hidden md:flex items-center space-x-8">
+                    <div className="hidden lg:flex items-center space-x-6 xl:space-x-8">
                         {navItems.map((item) => (
                             <Link
                                 key={item.name}
                                 to={item.path}
                                 className={clsx(
-                                    "text-gray-500 hover:text-primary transition-colors duration-200 text-sm font-bold uppercase tracking-wider",
-                                    location.pathname === item.path && "text-primary px-3 py-1 bg-primary/5 rounded-full"
+                                    "text-gray-500 hover:text-primary transition-colors duration-200 text-sm font-bold uppercase tracking-wider whitespace-nowrap",
+                                    "focus-visible:outline-primary focus-visible:outline-2 focus-visible:outline-offset-2 rounded-full",
+                                    location.pathname === item.path && "text-primary px-3 py-1 bg-primary/5"
                                 )}
                             >
                                 {item.name}
                             </Link>
                         ))}
 
-                        {/* Search Bar */}
-                        <div className="relative group">
+                        {/* Search Bar - Hidden on smaller laptops, shown on XL */}
+                        <div className="relative group hidden xl:block">
                             <form onSubmit={(e) => {
                                 e.preventDefault();
                                 const fd = new FormData(e.currentTarget);
@@ -64,9 +65,10 @@ const Header: React.FC = () => {
                                     name="q"
                                     type="text"
                                     placeholder="Search..."
-                                    className="bg-gray-100/50 border border-transparent focus:bg-white focus:border-primary/20 rounded-xl py-2 pl-4 pr-10 text-sm font-bold outline-none transition-all w-32 focus:w-48"
+                                    aria-label="Search products"
+                                    className="bg-gray-100/50 border border-transparent focus:bg-white focus:border-primary/20 rounded-xl py-2.5 pl-4 pr-10 text-sm font-bold outline-none transition-all w-32 focus:w-56"
                                 />
-                                <button type="submit" className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-primary">
+                                <button type="submit" aria-label="Submit search" className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-primary transition-colors">
                                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-search"><circle cx="11" cy="11" r="8" /><path d="m21 21-4.3-4.3" /></svg>
                                 </button>
                             </form>
@@ -143,20 +145,26 @@ const Header: React.FC = () => {
                     </div>
 
                     {/* Mobile menu button */}
-                    <div className="md:hidden flex items-center gap-4">
-                        <Link to="/cart" className="text-gray-400 relative">
+                    <div className="lg:hidden flex items-center gap-3">
+                        <Link
+                            to="/cart"
+                            className="text-gray-400 relative p-2 hover:text-primary transition-colors touch-target"
+                            aria-label="Shopping cart"
+                        >
                             <ShoppingCart className="w-6 h-6" />
                             {items.length > 0 && (
-                                <span className="absolute -top-1 -right-1 bg-primary text-white text-[10px] font-bold rounded-full w-5 h-5 flex items-center justify-center border-2 border-white">
+                                <span className="absolute top-0 right-0 bg-primary text-white text-[10px] font-bold rounded-full min-w-[20px] h-5 flex items-center justify-center border-2 border-white px-1">
                                     {items.length}
                                 </span>
                             )}
                         </Link>
                         <button
                             onClick={() => setIsOpen(!isOpen)}
-                            className="text-gray-600 focus:outline-none p-2"
+                            className="text-gray-600 focus:outline-none p-2 hover:bg-gray-100 rounded-lg transition-colors touch-target"
+                            aria-label={isOpen ? "Close menu" : "Open menu"}
+                            aria-expanded={isOpen}
                         >
-                            {isOpen ? <X className="h-7 w-7" /> : <Menu className="h-7 w-7" />}
+                            {isOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
                         </button>
                     </div>
                 </div>
@@ -164,7 +172,7 @@ const Header: React.FC = () => {
 
             {/* Mobile Menu */}
             {isOpen && (
-                <div className="md:hidden absolute w-full bg-white shadow-2xl border-t border-gray-100 animate-in slide-in-from-top duration-300">
+                <div className="lg:hidden absolute w-full bg-white shadow-2xl border-t border-gray-100 animate-slide-in-top max-h-[calc(100vh-5rem)] overflow-y-auto custom-scrollbar" style={{ zIndex: 'var(--z-dropdown)' }}>
                     <div className="px-4 pt-4 pb-8 space-y-2">
                         {navItems.map((item) => (
                             <Link

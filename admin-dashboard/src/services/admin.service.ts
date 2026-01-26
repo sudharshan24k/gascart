@@ -219,3 +219,46 @@ export const getExportOrdersUrl = () => {
     return `${API_URL}/orders/admin/export`;
 };
 
+export const downloadRFQs = async () => {
+    const response = await adminApi.get('/rfqs/export', {
+        responseType: 'blob'
+    });
+    return response.data;
+};
+
+export const downloadOrders = async () => {
+    const response = await adminApi.get('/orders/admin/export', {
+        responseType: 'blob'
+    });
+    return response.data;
+};
+// User Management
+export const fetchAllUsers = async () => {
+    const response = await adminApi.get('/admin/users');
+    return response.data.data;
+};
+
+export const fetchUserOrders = async (userId: string) => {
+    const response = await adminApi.get(`/admin/users/${userId}/orders`);
+    return response.data.data;
+};
+
+export const updateUser = async (userId: string, updates: any) => {
+    const response = await adminApi.patch(`/admin/users/${userId}`, updates);
+    return response.data.data;
+};
+
+export const exportUsersCSV = async (selectedIds?: string[]) => {
+    const response = await adminApi.post('/admin/users/export', { userIds: selectedIds }, {
+        responseType: 'blob'
+    });
+    return response.data;
+};
+
+export const exportInvoicesZIP = async (orderIds: string[]) => {
+    const response = await adminApi.post('/admin/orders/export-invoices', { orderIds }, {
+        responseType: 'blob'
+    });
+    return response.data;
+};
+

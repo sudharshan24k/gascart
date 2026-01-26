@@ -7,8 +7,9 @@ import { api } from '../services/api';
 
 const ProductListing: React.FC = () => {
     const [products, setProducts] = useState<any[]>([]);
-    const [categories] = useState<any[]>(['All', 'Equipment', 'Storage', 'Monitoring', 'Components'].map(name => ({ name, id: name }))); // Mock object structure match for find logic if needed or just revert to simple
-    const [vendors] = useState<any[]>(['BioGas Solutions Inc', 'Green Energy Hub', 'TechFlow Systems'].map(name => ({ company_name: name, id: name })));
+    const [filterOpen, setFilterOpen] = useState(false);
+    const [categories, setCategories] = useState<any[]>([]);
+    const [vendors, setVendors] = useState<any[]>([]);
     // Actually, the previous logic used .find on these arrays. If they are empty [], logic fails.
     // I should initialize them with the hardcoded values I used in the UI so the ID mapping logic works (assuming ID=Name for legacy/mock compatibility until real IDs are used)
 
@@ -20,8 +21,37 @@ const ProductListing: React.FC = () => {
     const activeVendor = searchParams.get('vendor') || 'All';
 
     useEffect(() => {
+        loadFilters();
+    }, []);
+
+    useEffect(() => {
         loadData();
-    }, [activeCategory, activeVendor]);
+    }, [activeCategory, activeVendor, searchParams]);
+
+    const loadFilters = async () => {
+        try {
+            // Fetch categories
+            const categoriesRes = await api.categories.list();
+            if (categoriesRes.data) {
+                setCategories(categoriesRes.data);
+            }
+
+            // Fetch unique vendors from products
+            const { data: productsData } = await api.products.list({});
+            if (productsData) {
+                const uniqueVendors = Array.from(
+                    new Set(
+                        productsData
+                            .map((p: any) => p.profiles?.company_name)
+                            .filter((name: any) => name)
+                    )
+                ).map((name: any) => ({ company_name: name, id: name }));
+                setVendors(uniqueVendors);
+            }
+        } catch (err) {
+            console.error('Failed to load filters', err);
+        }
+    };
 
     const loadData = async () => {
         setLoading(true);
@@ -85,15 +115,23 @@ const ProductListing: React.FC = () => {
         <div className="min-h-screen pt-32 pb-24 bg-gray-50">
             <div className="container mx-auto px-4 max-w-7xl">
                 {/* Header Area */}
-                <div className="mb-12 flex flex-col md:flex-row md:items-end justify-between gap-6">
+                <div className="mb-8 md:mb-12 flex flex-col md:flex-row md:items-end justify-between gap-4 md:gap-6">
                     <div>
-                        <h1 className="text-4xl font-bold text-gray-900 mb-4">Industrial Marketplace</h1>
-                        <p className="text-gray-500 max-w-xl">Direct access to verified Bio-CNG equipment suppliers. Aggregate assets into a single Enquiry for technical quotation.</p>
+                        <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-900 mb-3 md:mb-4">Industrial Marketplace</h1>
+                        <p className="text-sm md:text-base text-gray-500 max-w-xl">Direct access to verified Bio-CNG equipment suppliers. Aggregate assets into a single Enquiry for technical quotation.</p>
                     </div>
-                    <div className="flex gap-4">
+                    <div className="flex gap-3 md:gap-4">
+                        {/* Mobile Filter Toggle */}
+                        <button
+                            onClick={() => setFilterOpen(!filterOpen)}
+                            className="lg:hidden flex items-center gap-2 bg-white text-gray-700 px-4 md:px-6 py-3 rounded-2xl border border-gray-100 shadow-sm hover:shadow-lg transition-all font-bold"
+                        >
+                            <Filter className="w-5 h-5 text-primary" />
+                            Filters
+                        </button>
                         <Link
                             to="/enquiry-list"
-                            className="flex items-center gap-2 bg-white text-gray-700 px-6 py-3 rounded-2xl border border-gray-100 shadow-sm hover:shadow-lg transition-all font-bold"
+                            className="flex items-center gap-2 bg-white text-gray-700 px-4 md:px-6 py-3 rounded-2xl border border-gray-100 shadow-sm hover:shadow-lg transition-all font-bold text-sm md:text-base"
                         >
                             <ClipboardList className="w-5 h-5 text-primary" />
                             View Enquiry List
@@ -122,9 +160,9 @@ const ProductListing: React.FC = () => {
                     </div>
                 )}
 
-                <div className="flex flex-col lg:flex-row gap-12">
-                    {/* Filter Sidebar */}
-                    <aside className="w-full lg:w-72 flex-shrink-0 space-y-8">
+                <div className="flex flex-col lg:flex-row gap-6 md:gap-8 lg:gap-12">
+                    {/* Filter Sidebar - Desktop */}
+                    <aside className="hidden lg:block w-72 flex-shrink-0 space-y-8">
                         <div className="bg-white p-8 rounded-3xl shadow-sm border border-gray-100">
                             <div className="flex items-center gap-2 mb-6 text-primary">
                                 <Filter className="w-5 h-5" />
@@ -215,7 +253,110 @@ const ProductListing: React.FC = () => {
                             </p>
                             <div className="absolute -bottom-10 -right-10 w-32 h-32 bg-primary/20 rounded-full blur-3xl group-hover:bg-primary/40 transition-all"></div>
                         </div>
+
+                        {/* Join as Vendor CTA */}
+                        <div className="mt-12 p-8 bg-secondary-900 rounded-[32px] text-white relative overflow-hidden group">
+                            <div className="absolute top-0 right-0 w-32 h-32 bg-primary/20 rounded-full -mr-16 -mt-16 blur-3xl group-hover:bg-primary/30 transition-all duration-500"></div>
+                            <h3 className="text-xl font-bold mb-3 relative z-10">Sell on Gascart</h3>
+                            <p className="text-white/70 text-sm mb-6 relative z-10 leading-relaxed">
+                                Join India's largest Bio-CNG marketplace. Reach verified industrial buyers and expand your business.
+                            </p>
+                            <Link
+                                to="/vendor-enquiry"
+                                className="inline-flex items-center gap-2 bg-primary text-white px-6 py-3 rounded-2xl font-black text-sm hover:bg-primary-dark transition-all relative z-10 shadow-lg shadow-primary/20"
+                            >
+                                <Building2 className="w-4 h-4" /> Join as Vendor
+                            </Link>
+                        </div>
                     </aside>
+
+                    {/* Mobile Filter Drawer */}
+                    {filterOpen && (
+                        <>
+                            <div
+                                className="lg:hidden fixed inset-0 bg-black/50 z-40"
+                                onClick={() => setFilterOpen(false)}
+                            />
+                            <aside className="lg:hidden fixed inset-y-0 left-0 w-80 max-w-[85vw] bg-white z-50 overflow-y-auto custom-scrollbar animate-slide-in-left">
+                                <div className="p-6 border-b border-gray-100 flex items-center justify-between sticky top-0 bg-white">
+                                    <div className="flex items-center gap-2 text-primary">
+                                        <Filter className="w-5 h-5" />
+                                        <h3 className="font-bold text-lg">Filters</h3>
+                                    </div>
+                                    <button
+                                        onClick={() => setFilterOpen(false)}
+                                        className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                                        aria-label="Close filters"
+                                    >
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6 6 18" /><path d="m6 6 12 12" /></svg>
+                                    </button>
+                                </div>
+                                <div className="p-6 space-y-8">
+                                    <div>
+                                        <label className="block text-xs font-black text-gray-400 uppercase tracking-widest mb-4">Product Category</label>
+                                        <div className="space-y-2">
+                                            <div className="space-y-1">
+                                                <button
+                                                    onClick={() => { updateFilter('category', 'All'); setFilterOpen(false); }}
+                                                    className={`block w-full text-left px-4 py-2.5 rounded-xl text-sm font-bold transition-all ${activeCategory === 'All' ? 'bg-primary text-white shadow-lg shadow-primary/20' : 'text-gray-500 hover:bg-gray-50'}`}
+                                                >
+                                                    All Categories
+                                                </button>
+                                                {(() => {
+                                                    const roots = categories.filter(c => !c.parent_id);
+                                                    const getChildren = (pid: string) => categories.filter(c => c.parent_id === pid);
+                                                    const renderNode = (node: any, depth = 0) => {
+                                                        const children = getChildren(node.id);
+                                                        const isActive = activeCategory === node.id;
+                                                        return (
+                                                            <div key={node.id} className="w-full">
+                                                                <button
+                                                                    onClick={() => { updateFilter('category', node.id); setFilterOpen(false); }}
+                                                                    className={`block w-full text-left px-4 py-2.5 rounded-xl text-sm font-bold transition-all flex items-center justify-between ${isActive ? 'bg-primary text-white shadow-lg shadow-primary/20' : 'text-gray-500 hover:bg-gray-50'}`}
+                                                                    style={{ paddingLeft: `${(depth + 1) * 1}rem` }}
+                                                                >
+                                                                    {node.name}
+                                                                    {children.length > 0 && <span className="text-[10px] opacity-50 ml-2">▼</span>}
+                                                                </button>
+                                                                {children.length > 0 && (
+                                                                    <div className="mt-1 space-y-1">
+                                                                        {children.map(child => renderNode(child, depth + 1))}
+                                                                    </div>
+                                                                )}
+                                                            </div>
+                                                        )
+                                                    };
+                                                    return roots.length > 0 ? roots.map(root => renderNode(root)) : categories.map(c => (
+                                                        <button
+                                                            key={c.id}
+                                                            onClick={() => { updateFilter('category', c.id); setFilterOpen(false); }}
+                                                            className={`block w-full text-left px-4 py-2.5 rounded-xl text-sm font-bold transition-all ${activeCategory === c.id ? 'bg-primary text-white' : 'text-gray-500 hover:bg-gray-50'}`}
+                                                        >
+                                                            {c.name}
+                                                        </button>
+                                                    ));
+                                                })()}
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <label className="block text-xs font-black text-gray-400 uppercase tracking-widest mb-4">Verified Vendors</label>
+                                        <div className="space-y-2">
+                                            {['All', 'BioGas Solutions Inc', 'Green Energy Hub', 'TechFlow Systems'].map(vendor => (
+                                                <button
+                                                    key={vendor}
+                                                    onClick={() => { updateFilter('vendor', vendor); setFilterOpen(false); }}
+                                                    className={`block w-full text-left px-4 py-2.5 rounded-xl text-sm font-bold transition-all ${activeVendor === vendor ? 'bg-primary text-white shadow-lg shadow-primary/20' : 'text-gray-500 hover:bg-gray-50'}`}
+                                                >
+                                                    {vendor}
+                                                </button>
+                                            ))}
+                                        </div>
+                                    </div>
+                                </div>
+                            </aside>
+                        </>
+                    )}
 
                     {/* Product Grid */}
                     <div className="flex-grow">
@@ -224,7 +365,7 @@ const ProductListing: React.FC = () => {
                                 <Loader2 className="w-10 h-10 text-primary animate-spin" />
                             </div>
                         ) : (
-                            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-6 md:gap-8">
                                 {products.map((product) => {
                                     const isInComparison = state.comparisonItems.some(i => i.id === product.id);
                                     // Handle image array or single string

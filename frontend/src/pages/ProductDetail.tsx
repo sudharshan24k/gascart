@@ -88,19 +88,27 @@ const ProductDetail: React.FC = () => {
                         </div>
 
                         {/* Documentation Links */}
-                        <div className="bg-white p-8 rounded-[32px] border border-gray-100 shadow-sm">
-                            <h3 className="font-bold text-gray-900 mb-6 flex items-center gap-2 text-lg">
-                                <Download className="w-5 h-5 text-primary" /> Technical Documentation
-                            </h3>
-                            <div className="space-y-3">
-                                {['ISO Quality Certificate.pdf', 'Technical Datasheet.pdf', 'Integration Manual.pdf'].map((doc, i) => (
-                                    <button key={i} className="flex items-center justify-between w-full p-4 bg-gray-50 hover:bg-primary/5 rounded-2xl group transition-all">
-                                        <span className="text-sm font-bold text-gray-600 group-hover:text-primary">{doc}</span>
-                                        <Download className="w-4 h-4 text-gray-300 group-hover:text-primary" />
-                                    </button>
-                                ))}
+                        {product.documents && product.documents.length > 0 && (
+                            <div className="bg-white p-8 rounded-[32px] border border-gray-100 shadow-sm">
+                                <h3 className="font-bold text-gray-900 mb-6 flex items-center gap-2 text-lg">
+                                    <Download className="w-5 h-5 text-primary" /> Technical Documentation
+                                </h3>
+                                <div className="space-y-3">
+                                    {product.documents.map((doc: any, i: number) => (
+                                        <a
+                                            key={i}
+                                            href={doc.url}
+                                            target="_blank"
+                                            rel="noreferrer"
+                                            className="flex items-center justify-between w-full p-4 bg-gray-50 hover:bg-primary/5 rounded-2xl group transition-all"
+                                        >
+                                            <span className="text-sm font-bold text-gray-600 group-hover:text-primary">{doc.name}</span>
+                                            <Download className="w-4 h-4 text-gray-300 group-hover:text-primary" />
+                                        </a>
+                                    ))}
+                                </div>
                             </div>
-                        </div>
+                        )}
                     </motion.div>
 
                     {/* Right: Info & Actions */}

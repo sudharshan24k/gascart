@@ -1,12 +1,53 @@
+@import './styles/design-system.css';
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 @layer base {
+  html {
+    scroll-behavior: smooth;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
   body {
     @apply antialiased text-gray-900 bg-gray-50 font-sans;
+    min-height: 100vh;
+    overflow-x: hidden;
   }
-  h1, h2, h3, h4 {
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
     @apply font-display font-bold;
+  }
+
+  /* Focus Styles */
+  *:focus-visible {
+    outline: 2px solid theme('colors.primary.DEFAULT');
+    outline-offset: 2px;
+  }
+}
+
+@layer components {
+
+  /* Table Responsive */
+  .table-container {
+    @apply w-full overflow-x-auto custom-scrollbar;
+  }
+
+  /* Card */
+  .admin-card {
+    @apply bg-white rounded-2xl shadow-sm border border-gray-100 p-6;
+  }
+
+  /* Button  */
+  .admin-btn {
+    @apply inline-flex items-center justify-center px-4 py-2 rounded-lg font-medium transition-all;
+    min-height: 40px;
   }
 }

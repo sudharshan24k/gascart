@@ -1,11 +1,18 @@
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { authService } from '../services/auth.service';
 
 const Login = () => {
     const navigate = useNavigate();
+    const location = useLocation();
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
+
+    useEffect(() => {
+        if (location.state?.error) {
+            setError(location.state.error);
+        }
+    }, [location]);
 
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();

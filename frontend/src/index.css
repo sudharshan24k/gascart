@@ -1,12 +1,238 @@
+@import './styles/design-system.css';
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 @layer base {
+
+  /* Root Element */
+  html {
+    scroll-behavior: smooth;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
   body {
     @apply antialiased text-gray-900 bg-gray-50 font-sans;
+    min-height: 100vh;
+    overflow-x: hidden;
   }
-  h1, h2, h3, h4 {
+
+  /* Typography Hierarchy */
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
     @apply font-display font-bold;
+    text-wrap: balance;
+  }
+
+  h1 {
+    @apply text-4xl md:text-5xl lg:text-6xl;
+  }
+
+  h2 {
+    @apply text-3xl md:text-4xl lg:text-5xl;
+  }
+
+  h3 {
+    @apply text-2xl md:text-3xl lg:text-4xl;
+  }
+
+  h4 {
+    @apply text-xl md:text-2xl;
+  }
+
+  /* Focus Styles (Accessibility) */
+  *:focus-visible {
+    outline: 2px solid theme('colors.primary.DEFAULT');
+    outline-offset: 2px;
+    border-radius: theme('borderRadius.DEFAULT');
+  }
+
+  /* Remove default focus for mouse users */
+  *:focus:not(:focus-visible) {
+    outline: none;
+  }
+
+  /* Custom Scrollbar */
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: theme('colors.gray.300') theme('colors.gray.100');
+  }
+
+  *::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+
+  *::-webkit-scrollbar-track {
+    background: theme('colors.gray.100');
+    border-radius: 9999px;
+  }
+
+  *::-webkit-scrollbar-thumb {
+    background: theme('colors.gray.300');
+    border-radius: 9999px;
+  }
+
+  *::-webkit-scrollbar-thumb:hover {
+    background: theme('colors.gray.400');
+  }
+
+  /* Prevent Layout Shift for Images */
+  img {
+    max-width: 100%;
+    height: auto;
+    display: block;
+  }
+
+  /* Better Button Defaults */
+  button {
+    cursor: pointer;
+    user-select: none;
+  }
+
+  button:disabled {
+    cursor: not-allowed;
+    opacity: 0.6;
+  }
+
+  /* Link Defaults */
+  a {
+    color: inherit;
+    text-decoration: none;
+  }
+
+  /* Form Elements */
+  input,
+  textarea,
+  select {
+    font-family: inherit;
+  }
+
+  /* Prevent text overflow */
+  p {
+    text-wrap: pretty;
+  }
+}
+
+@layer components {
+
+  /* Header Spacing Fix */
+  .page-content {
+    padding-top: var(--header-height);
+  }
+
+  @media (max-width: 768px) {
+    .page-content {
+      padding-top: var(--header-height-mobile);
+    }
+  }
+
+  /* Container Utilities */
+  .container-padding {
+    @apply px-4 sm:px-6 lg:px-8;
+  }
+
+  /* Card Component Base */
+  .card {
+    @apply bg-white rounded-2xl shadow-sm border border-gray-100;
+  }
+
+  .card-hover {
+    @apply transition-all duration-300 hover:shadow-lg hover:border-gray-200;
+  }
+
+  /* Button Base Styles */
+  .btn {
+    @apply inline-flex items-center justify-center px-6 py-3 rounded-xl font-bold transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2;
+    min-height: 44px;
+    /* Touch target */
+  }
+
+  .btn-primary {
+    @apply bg-primary text-white hover:bg-primary-dark focus:ring-primary;
+  }
+
+  .btn-secondary {
+    @apply bg-secondary text-white hover:bg-secondary-dark focus:ring-secondary;
+  }
+
+  .btn-outline {
+    @apply border-2 border-gray-300 text-gray-700 hover:bg-gray-50 focus:ring-gray-300;
+  }
+
+  .btn-sm {
+    @apply px-4 py-2 text-sm;
+    min-height: 36px;
+  }
+
+  .btn-lg {
+    @apply px-8 py-4 text-lg;
+    min-height: 52px;
+  }
+
+  /* Input Base Styles */
+  .input {
+    @apply w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all;
+    min-height: 44px;
+  }
+
+  .input-error {
+    @apply border-red-500 focus:ring-red-500;
+  }
+
+  /* Badge Component */
+  .badge {
+    @apply inline-flex items-center px-3 py-1 rounded-full text-xs font-bold;
+  }
+
+  /* Section Spacing */
+  .section {
+    @apply py-16 md:py-24;
+  }
+
+  .section-sm {
+    @apply py-8 md:py-12;
+  }
+
+  .section-lg {
+    @apply py-24 md:py-32;
+  }
+}
+
+@layer utilities {
+
+  /* Safe Area for Mobile */
+  .safe-top {
+    padding-top: env(safe-area-inset-top);
+  }
+
+  .safe-bottom {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+
+  /* Prevent Horizontal Scroll */
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* Glass Effect */
+  .glass {
+    @apply bg-white/80 backdrop-blur-md;
+  }
+
+  /* Gradient Text */
+  .gradient-text {
+    @apply bg-clip-text text-transparent bg-gradient-to-r from-primary to-secondary;
   }
 }

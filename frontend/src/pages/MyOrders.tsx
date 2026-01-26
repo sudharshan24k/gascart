@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { formatDateIST } from '../utils/dateUtils';
-import { api } from '../services/api';
+import { api, supabase } from '../services/api';
 import { Package, ChevronRight, FileText, Clock } from 'lucide-react';
 import { motion } from 'framer-motion';
 
@@ -34,6 +34,37 @@ const MyOrders: React.FC = () => {
             case 'delivered': return 'bg-green-100 text-green-800';
             case 'cancelled': return 'bg-red-100 text-red-800';
             default: return 'bg-gray-100 text-gray-800';
+        }
+    };
+
+    const handleDownloadInvoice = async (orderId: string) => {
+        try {
+            const { data: { session } } = await supabase.auth.getSession();
+            if (!session) {
+                alert('You must be logged in to download invoices.');
+                return;
+            }
+
+            const response = await fetch(api.orders.getInvoiceUrl(orderId), {
+                headers: {
+                    'Authorization': `Bearer ${session.access_token}`
+                }
+            });
+
+            if (!response.ok) throw new Error('Failed to download invoice');
+
+            const blob = await response.blob();
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `invoice-${orderId.slice(-8)}.pdf`;
+            document.body.appendChild(a);
+            a.click();
+            window.URL.revokeObjectURL(url);
+            document.body.removeChild(a);
+        } catch (error) {
+            console.error('Invoice download failed:', error);
+            alert('Failed to download invoice. Please try again.');
         }
     };
 
@@ -126,14 +157,13 @@ const MyOrders: React.FC = () => {
                                             <Clock className="h-5 w-5" />
                                             Track Order
                                         </Link>
-                                        <a
-                                            href={api.orders.getInvoiceUrl(order.id)}
-                                            download
+                                        <button
+                                            onClick={() => handleDownloadInvoice(order.id)}
                                             className="flex-grow flex items-center justify-center gap-2 bg-white hover:bg-neutral-light text-primary font-bold px-6 py-3 rounded-2xl transition-all border border-primary/20"
                                         >
                                             <FileText className="h-5 w-5" />
                                             Invoice PDF
-                                        </a>
+                                        </button>
                                         <Link
                                             to={`/order-tracking/${order.id}`}
                                             className="w-full sm:w-auto flex items-center justify-center bg-gray-900 hover:bg-black text-white p-3 rounded-2xl transition-all"
