@@ -379,7 +379,7 @@ const ProductListing: React.FC = () => {
                                             layout
                                             initial={{ opacity: 0, y: 10 }}
                                             animate={{ opacity: 1, y: 0 }}
-                                            className="bg-white rounded-[40px] overflow-hidden shadow-sm border border-gray-100 hover:shadow-2xl transition-all group relative"
+                                            className="bg-white rounded-[40px] overflow-hidden shadow-sm border border-gray-100 hover:shadow-2xl hover:-translate-y-2 transition-all duration-300 group relative"
                                         >
                                             {/* Purchase Model Badge */}
                                             <div className="absolute top-6 left-6 z-10">
@@ -403,7 +403,7 @@ const ProductListing: React.FC = () => {
                                                     type: 'TOGGLE_COMPARISON',
                                                     payload: { id: product.id, name: product.name, image: mainImage, category: categoryName }
                                                 })}
-                                                className={`absolute top-6 right-6 z-10 p-3 rounded-2xl transition-all shadow-lg ${isInComparison ? 'bg-secondary text-white scale-110' : 'bg-white/90 backdrop-blur text-gray-400 hover:text-secondary'
+                                                className={`absolute top-6 right-6 z-10 p-3 rounded-2xl transition-all shadow-lg hover:-translate-y-1 active:translate-y-0 ${isInComparison ? 'bg-secondary text-white shadow-glow-secondary' : 'bg-white/90 backdrop-blur text-gray-400 hover:text-secondary'
                                                     }`}
                                             >
                                                 <GitCompare className="w-5 h-5" />
@@ -442,7 +442,7 @@ const ProductListing: React.FC = () => {
                                                             type: 'ADD_ITEM',
                                                             payload: { id: product.id, name: product.name, price: Number(product.price), quantity: 1, image: mainImage, vendor: vendorName }
                                                         })}
-                                                        className={`p-4 rounded-2xl transition-all shadow-xl hover:-translate-y-1 active:scale-95 ${product.purchase_model === 'rfq' ? 'bg-gray-100 text-gray-400 hover:bg-primary hover:text-white' : product.purchase_model === 'both' ? 'bg-primary text-white shadow-primary/20' : 'bg-gray-900 text-white hover:bg-primary'
+                                                        className={`p-4 rounded-2xl transition-all shadow-xl hover:-translate-y-1 hover:shadow-glow-primary active:scale-95 ${product.purchase_model === 'rfq' ? 'bg-gray-100 text-gray-400 hover:bg-primary hover:text-white' : product.purchase_model === 'both' ? 'bg-primary text-white shadow-primary' : 'bg-gray-900 text-white hover:bg-primary'
                                                             }`}
                                                     >
                                                         {product.purchase_model === 'rfq' ? <ClipboardList className="w-6 h-6" /> : <Plus className="w-6 h-6" />}

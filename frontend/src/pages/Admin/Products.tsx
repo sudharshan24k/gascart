@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, Search, Edit2, Trash2, X, CheckCircle, Package } from 'lucide-react';
+import { Plus, Search, Edit2, Trash2, X, CheckCircle, Package, Users, BoxIcon } from 'lucide-react';
 import { fetchAdminProducts, addProduct, updateProduct, deleteProduct } from '../../services/admin.service.ts';
+import ManageProductVendorsModal from './ManageProductVendorsModal';
+import ManageInventoryModal from './ManageInventoryModal';
 
 const AdminProducts = () => {
     const [products, setProducts] = useState<any[]>([]);
@@ -15,8 +17,13 @@ const AdminProducts = () => {
         stock_quantity: '',
         description: '',
         is_active: true,
-        images: [] as string[]
+        images: [] as string[],
+        marketplace_image: ''
     });
+
+    const [vendorModalProductId, setVendorModalProductId] = useState<string | null>(null);
+    const [vendorModalProductName, setVendorModalProductName] = useState<string>('');
+    const [inventoryModalProduct, setInventoryModalProduct] = useState<any | null>(null);
 
     useEffect(() => {
         loadProducts();
@@ -43,7 +50,8 @@ const AdminProducts = () => {
                 stock_quantity: (product.stock_quantity || 0).toString(),
                 description: product.description || '',
                 is_active: product.is_active,
-                images: product.images || []
+                images: product.images || [],
+                marketplace_image: product.marketplace_image || ''
             });
         } else {
             setEditingProduct(null);
@@ -54,7 +62,8 @@ const AdminProducts = () => {
                 stock_quantity: '',
                 description: '',
                 is_active: true,
-                images: []
+                images: [],
+                marketplace_image: ''
             });
         }
         setIsModalOpen(true);
@@ -152,8 +161,12 @@ const AdminProducts = () => {
                                 <tr key={product.id} className="hover:bg-gray-50/50 transition-colors group">
                                     <td className="py-4 px-6">
                                         <div className="flex items-center gap-4">
-                                            {product.images?.[0] ? (
-                                                <img src={product.images[0]} alt="" className="w-12 h-12 rounded-lg object-cover" />
+                                            {product.marketplace_image || product.images?.[0] ? (
+                                                <img
+                                                    src={product.marketplace_image || product.images[0]}
+                                                    alt=""
+                                                    className="w-12 h-12 rounded-lg object-cover"
+                                                />
                                             ) : (
                                                 <div className="w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center">
                                                     <Package className="w-6 h-6 text-gray-400" />
@@ -173,15 +186,25 @@ const AdminProducts = () => {
                                     <td className="py-4 px-6 font-bold text-gray-900">
                                         ₹{parseFloat(product.price).toLocaleString()}
                                     </td>
-                                    <td className="py-4 px-6 text-gray-500">
-                                        {product.stock_quantity > 0 ? (
-                                            <span className="flex items-center gap-1">
-                                                <CheckCircle className="w-4 h-4 text-green-500" />
-                                                {product.stock_quantity}
-                                            </span>
-                                        ) : (
-                                            <span className="text-red-500 font-medium">Out of stock</span>
-                                        )}
+                                    <td className="py-4 px-6">
+                                        {(() => {
+                                            const stock = product.stock_quantity || 0;
+                                            const threshold = product.low_stock_threshold || 10;
+                                            const isLow = stock > 0 && stock <= threshold;
+                                            const isOut = stock === 0;
+
+                                            return (
+                                                <div className="flex items-center gap-2">
+                                                    <span className={`px-2 py-1 rounded-full text-xs font-bold ${isOut ? 'bg-red-100 text-red-700' :
+                                                            isLow ? 'bg-yellow-100 text-yellow-700' :
+                                                                'bg-green-100 text-green-700'
+                                                        }`}>
+                                                        {stock} units
+                                                    </span>
+                                                    {isLow && <span className="text-xs text-yellow-600 font-medium">Low</span>}
+                                                </div>
+                                            );
+                                        })()}
                                     </td>
                                     <td className="py-4 px-6">
                                         <span className={`px-3 py-1 rounded-full text-xs font-bold ${product.is_active ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
@@ -201,6 +224,23 @@ const AdminProducts = () => {
                                                 className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all"
                                             >
                                                 <Trash2 className="w-5 h-5" />
+                                            </button>
+                                            <button
+                                                onClick={() => setInventoryModalProduct(product)}
+                                                className="p-2 text-gray-400 hover:text-purple-500 hover:bg-purple-50 rounded-lg transition-all"
+                                                title="Manage Inventory"
+                                            >
+                                                <BoxIcon className="w-5 h-5" />
+                                            </button>
+                                            <button
+                                                onClick={() => {
+                                                    setVendorModalProductId(product.id);
+                                                    setVendorModalProductName(product.name);
+                                                }}
+                                                className="p-2 text-gray-400 hover:text-blue-500 hover:bg-blue-50 rounded-lg transition-all"
+                                                title="Manage Vendors"
+                                            >
+                                                <Users className="w-5 h-5" />
                                             </button>
                                         </div>
                                     </td>
@@ -256,6 +296,17 @@ const AdminProducts = () => {
                                     />
                                 </div>
                                 <div className="col-span-2">
+                                    <label className="block text-sm font-bold text-gray-700 mb-2">Marketplace Image URL</label>
+                                    <input
+                                        type="url"
+                                        placeholder="https://example.com/image.jpg"
+                                        className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary outline-none transition-all"
+                                        value={formData.marketplace_image}
+                                        onChange={(e) => setFormData({ ...formData, marketplace_image: e.target.value })}
+                                    />
+                                    <p className="text-xs text-gray-500 mt-1">This image will be displayed in the marketplace listing</p>
+                                </div>
+                                <div className="col-span-2">
                                     <label className="block text-sm font-bold text-gray-700 mb-2">Description</label>
                                     <textarea
                                         rows={4}
@@ -289,6 +340,25 @@ const AdminProducts = () => {
                         </form>
                     </div>
                 </div>
+            )}
+
+            {vendorModalProductId && (
+                <ManageProductVendorsModal
+                    productId={vendorModalProductId}
+                    productName={vendorModalProductName}
+                    onClose={() => setVendorModalProductId(null)}
+                />
+            )}
+
+            {inventoryModalProduct && (
+                <ManageInventoryModal
+                    product={inventoryModalProduct}
+                    onClose={() => setInventoryModalProduct(null)}
+                    onUpdate={() => {
+                        setInventoryModalProduct(null);
+                        loadProducts();
+                    }}
+                />
             )}
         </div>
     );

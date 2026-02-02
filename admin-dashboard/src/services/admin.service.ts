@@ -152,8 +152,46 @@ export const deleteVendor = async (id: string) => {
     return response.data;
 };
 
-export const assignVendorToProduct = async (product_id: string, vendor_id: string) => {
-    const response = await adminApi.post('/vendors/assign', { product_id, vendor_id });
+export const assignVendorToProduct = async (
+    product_id: string,
+    vendor_id: string,
+    vendorData?: {
+        vendor_sku?: string;
+        vendor_price?: number;
+        vendor_stock_quantity?: number;
+        vendor_lead_time_days?: number;
+        vendor_specifications?: any;
+        is_primary?: boolean;
+        priority?: number;
+    }
+) => {
+    const response = await adminApi.post('/vendors/assign', {
+        product_id,
+        vendor_id,
+        ...vendorData
+    });
+    return response.data.data;
+};
+
+export const updateProductVendor = async (
+    product_id: string,
+    vendor_id: string,
+    updates: {
+        vendor_sku?: string;
+        vendor_price?: number;
+        vendor_stock_quantity?: number;
+        vendor_lead_time_days?: number;
+        vendor_specifications?: any;
+        is_primary?: boolean;
+        priority?: number;
+        is_active?: boolean;
+    }
+) => {
+    const response = await adminApi.put('/vendors/assign', {
+        product_id,
+        vendor_id,
+        ...updates
+    });
     return response.data.data;
 };
 
@@ -168,6 +206,7 @@ export const fetchProductVendors = async (productId: string) => {
     const response = await adminApi.get(`/vendors/product/${productId}`);
     return response.data.data;
 };
+
 
 // Document Management
 export const fetchDocuments = async (params?: { category?: string; status?: string }) => {
@@ -196,8 +235,8 @@ export const fetchOrders = async (params?: { status?: string }) => {
     return response.data.data;
 };
 
-export const updateOrderStatus = async (id: string, status: string) => {
-    const response = await adminApi.patch(`/orders/admin/${id}/status`, { status });
+export const updateOrderStatus = async (id: string, updates: { status?: string, payment_status?: string, paid_amount?: number, balance_due?: number }) => {
+    const response = await adminApi.patch(`/orders/admin/${id}/status`, updates);
     return response.data.data;
 };
 

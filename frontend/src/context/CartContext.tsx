@@ -15,12 +15,16 @@ interface CartItem {
     };
     quantity: number;
     selected_variant?: any;
+    vendor_id?: string;
+    vendor_price?: number;
+    vendor_sku?: string;
+    vendor_name?: string;
 }
 
 interface CartContextType {
     items: CartItem[];
     cartTotal: number;
-    addToCart: (productId: string, quantity?: number, variant?: any) => Promise<void>;
+    addToCart: (productId: string, quantity?: number, variant?: any, vendor?: any) => Promise<void>;
     updateQuantity: (itemId: string, quantity: number) => Promise<void>;
     removeFromCart: (itemId: string) => Promise<void>;
     loading: boolean;
@@ -63,9 +67,15 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
         fetchCart();
     }, [token, sessionId]);
 
-    const addToCart = async (productId: string, quantity = 1, variant?: any) => {
+    const addToCart = async (productId: string, quantity = 1, variant?: any, vendor?: any) => {
         try {
-            await api.cart.add(token, sessionId, { productId, quantity, variant });
+            const vendorData = vendor ? {
+                vendor_id: vendor.vendor_id,
+                vendor_price: vendor.vendor_price,
+                vendor_sku: vendor.vendor_sku
+            } : undefined;
+
+            await api.cart.add(token, sessionId, { productId, quantity, variant, ...vendorData });
             await fetchCart(); // Refresh to get full product details
         } catch (err) {
             console.error('Add to cart failed', err);
@@ -97,7 +107,9 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
     };
 
     const cartTotal = items.reduce((sum, item) => {
-        const price = item.selected_variant?.price ?? item.product.price;
+        const price = item.vendor_price
+            ?? item.selected_variant?.price
+            ?? item.product.price;
         return sum + (price * item.quantity);
     }, 0);
 

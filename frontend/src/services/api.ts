@@ -252,6 +252,132 @@ export const api = {
                 throw new Error(error.message || 'Failed to submit enquiry');
             }
             return res.json();
+        },
+        getEnquiries: async (status?: string) => {
+            const token = (await supabase.auth.getSession()).data.session?.access_token;
+            if (!token) throw new Error('Not authenticated');
+            const apiUrl = getBaseUrl();
+            const query = status ? `?status=${status}` : '';
+            const res = await fetch(`${apiUrl}/vendors/enquiries${query}`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            if (!res.ok) throw new Error('Failed to fetch enquiries');
+            return res.json();
+        },
+        updateEnquiryStatus: async (id: string, status: string) => {
+            const token = (await supabase.auth.getSession()).data.session?.access_token;
+            if (!token) throw new Error('Not authenticated');
+            const apiUrl = getBaseUrl();
+            const res = await fetch(`${apiUrl}/vendors/enquiries/${id}/status`, {
+                method: 'PATCH',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({ status })
+            });
+            if (!res.ok) throw new Error('Failed to update status');
+            return res.json();
+        },
+        list: async (visibility_status?: string) => {
+            const token = (await supabase.auth.getSession()).data.session?.access_token;
+            if (!token) throw new Error('Not authenticated');
+            const apiUrl = getBaseUrl();
+            const query = visibility_status ? `?visibility_status=${visibility_status}` : '';
+            const res = await fetch(`${apiUrl}/vendors${query}`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            return res.json();
+        },
+        update: async (id: string, data: any) => {
+            const token = (await supabase.auth.getSession()).data.session?.access_token;
+            if (!token) throw new Error('Not authenticated');
+            const apiUrl = getBaseUrl();
+            const res = await fetch(`${apiUrl}/vendors/${id}`, {
+                method: 'PATCH',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify(data)
+            });
+            return res.json();
+        },
+        getProductVendors: async (productId: string) => {
+            const token = (await supabase.auth.getSession()).data.session?.access_token;
+            if (!token) throw new Error('Not authenticated');
+            const apiUrl = getBaseUrl();
+            const res = await fetch(`${apiUrl}/vendors/products/${productId}`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            return res.json();
+        },
+        assignProduct: async (data: any) => {
+            const token = (await supabase.auth.getSession()).data.session?.access_token;
+            if (!token) throw new Error('Not authenticated');
+            const apiUrl = getBaseUrl();
+            const res = await fetch(`${apiUrl}/vendors/products/assign`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify(data)
+            });
+            return res.json();
+        },
+        updateProductVendor: async (productId: string, vendorId: string, data: any) => {
+            const token = (await supabase.auth.getSession()).data.session?.access_token;
+            if (!token) throw new Error('Not authenticated');
+            const apiUrl = getBaseUrl();
+            const res = await fetch(`${apiUrl}/vendors/products/update`, {
+                method: 'PATCH',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({ product_id: productId, vendor_id: vendorId, ...data })
+            });
+            return res.json();
+        },
+        removeProductVendor: async (productId: string, vendorId: string) => {
+            const token = (await supabase.auth.getSession()).data.session?.access_token;
+            if (!token) throw new Error('Not authenticated');
+            const apiUrl = getBaseUrl();
+            const res = await fetch(`${apiUrl}/vendors/products/remove`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({ product_id: productId, vendor_id: vendorId })
+            });
+            return res.json();
+        }
+    },
+    admin: {
+        updateUser: async (userId: string, data: { role?: string, account_status?: string }) => {
+            const token = (await supabase.auth.getSession()).data.session?.access_token;
+            if (!token) throw new Error('Not authenticated');
+            const apiUrl = getBaseUrl();
+            const res = await fetch(`${apiUrl}/admin/users/${userId}`, {
+                method: 'PATCH',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify(data)
+            });
+            return res.json();
+        },
+        getUsers: async () => {
+            const token = (await supabase.auth.getSession()).data.session?.access_token;
+            if (!token) throw new Error('Not authenticated');
+            const apiUrl = getBaseUrl();
+            const res = await fetch(`${apiUrl}/admin/users`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            return res.json();
         }
     },
     documents: {
@@ -313,11 +439,11 @@ export const api = {
         }
     },
     payments: {
-        createCheckoutSession: async (data: { items: any[], successUrl: string, cancelUrl: string, shippingDetails: any, billingDetails: any }) => {
+        createOrder: async (data: { items: any[], shippingDetails: any, billingDetails: any }) => {
             const token = (await supabase.auth.getSession()).data.session?.access_token;
             if (!token) throw new Error('Not authenticated');
             const apiUrl = getBaseUrl();
-            const res = await fetch(`${apiUrl}/payments/create-checkout-session`, {
+            const res = await fetch(`${apiUrl}/payments/create-order`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -327,11 +453,25 @@ export const api = {
             });
             return res.json();
         },
-        getSessionStatus: async (sessionId: string) => {
+        verifyPayment: async (data: { razorpay_order_id: string, razorpay_payment_id: string, razorpay_signature: string, order_id: string }) => {
             const token = (await supabase.auth.getSession()).data.session?.access_token;
             if (!token) throw new Error('Not authenticated');
             const apiUrl = getBaseUrl();
-            const res = await fetch(`${apiUrl}/payments/session-status/${sessionId}`, {
+            const res = await fetch(`${apiUrl}/payments/verify`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify(data)
+            });
+            return res.json();
+        },
+        getPaymentStatus: async (paymentId: string) => {
+            const token = (await supabase.auth.getSession()).data.session?.access_token;
+            if (!token) throw new Error('Not authenticated');
+            const apiUrl = getBaseUrl();
+            const res = await fetch(`${apiUrl}/payments/status/${paymentId}`, {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
             return res.json();

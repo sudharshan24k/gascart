@@ -4,6 +4,7 @@ import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
 import { Lock, CreditCard, ChevronRight, CheckCircle2, ShieldCheck, Loader2, MapPin, Plus } from 'lucide-react';
 import { api } from '../services/api';
+import { createRazorpayPayment } from '../services/razorpay.service';
 import { motion } from 'framer-motion';
 
 const Checkout: React.FC = () => {
@@ -17,6 +18,7 @@ const Checkout: React.FC = () => {
         full_name: '',
         email: '',
         address_line1: '',
+        address_line2: '',
         city: '',
         state: '',
         zip_code: '',
@@ -37,11 +39,20 @@ const Checkout: React.FC = () => {
 
 
     useEffect(() => {
+        // Redirect to login if not authenticated
+        if (!session) {
+            navigate('/login?redirect=/checkout', { replace: true });
+            return;
+        }
+
         if (!loading && items.length === 0) {
             navigate('/cart');
+            return;
         }
+
+        // Only fetch addresses if user is authenticated
         fetchAddresses();
-    }, [items, loading, navigate]);
+    }, [items, loading, navigate, session]);
 
     const fetchAddresses = async () => {
         if (!session) {
@@ -70,6 +81,7 @@ const Checkout: React.FC = () => {
             full_name: addr.full_name,
             email: formData.email, // Keep email if already entered
             address_line1: `${addr.address_line1}${addr.address_line2 ? ', ' + addr.address_line2 : ''}`,
+            address_line2: '', // Set to empty since we're combining it with address_line1
             city: addr.city,
             state: addr.state,
             zip_code: addr.postal_code,
@@ -83,6 +95,7 @@ const Checkout: React.FC = () => {
         setFormData({ ...formData, [e.target.name]: e.target.value });
     };
 
+
     const handlePlaceOrder = async () => {
         if (!formData.address_line1 || !formData.city || !formData.state || !formData.zip_code || !formData.phone) {
             alert('Please complete all shipping details.');
@@ -92,29 +105,87 @@ const Checkout: React.FC = () => {
 
         setProcessingOrder(true);
         try {
-            const res = await api.payments.createCheckoutSession({
+            // 1. Create Razorpay order on backend
+            const orderResponse = await api.payments.createOrder({
                 items: items.map(item => ({
-                    id: item.product.id,
-                    name: item.product.name,
-                    price: item.product.price,
+                    id: item.product_id,
+                    name: item.product?.name || 'Product',
+                    price: item.vendor_price || item.product?.price || 0,
                     quantity: item.quantity,
-                    image: item.product.image_url
+                    image: item.product?.image_url || '',
+                    selected_variant: item.selected_variant,
+                    vendor_id: item.vendor_id,
+                    vendor_price: item.vendor_price
                 })),
-                successUrl: `${window.location.origin}/payment-success`,
-                cancelUrl: `${window.location.origin}/payment-cancel`,
-                shippingDetails: formData,
-                billingDetails: formData
+                shippingDetails: {
+                    address_line1: formData.address_line1,
+                    address_line2: formData.address_line2,
+                    city: formData.city,
+                    state: formData.state,
+                    zip_code: formData.zip_code,
+                    country: formData.country,
+                    phone: formData.phone
+                },
+                billingDetails: {
+                    address_line1: formData.address_line1,
+                    city: formData.city,
+                    state: formData.state,
+                    zip_code: formData.zip_code
+                }
             });
 
-            if (res.url) {
-                window.location.href = res.url;
-            } else {
-                throw new Error(res.error || 'Failed to create checkout session');
+            if (!orderResponse.success) {
+                throw new Error(orderResponse.error || 'Failed to create order');
             }
-        } catch (err: any) {
-            console.error('Checkout error:', err);
-            alert('Checkout failed: ' + err.message);
-        } finally {
+
+            const { razorpayOrderId, amount, keyId, orderId } = orderResponse;
+
+            // 2. Open Razorpay checkout modal
+            await createRazorpayPayment({
+                keyId: keyId,
+                orderId: razorpayOrderId,
+                amount: amount,
+                currency: 'INR',
+                customerName: session?.user?.user_metadata?.full_name || formData.full_name,
+                customerEmail: session?.user?.email || formData.email,
+                customerContact: formData.phone,
+                onSuccess: async (response) => {
+                    // 3. Verify payment on backend
+                    try {
+                        const verifyResponse = await api.payments.verifyPayment({
+                            razorpay_order_id: response.razorpay_order_id,
+                            razorpay_payment_id: response.razorpay_payment_id,
+                            razorpay_signature: response.razorpay_signature,
+                            order_id: orderId
+                        });
+
+                        if (verifyResponse.success) {
+                            // Payment successful - redirect to success page
+                            navigate(`/order-success?orderId=${orderId}`);
+                        } else {
+                            alert('Payment verification failed. Please contact support.');
+                            setProcessingOrder(false);
+                        }
+                    } catch (verifyError) {
+                        console.error('Verification error:', verifyError);
+                        alert('Payment verification failed. Please contact support.');
+                        setProcessingOrder(false);
+                    }
+                },
+                onFailure: (error) => {
+                    console.error('Payment failed:', error);
+                    alert('Payment failed. Please try again.');
+                    setProcessingOrder(false);
+                },
+                onDismiss: () => {
+                    console.log('Payment modal dismissed');
+                    setProcessingOrder(false);
+                }
+            });
+
+        } catch (error: any) {
+            console.error('Order creation error:', error);
+            alert(error.message || 'Failed to create order');
             setProcessingOrder(false);
         }
     };
@@ -209,12 +280,21 @@ const Checkout: React.FC = () => {
                                         />
                                     </div>
                                     <div className="md:col-span-2">
-                                        <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">Address</label>
+                                        <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">Address Line 1</label>
                                         <input
                                             name="address_line1" required
                                             value={formData.address_line1} onChange={handleInputChange}
                                             className="w-full bg-gray-50 border-none rounded-xl p-4 font-bold outline-none focus:ring-2 focus:ring-primary/20"
                                             placeholder="Street Address, PO Box"
+                                        />
+                                    </div>
+                                    <div className="md:col-span-2">
+                                        <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">Address Line 2 (Optional)</label>
+                                        <input
+                                            name="address_line2"
+                                            value={formData.address_line2} onChange={handleInputChange}
+                                            className="w-full bg-gray-50 border-none rounded-xl p-4 font-bold outline-none focus:ring-2 focus:ring-primary/20"
+                                            placeholder="Apartment, Suite, Unit, Building, Floor, etc."
                                         />
                                     </div>
                                     <div>

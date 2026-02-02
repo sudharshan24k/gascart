@@ -1,9 +1,12 @@
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { Minus, Plus, Trash2, ShoppingBag, ArrowRight } from 'lucide-react';
 import { useCart } from '../context/CartContext';
+import { useAuth } from '../context/AuthContext';
 
 const Cart = () => {
     const { items, cartTotal, updateQuantity, removeFromCart, loading } = useCart();
+    const { session } = useAuth();
+    const navigate = useNavigate();
 
     if (loading && items.length === 0) {
         return (
@@ -134,31 +137,45 @@ const Cart = () => {
 
                         <dl className="space-y-4 text-sm text-gray-600">
                             <div className="flex justify-between pb-4 border-b border-gray-100">
-                                <dt>Subtotal ({items.reduce((acc, item) => acc + item.quantity, 0)} items)</dt>
+                                <dt>Total Cart Value</dt>
                                 <dd className="font-bold text-gray-900">₹{cartTotal.toFixed(2)}</dd>
                             </div>
-                            <div className="flex justify-between">
-                                <dt>Shipping</dt>
-                                <dd className="text-gray-500 italic">Calculated at checkout</dd>
+                            <div className="flex justify-between text-xs text-gray-500">
+                                <dt>Payment Terms</dt>
+                                <dd>50% Advance Release</dd>
                             </div>
-                            <div className="flex justify-between">
-                                <dt>Tax</dt>
-                                <dd className="text-gray-500 italic">Calculated at checkout</dd>
+
+                            <div className="py-4 border-b border-gray-100 bg-blue-50/50 -mx-6 px-6">
+                                <div className="flex justify-between items-center text-primary-700 font-bold mb-1">
+                                    <dt>Pay Now (50% Advance)</dt>
+                                    <dd className="text-xl">₹{(cartTotal * 0.5).toFixed(2)}</dd>
+                                </div>
+                                <div className="flex justify-between text-xs text-gray-500">
+                                    <dt>Balance Due on Delivery</dt>
+                                    <dd>₹{(cartTotal * 0.5).toFixed(2)}</dd>
+                                </div>
                             </div>
-                            <div className="pt-4 flex justify-between items-center text-base font-bold text-gray-900 border-t border-gray-100 mt-4">
-                                <dt>Total</dt>
-                                <dd className="text-2xl text-primary-600">₹{cartTotal.toFixed(2)}</dd>
+
+                            <div className="flex justify-between text-xs pt-2">
+                                <dt>Shipping & Taxes</dt>
+                                <dd className="text-gray-400 italic">Calculated on remaining balance</dd>
                             </div>
                         </dl>
 
                         <div className="mt-8 space-y-4">
-                            <Link
-                                to="/checkout"
+                            <button
+                                onClick={() => {
+                                    if (!session) {
+                                        navigate('/login?redirect=/checkout');
+                                    } else {
+                                        navigate('/checkout');
+                                    }
+                                }}
                                 className="w-full flex items-center justify-center px-6 py-4 border border-transparent rounded-xl shadow-lg text-base font-bold text-white bg-primary-600 hover:bg-primary-700 hover:shadow-primary-500/25 transition-all duration-200 group"
                             >
-                                Proceed to Checkout
+                                {session ? 'Proceed to Checkout' : 'Sign In to Checkout'}
                                 <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
-                            </Link>
+                            </button>
 
                             <Link
                                 to="/shop"

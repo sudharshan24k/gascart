@@ -118,6 +118,29 @@
   p {
     text-wrap: pretty;
   }
+
+  /* Custom Text Selection */
+  ::selection {
+    background-color: theme('colors.primary.200');
+    color: theme('colors.primary.900');
+  }
+
+  ::-moz-selection {
+    background-color: theme('colors.primary.200');
+    color: theme('colors.primary.900');
+  }
+
+  /* Improved Link Hover */
+  a:hover {
+    transition: all 0.2s ease;
+  }
+
+  /* Enhanced Form Focus States */
+  input:focus,
+  textarea:focus,
+  select:focus {
+    transition: all 0.2s ease;
+  }
 }
 
 @layer components {

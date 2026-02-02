@@ -6,6 +6,8 @@ import { AuthRequest } from '../middlewares/auth.middleware';
 export const generateInvoice = async (req: AuthRequest, res: Response) => {
     try {
         const { orderId } = req.params;
+        const userId = req.user?.id;
+        const userRole = req.user?.role;
 
         // Fetch order details
         const { data: order, error: orderError } = await supabase
@@ -19,6 +21,31 @@ export const generateInvoice = async (req: AuthRequest, res: Response) => {
 
         if (orderError || !order) {
             return res.status(404).json({ error: 'Order not found' });
+        }
+
+        // Authorization check: Allow admins to access any invoice, regular users only their own
+        const isAdmin = userRole === 'admin' || req.user?.is_dev;
+        if (!isAdmin && order.user_id !== userId) {
+            return res.status(403).json({
+                error: 'Access denied',
+                message: 'You do not have permission to access this invoice'
+            });
+        }
+
+        // Validate payment status before generating invoice
+        if (order.payment_status !== 'paid') {
+            return res.status(400).json({
+                error: 'Invoice not available yet',
+                message: 'Invoice will be available once payment is confirmed'
+            });
+        }
+
+        // Update invoice_generated_at timestamp if this is the first generation
+        if (!order.invoice_generated_at) {
+            await supabase
+                .from('orders')
+                .update({ invoice_generated_at: new Date().toISOString() })
+                .eq('id', orderId);
         }
 
         // Fetch profile manually to avoid join issues
@@ -40,7 +67,7 @@ export const generateInvoice = async (req: AuthRequest, res: Response) => {
         doc.fillColor('#444444').font('Helvetica-Bold').fontSize(20).text('GASCART', 50, 50);
         doc.font('Helvetica').fontSize(10).text('Industrial Ecommerce Solutions', 50, 75);
         doc.text('123 Industrial Ave, Tech City, 560001', 50, 90);
-        doc.text('support@gascart.com | +1 234 567 890', 50, 105);
+        doc.text('support@gascart.com | +91 234 567 890', 50, 105);
 
         doc.font('Helvetica-Bold').fontSize(20).text('INVOICE', 200, 50, { align: 'right' });
         doc.font('Helvetica').fontSize(10).fillColor('#444444');
@@ -48,10 +75,15 @@ export const generateInvoice = async (req: AuthRequest, res: Response) => {
         doc.text(`Date: ${new Date(order.created_at).toLocaleDateString()}`, 200, 90, { align: 'right' });
         doc.text(`Status: ${order.payment_status.toUpperCase()}`, 200, 105, { align: 'right' });
 
-        doc.moveTo(50, 130).lineTo(550, 130).strokeColor('#eeeeee').stroke();
+        // Add Razorpay payment details if available
+        if (order.razorpay_payment_id) {
+            doc.text(`Payment ID: ${order.razorpay_payment_id}`, 200, 120, { align: 'right' });
+        }
+
+        doc.moveTo(50, 145).lineTo(550, 145).strokeColor('#eeeeee').stroke();
 
         // --- Customer Information ---
-        const customerInfoTop = 150;
+        const customerInfoTop = 165;
         doc.fontSize(12).font('Helvetica-Bold').fillColor('#333333').text('Bill To:', 50, customerInfoTop);
         doc.fontSize(10).font('Helvetica').fillColor('#444444');
         doc.text(profile?.full_name || 'Customer', 50, customerInfoTop + 20);
@@ -66,10 +98,10 @@ export const generateInvoice = async (req: AuthRequest, res: Response) => {
         doc.text(shippingAddr.address_line1 || '', 300, customerInfoTop + 35);
         doc.text(`${shippingAddr.city || ''}, ${shippingAddr.state || ''} ${shippingAddr.zip_code || ''}`, 300, customerInfoTop + 50);
 
-        doc.moveTo(50, 220).lineTo(550, 220).strokeColor('#eeeeee').stroke();
+        doc.moveTo(50, 235).lineTo(550, 235).strokeColor('#eeeeee').stroke();
 
         // --- Table Header ---
-        const tableTop = 240;
+        const tableTop = 255;
         doc.fontSize(10).font('Helvetica-Bold').fillColor('#333333').text('Item Description', 50, tableTop);
         doc.text('Qty', 300, tableTop);
         doc.text('Unit Price', 380, tableTop);
@@ -84,8 +116,8 @@ export const generateInvoice = async (req: AuthRequest, res: Response) => {
             const productName = item.product?.name || 'Product';
             doc.fontSize(10).fillColor('#444444').text(productName, 50, y, { width: 240 });
             doc.text(item.quantity.toString(), 300, y);
-            doc.text(`$${item.price_at_purchase.toFixed(2)}`, 380, y);
-            doc.text(`$${(item.quantity * item.price_at_purchase).toFixed(2)}`, 480, y);
+            doc.text(`₹${item.price_at_purchase.toFixed(2)}`, 380, y);
+            doc.text(`₹${(item.quantity * item.price_at_purchase).toFixed(2)}`, 480, y);
             y += 20;
 
             // Draw a subtle line between items
@@ -96,11 +128,27 @@ export const generateInvoice = async (req: AuthRequest, res: Response) => {
         y += 20;
         const summaryX = 350;
         doc.fontSize(10).font('Helvetica').fillColor('#333333').text('Subtotal:', summaryX, y);
-        doc.text(`$${order.total_amount.toFixed(2)}`, 480, y, { align: 'right' });
+        doc.text(`₹${order.total_amount.toFixed(2)}`, 480, y, { align: 'right' });
 
-        y += 20;
-        doc.fontSize(12).font('Helvetica-Bold').text('Total Amount:', summaryX, y);
-        doc.fontSize(12).fillColor('#2ecc71').text(`$${order.total_amount.toFixed(2)}`, 480, y, { align: 'right' });
+        // Show payment information
+        const paidAmount = order.paid_amount || 0;
+        const balanceDue = order.balance_due || 0;
+
+        if (paidAmount > 0) {
+            y += 20;
+            doc.fontSize(10).font('Helvetica').text('Paid Amount:', summaryX, y);
+            doc.text(`₹${paidAmount.toFixed(2)}`, 480, y, { align: 'right' });
+        }
+
+        if (balanceDue > 0) {
+            y += 20;
+            doc.fontSize(10).font('Helvetica-Bold').fillColor('#e74c3c').text('Balance Due:', summaryX, y);
+            doc.fillColor('#e74c3c').text(`₹${balanceDue.toFixed(2)}`, 480, y, { align: 'right' });
+        }
+
+        y += 25;
+        doc.fontSize(12).font('Helvetica-Bold').fillColor('#333333').text('Total Amount:', summaryX, y);
+        doc.fontSize(12).fillColor('#2ecc71').text(`₹${order.total_amount.toFixed(2)}`, 480, y, { align: 'right' });
 
         // --- Footer ---
         const footerTop = 700;

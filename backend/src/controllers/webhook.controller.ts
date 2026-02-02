@@ -1,51 +1,203 @@
 import { Request, Response } from 'express';
-import Stripe from 'stripe';
 import { supabase } from '../config/supabase';
-import { config } from '../config/env';
+import { verifyWebhookSignature } from '../services/razorpay.service';
 
-const stripe = new Stripe(config.stripe.secretKey, {
-    apiVersion: '2025-01-27.acacia' as any,
-});
+/**
+ * Handle Razorpay Webhooks
+ * Events: payment.captured, payment.failed, refund.created, etc.
+ */
+export const handleRazorpayWebhook = async (req: Request, res: Response) => {
+    const webhookSignature = req.headers['x-razorpay-signature'] as string;
+    const webhookBody = JSON.stringify(req.body);
 
-export const handleStripeWebhook = async (req: Request, res: Response) => {
-    const sig = req.headers['stripe-signature'] as string;
-    let event: Stripe.Event;
+    // 1. Verify webhook signature
+    const isValid = verifyWebhookSignature(webhookBody, webhookSignature);
 
-    try {
-        event = stripe.webhooks.constructEvent(
-            (req as any).rawBody || req.body, // Stripe needs raw body for signature verification
-            sig,
-            config.stripe.webhookSecret
-        );
-    } catch (err: any) {
-        console.error('Webhook signature verification failed:', err.message);
-        return res.status(400).send(`Webhook Error: ${err.message}`);
+    if (!isValid) {
+        console.error('Invalid webhook signature');
+        return res.status(400).json({ error: 'Invalid signature' });
     }
 
-    // Handle the event
-    if (event.type === 'checkout.session.completed') {
-        const session = event.data.object as Stripe.Checkout.Session;
-        const orderId = session.metadata?.order_id;
+    // 2. Process webhook event
+    const event = req.body.event;
+    const payload = req.body.payload;
 
-        if (orderId) {
-            // Update order status to 'paid' and 'processing'
-            const { error } = await supabase
-                .from('orders')
-                .update({
-                    payment_status: 'paid',
-                    status: 'processing'
-                })
-                .eq('id', orderId);
+    console.log(`Received Razorpay webhook: ${event}`);
 
-            if (error) {
-                console.error('Error updating order after payment:', error);
-                return res.status(500).json({ error: 'Failed to update order' });
+    try {
+        switch (event) {
+            case 'payment.captured':
+                await handlePaymentCaptured(payload);
+                break;
+
+            case 'payment.failed':
+                await handlePaymentFailed(payload);
+                break;
+
+            case 'refund.created':
+                await handleRefundCreated(payload);
+                break;
+
+            case 'order.paid':
+                await handleOrderPaid(payload);
+                break;
+
+            default:
+                console.log(`Unhandled webhook event: ${event}`);
+        }
+
+        res.json({ success: true, received: true });
+    } catch (error: any) {
+        console.error('Webhook processing error:', error);
+        res.status(500).json({ error: error.message });
+    }
+};
+
+/**
+ * Handle payment.captured event
+ */
+async function handlePaymentCaptured(payload: any) {
+    const payment = payload.payment.entity;
+    const orderId = payment.notes?.order_id;
+
+    if (!orderId) {
+        console.error('No order_id in payment notes');
+        return;
+    }
+
+    // Update order status
+    const { data: order, error } = await supabase
+        .from('orders')
+        .update({
+            payment_status: 'paid',
+            paid_amount: payment.amount / 100, // Convert from paise
+            status: 'confirmed',
+            razorpay_payment_id: payment.id
+        })
+        .eq('razorpay_order_id', payment.order_id)
+        .select('*, order_items(*)')
+        .single();
+
+    if (error) {
+        console.error('Error updating order:', error);
+        return;
+    }
+
+    // Deduct stock if not already done
+    if (order && order.order_items) {
+        for (const item of order.order_items) {
+            try {
+                if (item.selected_variant) {
+                    await supabase.rpc('deduct_variant_stock', {
+                        variant_id: item.selected_variant.id,
+                        qty: item.quantity
+                    });
+                } else {
+                    await supabase.rpc('deduct_product_stock', {
+                        prod_id: item.product_id,
+                        qty: item.quantity
+                    });
+                }
+            } catch (stockError) {
+                console.error('Stock deduction error (may have been already deducted):', stockError);
             }
-
-            // TODO: Trigger automated invoice generation here
-            console.log(`Payment successful for order ${orderId}, session ${session.id}`);
         }
     }
 
-    res.json({ received: true });
-};
+    console.log(`Payment captured for order ${orderId}. Amount: ₹${payment.amount / 100}`);
+}
+
+/**
+ * Handle payment.failed event
+ */
+async function handlePaymentFailed(payload: any) {
+    const payment = payload.payment.entity;
+    const orderId = payment.notes?.order_id;
+
+    if (!orderId) {
+        console.error('No order_id in payment notes');
+        return;
+    }
+
+    // Update order status to failed
+    const { error } = await supabase
+        .from('orders')
+        .update({
+            payment_status: 'failed',
+            status: 'cancelled',
+            razorpay_payment_id: payment.id
+        })
+        .eq('razorpay_order_id', payment.order_id);
+
+    if (error) {
+        console.error('Error updating failed payment:', error);
+        return;
+    }
+
+    console.log(`Payment failed for order ${orderId}`);
+}
+
+/**
+ * Handle refund.created event
+ */
+async function handleRefundCreated(payload: any) {
+    const refund = payload.refund.entity;
+    const paymentId = refund.payment_id;
+
+    // Find order by payment ID
+    const { data: order, error: findError } = await supabase
+        .from('orders')
+        .select('*')
+        .eq('razorpay_payment_id', paymentId)
+        .single();
+
+    if (findError || !order) {
+        console.error('Order not found for refund:', paymentId);
+        return;
+    }
+
+    // Update order with refund info
+    const { error } = await supabase
+        .from('orders')
+        .update({
+            payment_status: refund.status === 'processed' ? 'refunded' : 'refund_pending',
+            status: 'cancelled',
+            paid_amount: order.paid_amount - (refund.amount / 100)
+        })
+        .eq('id', order.id);
+
+    if (error) {
+        console.error('Error updating refund status:', error);
+        return;
+    }
+
+    console.log(`Refund created for order ${order.id}. Amount: ₹${refund.amount / 100}`);
+}
+
+/**
+ * Handle order.paid event (backup verification)
+ */
+async function handleOrderPaid(payload: any) {
+    const order = payload.order.entity;
+    const orderId = order.notes?.order_id;
+
+    if (!orderId) {
+        console.error('No order_id in order notes');
+        return;
+    }
+
+    // Double-check order is marked as paid
+    const { error } = await supabase
+        .from('orders')
+        .update({
+            payment_status: 'paid',
+            status: 'confirmed'
+        })
+        .eq('razorpay_order_id', order.id);
+
+    if (error) {
+        console.error('Error in order.paid webhook:', error);
+    }
+
+    console.log(`Order paid event for order ${orderId}`);
+}

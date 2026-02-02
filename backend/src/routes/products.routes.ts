@@ -1,11 +1,12 @@
 import { Router } from 'express';
-import { getProducts, getProduct, createProduct, updateProduct, deleteProduct, updateInventory } from '../controllers/products.controller';
+import { getProducts, getProduct, createProduct, updateProduct, deleteProduct, updateInventory, getProductVendorDetails } from '../controllers/products.controller';
 import { requireAuth, requireAdmin } from '../middlewares/auth.middleware';
 
 const router = Router();
 
 router.get('/', getProducts);
 router.get('/:id', getProduct);
+router.get('/:productId/vendors/:vendorId', getProductVendorDetails);
 
 // Protected routes
 router.post('/', requireAuth, requireAdmin, createProduct);

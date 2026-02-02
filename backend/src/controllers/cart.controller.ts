@@ -27,7 +27,7 @@ const getOrCreateCart = async (userId: string | undefined, sessionId: string | u
 
 export const addToCart = async (req: AuthRequest, res: Response, next: NextFunction) => {
     try {
-        const { productId, quantity, variant } = req.body;
+        const { productId, quantity, variant, vendor_id, vendor_price, vendor_sku } = req.body;
         const userId = req.user?.id;
         const sessionId = req.headers['x-session-id'] as string; // Client generated UUID
 
@@ -37,13 +37,7 @@ export const addToCart = async (req: AuthRequest, res: Response, next: NextFunct
 
         const cartId = await getOrCreateCart(userId, sessionId);
 
-        // Check if item exists (Same Product AND Same Variant)
-        // Note: JSONB comparison in Supabase/Postgres is tricky.
-        // For MVP, if variant is present, we might just add a new line item if not exactly matching,
-        // or try to match.
-        // Let's assume strict match on variant structure if provided. Since JSONB order might vary, key order matters.
-        // But better is to trust the client sending the same object structure.
-
+        // Check if item exists (Same Product AND Same Variant AND Same Vendor)
         let query = supabase
             .from('cart_items')
             .select('id, quantity')
@@ -51,10 +45,15 @@ export const addToCart = async (req: AuthRequest, res: Response, next: NextFunct
             .eq('product_id', productId);
 
         if (variant) {
-            // Postgres JSONB containment/equality
             query = query.contains('selected_variant', variant);
         } else {
             query = query.is('selected_variant', null);
+        }
+
+        if (vendor_id) {
+            query = query.eq('vendor_id', vendor_id);
+        } else {
+            query = query.is('vendor_id', null);
         }
 
         const { data: existingItems } = await query;
@@ -73,7 +72,10 @@ export const addToCart = async (req: AuthRequest, res: Response, next: NextFunct
                     cart_id: cartId,
                     product_id: productId,
                     quantity,
-                    selected_variant: variant || null
+                    selected_variant: variant || null,
+                    vendor_id: vendor_id || null,
+                    vendor_price: vendor_price || null,
+                    vendor_sku: vendor_sku || null
                 }]);
             if (error) throw error;
         }

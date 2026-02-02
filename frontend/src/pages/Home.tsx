@@ -8,7 +8,7 @@ const Home: React.FC = () => {
     return (
         <div className="flex flex-col">
             {/* Hero Section */}
-            <section className="relative bg-gradient-to-r from-primary-dark to-primary min-h-[500px] md:h-[600px] flex items-center text-white overflow-hidden">
+            <section className="relative gradient-primary min-h-[500px] md:h-[600px] flex items-center text-white overflow-hidden">
                 <div className="absolute inset-0 bg-black opacity-20"></div>
                 <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative z-10 grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
                     <motion.div
@@ -23,10 +23,10 @@ const Home: React.FC = () => {
                             Pioneering Sustainable Energy for a Greener Tomorrow. High-efficiency gasification solutions for your industrial needs.
                         </p>
                         <div className="flex flex-col sm:flex-row gap-3 md:gap-4">
-                            <Link to="/shop" className="bg-secondary hover:bg-secondary-dark text-white px-8 py-4 rounded-full font-bold text-lg transition-all transform hover:scale-105 shadow-lg text-center flex items-center justify-center">
+                            <Link to="/shop" className="bg-secondary hover:bg-secondary-dark text-white px-8 py-4 rounded-full font-bold text-lg transition-all shadow-secondary hover:shadow-glow-secondary hover:-translate-y-1 active:translate-y-0 text-center flex items-center justify-center">
                                 Shop Products
                             </Link>
-                            <Link to="/technology" className="bg-transparent border-2 border-white hover:bg-white hover:text-primary-dark text-white px-8 py-4 rounded-full font-bold text-lg transition-all text-center flex items-center justify-center">
+                            <Link to="/technology" className="bg-white/10 backdrop-blur-sm border-2 border-white/50 hover:bg-white hover:text-primary-dark text-white px-8 py-4 rounded-full font-bold text-lg transition-all text-center flex items-center justify-center hover:-translate-y-1 active:translate-y-0">
                                 Our Technology
                             </Link>
                         </div>
@@ -84,23 +84,23 @@ const Home: React.FC = () => {
                 <div className="container mx-auto px-4 sm:px-6 lg:px-8">
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                         {/* Technology */}
-                        <Link to="/technology" className="group p-8 bg-neutral-light/50 rounded-2xl border border-transparent hover:border-primary/20 hover:bg-white hover:shadow-xl transition-all">
-                            <div className="w-14 h-14 bg-primary text-white rounded-xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
+                        <Link to="/technology" className="group p-8 bg-neutral-light/50 rounded-2xl border border-transparent hover:border-primary/20 hover:bg-white hover:shadow-xl transition-all hover:-translate-y-1">
+                            <div className="w-14 h-14 bg-primary text-white rounded-xl flex items-center justify-center mb-6 group-hover:scale-110 group-hover:rotate-3 transition-all">
                                 <Zap className="h-7 w-7" />
                             </div>
                             <h3 className="text-xl font-bold mb-3">Our Tech</h3>
                             <p className="text-gray-600 text-sm mb-4">Discover how we process waste into value.</p>
-                            <span className="text-primary font-bold text-sm flex items-center">View Process <ArrowRight className="ml-1 h-4 w-4" /></span>
+                            <span className="text-primary font-bold text-sm flex items-center group-hover:gap-2 transition-all">View Process <ArrowRight className="ml-1 h-4 w-4 group-hover:translate-x-1 transition-transform" /></span>
                         </Link>
 
                         {/* Shop */}
-                        <Link to="/shop" className="group p-8 bg-neutral-light/50 rounded-2xl border border-transparent hover:border-secondary/20 hover:bg-white hover:shadow-xl transition-all">
-                            <div className="w-14 h-14 bg-secondary text-white rounded-xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
+                        <Link to="/shop" className="group p-8 bg-neutral-light/50 rounded-2xl border border-transparent hover:border-secondary/20 hover:bg-white hover:shadow-xl transition-all hover:-translate-y-1">
+                            <div className="w-14 h-14 bg-secondary text-white rounded-xl flex items-center justify-center mb-6 group-hover:scale-110 group-hover:rotate-3 transition-all">
                                 <Leaf className="h-7 w-7" />
                             </div>
                             <h3 className="text-xl font-bold mb-3">Product Shop</h3>
                             <p className="text-gray-600 text-sm mb-4">Premium Biomethane & Bio-CNG products.</p>
-                            <span className="text-secondary font-bold text-sm flex items-center">Shop Now <ArrowRight className="ml-1 h-4 w-4" /></span>
+                            <span className="text-secondary font-bold text-sm flex items-center group-hover:gap-2 transition-all">Shop Now <ArrowRight className="ml-1 h-4 w-4 group-hover:translate-x-1 transition-transform" /></span>
                         </Link>
 
                         {/* About */}

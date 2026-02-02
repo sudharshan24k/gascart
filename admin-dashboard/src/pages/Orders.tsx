@@ -47,13 +47,29 @@ const AdminOrders = () => {
 
     const handleStatusUpdate = async (id: string, newStatus: string) => {
         try {
-            await updateOrderStatus(id, newStatus);
+            const updated = await updateOrderStatus(id, { status: newStatus });
             if (selectedOrder && selectedOrder.id === id) {
                 setSelectedOrder({ ...selectedOrder, status: newStatus });
             }
             loadOrders();
         } catch (err) {
             alert('Failed to update status');
+        }
+    };
+
+    const handlePaymentUpdate = async (paymentStatus: string, paidAmount?: number, balanceDue?: number) => {
+        if (!selectedOrder) return;
+        try {
+            const updates: any = { payment_status: paymentStatus };
+            if (paidAmount !== undefined) updates.paid_amount = paidAmount;
+            if (balanceDue !== undefined) updates.balance_due = balanceDue;
+
+            const updated = await updateOrderStatus(selectedOrder.id, updates);
+            setSelectedOrder(updated);
+            loadOrders();
+            alert('Payment status updated');
+        } catch (err) {
+            alert('Failed to update payment');
         }
     };
 
@@ -272,11 +288,19 @@ const AdminOrders = () => {
                                         </div>
                                     </td>
                                     <td className="py-8 px-10">
-                                        <div className="font-black text-lg text-gray-900 tracking-tight">₹{order.total_amount.toLocaleString()}</div>
-                                        <div className={`text-[9px] font-black uppercase tracking-widest flex items-center gap-1 ${order.payment_status === 'paid' ? 'text-emerald-500' : 'text-amber-500'}`}>
-                                            <span className={`w-1.5 h-1.5 rounded-full ${order.payment_status === 'paid' ? 'bg-emerald-500' : 'bg-amber-500'}`} />
-                                            {order.payment_status}
-                                        </div>
+                                        <div className="font-black text-lg text-gray-900 tracking-tight">₹{(order.total_amount || 0).toLocaleString()}</div>
+                                        {order.balance_due > 0 ? (
+                                            <div className="text-[10px] uppercase tracking-wide mt-1">
+                                                <span className="text-emerald-600 font-bold">Paid: ₹{order.paid_amount?.toLocaleString() || '0'}</span>
+                                                <span className="mx-2 text-gray-300">|</span>
+                                                <span className="text-red-500 font-black">Due: ₹{order.balance_due?.toLocaleString()}</span>
+                                            </div>
+                                        ) : (
+                                            <div className="text-[10px] font-black uppercase tracking-widest text-emerald-500 flex items-center gap-1">
+                                                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                                                Fully Paid
+                                            </div>
+                                        )}
                                     </td>
                                     <td className="py-8 px-10 text-right">
                                         <div className="flex items-center justify-end gap-3 opacity-0 group-hover:opacity-100 transition-opacity">
@@ -413,8 +437,27 @@ const AdminOrders = () => {
                                         <div className="space-y-4 pt-6 border-t border-primary/10">
                                             <div className="flex justify-between items-end">
                                                 <p className="text-[10px] font-black text-primary uppercase tracking-widest">Gross Total</p>
-                                                <p className="text-4xl font-black text-gray-900 tabular-nums">₹{selectedOrder.total_amount.toLocaleString()}</p>
+                                                <p className="text-4xl font-black text-gray-900 tabular-nums">₹{(selectedOrder.total_amount || 0).toLocaleString()}</p>
                                             </div>
+
+                                            {selectedOrder.balance_due > 0 && (
+                                                <div className="bg-white/50 rounded-xl p-4 border border-white/50">
+                                                    <div className="flex justify-between text-xs mb-2">
+                                                        <span className="text-gray-500 font-bold">Advance Paid:</span>
+                                                        <span className="font-black text-emerald-600">₹{selectedOrder.paid_amount?.toLocaleString()}</span>
+                                                    </div>
+                                                    <div className="flex justify-between text-xs mb-4">
+                                                        <span className="text-gray-500 font-bold">Balance Due:</span>
+                                                        <span className="font-black text-red-500">₹{selectedOrder.balance_due?.toLocaleString()}</span>
+                                                    </div>
+                                                    <button
+                                                        onClick={() => handlePaymentUpdate('paid', selectedOrder.total_amount, 0)}
+                                                        className="w-full py-3 bg-emerald-500 hover:bg-emerald-600 text-white rounded-xl text-[10px] font-black uppercase tracking-widest transition-all shadow-lg shadow-emerald-500/20"
+                                                    >
+                                                        Mark Balance Paid (Offline)
+                                                    </button>
+                                                </div>
+                                            )}
                                             <a
                                                 href={getOrderInvoiceUrl(selectedOrder.id)}
                                                 target="_blank"

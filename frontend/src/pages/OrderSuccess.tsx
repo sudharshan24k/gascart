@@ -1,11 +1,97 @@
-import React from 'react';
-import { Link, useLocation } from 'react-router-dom';
-import { CheckCircle2, Package, Home } from 'lucide-react';
+import React, { useEffect, useState } from 'react';
+import { Link, useLocation, useSearchParams } from 'react-router-dom';
+import { CheckCircle2, Package, Home, Download, Loader2, Clock } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { supabase } from '../services/api';
 
 const OrderSuccess: React.FC = () => {
     const location = useLocation();
-    const orderId = location.state?.orderId;
+    const [searchParams] = useSearchParams();
+
+    // Get orderId from URL params (primary) or location state (fallback)
+    const orderId = searchParams.get('orderId') || location.state?.orderId;
+    const [downloadingInvoice, setDownloadingInvoice] = useState(false);
+    const [order, setOrder] = useState<any>(null);
+    const [loadingOrder, setLoadingOrder] = useState(true);
+
+    // Fetch order details to check payment status
+    useEffect(() => {
+        const fetchOrder = async () => {
+            if (!orderId) {
+                setLoadingOrder(false);
+                return;
+            }
+
+            try {
+                const { data, error } = await supabase
+                    .from('orders')
+                    .select('payment_status, total_amount, created_at')
+                    .eq('id', orderId)
+                    .single();
+
+                if (!error && data) {
+                    setOrder(data);
+                }
+            } catch (err) {
+                console.error('Failed to fetch order:', err);
+            } finally {
+                setLoadingOrder(false);
+            }
+        };
+
+        fetchOrder();
+    }, [orderId]);
+
+    const handleDownloadInvoice = async () => {
+        if (!orderId) return;
+
+        setDownloadingInvoice(true);
+        try {
+            const token = (await supabase.auth.getSession()).data.session?.access_token;
+
+            if (!token) {
+                alert('Authentication failed. Please log in again.');
+                setDownloadingInvoice(false);
+                return;
+            }
+
+            const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3000/api/v1';
+            const baseUrl = apiUrl.endsWith('/') ? apiUrl.slice(0, -1) : apiUrl;
+
+            // Open invoice in new tab with authentication
+            const invoiceUrl = `${baseUrl}/orders/${orderId}/invoice`;
+
+            // Create a temporary link to trigger download with auth header
+            const response = await fetch(invoiceUrl, {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+
+            if (response.ok) {
+                const blob = await response.blob();
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `invoice-${orderId.slice(0, 8)}.pdf`;
+                document.body.appendChild(a);
+                a.click();
+                window.URL.revokeObjectURL(url);
+                document.body.removeChild(a);
+            } else if (response.status === 404) {
+                alert('Order not found. Please contact support if this issue persists.');
+            } else if (response.status === 401 || response.status === 403) {
+                alert('Authentication failed. Please log in again.');
+            } else {
+                alert('Failed to download invoice. Please try again or contact support.');
+            }
+        } catch (error) {
+            console.error('Invoice download error:', error);
+            alert('Network error. Please check your connection and try again.');
+        } finally {
+            setDownloadingInvoice(false);
+        }
+    };
 
     return (
         <div className="min-h-screen pt-32 pb-24 bg-gray-50 flex items-center justify-center">
@@ -32,11 +118,35 @@ const OrderSuccess: React.FC = () => {
                     )}
 
                     <div className="space-y-4">
-                        {orderId ? (
-                            <Link to={`/order-tracking/${orderId}`} className="block w-full bg-gray-900 text-white font-bold py-4 rounded-xl hover:bg-primary transition-all flex items-center justify-center gap-2">
-                                <Package className="w-5 h-5" /> Track This Order
-                            </Link>
-                        ) : (
+                        {orderId && (
+                            <>
+                                {loadingOrder ? (
+                                    <div className="flex items-center justify-center gap-2 py-4 text-gray-400">
+                                        <Loader2 className="w-5 h-5 animate-spin" />
+                                        <span className="font-bold">Loading order details...</span>
+                                    </div>
+                                ) : order?.payment_status === 'paid' ? (
+                                    <button
+                                        onClick={handleDownloadInvoice}
+                                        disabled={downloadingInvoice}
+                                        className="block w-full bg-primary text-white font-bold py-4 rounded-xl hover:bg-primary-dark transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                                    >
+                                        <Download className="w-5 h-5" />
+                                        {downloadingInvoice ? 'Downloading...' : 'Download Invoice'}
+                                    </button>
+                                ) : (
+                                    <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 text-center">
+                                        <Clock className="w-6 h-6 text-amber-500 mx-auto mb-2" />
+                                        <p className="text-sm font-bold text-amber-700">Invoice will be available once payment is confirmed</p>
+                                        <p className="text-xs text-amber-600 mt-1">This usually takes a few moments</p>
+                                    </div>
+                                )}
+                                <Link to={`/order-tracking/${orderId}`} className="block w-full bg-gray-900 text-white font-bold py-4 rounded-xl hover:bg-gray-800 transition-all flex items-center justify-center gap-2">
+                                    <Package className="w-5 h-5" /> Track This Order
+                                </Link>
+                            </>
+                        )}
+                        {!orderId && (
                             <Link to="/my-orders" className="block w-full bg-gray-900 text-white font-bold py-4 rounded-xl hover:bg-primary transition-all flex items-center justify-center gap-2">
                                 <Package className="w-5 h-5" /> View My Orders
                             </Link>

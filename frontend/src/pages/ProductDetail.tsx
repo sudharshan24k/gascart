@@ -16,7 +16,7 @@ import {
     Send,
     ShoppingCart
 } from 'lucide-react';
-import { api } from '../services/api';
+import { api, supabase } from '../services/api';
 import { useEnquiry } from '../context/EnquiryContext';
 import { useCart } from '../context/CartContext';
 
@@ -24,7 +24,8 @@ const ProductDetail: React.FC = () => {
     const { id } = useParams();
     const [product, setProduct] = useState<any>(null);
     const [loading, setLoading] = useState(true);
-    const [selectedVariant, setSelectedVariant] = useState<any>(null); // For handling variants
+    const [selectedVariant, setSelectedVariant] = useState<any>(null);
+    const [selectedVendor, setSelectedVendor] = useState<any>(null);
     const [showRFQModal, setShowRFQModal] = useState(false);
     const [rfqSubmitted, setRfqSubmitted] = useState(false);
     const [rfqSubmitting, setRfqSubmitting] = useState(false);
@@ -131,9 +132,19 @@ const ProductDetail: React.FC = () => {
                                 {product.name}
                             </h1>
 
-                            <div className="flex items-baseline gap-2 mb-6">
-                                <span className="text-4xl font-bold text-gray-900">₹{activePrice.toLocaleString()}</span>
-                                <span className="text-gray-400 font-bold text-xs uppercase tracking-widest">Net ex-works</span>
+                            <div className="flex items-baseline gap-3 mb-6">
+                                {product.vendors && product.vendors.length > 1 && product.price_min !== product.price_max ? (
+                                    <>
+                                        <span className="text-4xl font-bold text-gray-900">₹{product.price_min?.toLocaleString()}</span>
+                                        <span className="text-2xl font-bold text-gray-400">- ₹{product.price_max?.toLocaleString()}</span>
+                                        <span className="text-gray-400 font-bold text-xs uppercase tracking-widest">from {product.vendor_count} vendors</span>
+                                    </>
+                                ) : (
+                                    <>
+                                        <span className="text-4xl font-bold text-gray-900">₹{activePrice.toLocaleString()}</span>
+                                        <span className="text-gray-400 font-bold text-xs uppercase tracking-widest">Net ex-works</span>
+                                    </>
+                                )}
                             </div>
 
                             {/* Variants Selector */}
@@ -162,6 +173,81 @@ const ProductDetail: React.FC = () => {
                                 </div>
                             )}
 
+                            {/* Vendor Comparison */}
+                            {product.vendors && product.vendors.length > 0 && (
+                                <div className="mb-10 p-6 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-3xl border border-blue-100">
+                                    <div className="flex items-center justify-between mb-4">
+                                        <h4 className="font-bold text-gray-900 text-sm uppercase tracking-wider flex items-center gap-2">
+                                            <Building2 className="w-5 h-5 text-primary" />
+                                            Available from {product.vendor_count} Vendor{product.vendor_count > 1 ? 's' : ''}
+                                        </h4>
+                                        {selectedVendor && (
+                                            <span className="text-xs font-bold text-primary bg-white px-3 py-1 rounded-full">
+                                                {selectedVendor.profiles?.company_name}
+                                            </span>
+                                        )}
+                                    </div>
+                                    <div className="grid gap-3">
+                                        {product.vendors.map((vendor: any) => {
+                                            const isSelected = selectedVendor?.vendor_id === vendor.vendor_id;
+                                            return (
+                                                <button
+                                                    key={vendor.vendor_id}
+                                                    onClick={() => setSelectedVendor(vendor)}
+                                                    className={`p-4 rounded-2xl text-left transition-all border-2 ${isSelected
+                                                        ? 'bg-white border-primary shadow-lg'
+                                                        : 'bg-white/50 border-transparent hover:border-blue-200'
+                                                        }`}
+                                                >
+                                                    <div className="flex items-start justify-between mb-2">
+                                                        <div className="flex-grow">
+                                                            <div className="flex items-center gap-2 mb-1">
+                                                                <span className="font-bold text-gray-900">
+                                                                    {vendor.profiles?.company_name || 'Vendor'}
+                                                                </span>
+                                                                {vendor.is_primary && (
+                                                                    <span className="text-[9px] font-black bg-green-100 text-green-600 px-2 py-0.5 rounded uppercase">
+                                                                        Recommended
+                                                                    </span>
+                                                                )}
+                                                            </div>
+                                                            {vendor.vendor_sku && (
+                                                                <p className="text-xs text-gray-500">SKU: {vendor.vendor_sku}</p>
+                                                            )}
+                                                        </div>
+                                                        <span className="text-xl font-bold text-gray-900">
+                                                            ₹{vendor.vendor_price?.toLocaleString() || product.price.toLocaleString()}
+                                                        </span>
+                                                    </div>
+                                                    <div className="grid grid-cols-2 gap-4 text-xs">
+                                                        <div>
+                                                            <span className="text-gray-400 font-bold block mb-1">Stock</span>
+                                                            <span className={`font-bold ${(vendor.vendor_stock_quantity || 0) > 0
+                                                                ? 'text-green-600'
+                                                                : 'text-red-600'
+                                                                }`}>
+                                                                {(vendor.vendor_stock_quantity || 0) > 0
+                                                                    ? `${vendor.vendor_stock_quantity} units`
+                                                                    : 'Out of Stock'
+                                                                }
+                                                            </span>
+                                                        </div>
+                                                        {vendor.vendor_lead_time_days && (
+                                                            <div>
+                                                                <span className="text-gray-400 font-bold block mb-1">Lead Time</span>
+                                                                <span className="font-bold text-gray-700">
+                                                                    {vendor.vendor_lead_time_days} days
+                                                                </span>
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                </button>
+                                            );
+                                        })}
+                                    </div>
+                                </div>
+                            )}
+
                             <p className="text-gray-600 text-lg leading-relaxed mb-10 pb-10 border-b border-gray-50">
                                 {product.description}
                             </p>
@@ -185,16 +271,22 @@ const ProductDetail: React.FC = () => {
                                 {(isDirectBuy || isBoth) && (
                                     <button
                                         onClick={async () => {
-                                            await addToCart(product.id, 1, selectedVariant);
+                                            await addToCart(product.id, 1, selectedVariant, selectedVendor);
                                             window.location.href = '/cart';
                                         }}
-                                        className="w-full bg-primary hover:bg-primary-dark text-white font-black py-5 px-8 rounded-2xl shadow-xl transition-all flex flex-col items-center justify-center transform hover:-translate-y-1"
+                                        disabled={(selectedVendor ? (selectedVendor.vendor_stock_quantity || 0) : (product.stock_quantity || 0)) === 0}
+                                        className="w-full bg-primary hover:bg-primary-dark text-white font-black py-5 px-8 rounded-2xl shadow-xl transition-all flex flex-col items-center justify-center transform hover:-translate-y-1 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0"
                                     >
                                         <div className="flex items-center gap-3">
                                             <ShoppingCart className="w-6 h-6" />
                                             <span className="text-lg">Add to Cart</span>
                                         </div>
-                                        <span className="text-xs opacity-80 font-medium tracking-tight">Available for Immediate Dispatch</span>
+                                        <span className="text-xs opacity-80 font-medium tracking-tight">
+                                            {(selectedVendor ? (selectedVendor.vendor_stock_quantity || 0) : (product.stock_quantity || 0)) > 0
+                                                ? 'Available for Immediate Dispatch'
+                                                : 'Out of Stock'
+                                            }
+                                        </span>
                                     </button>
                                 )}
 
@@ -321,11 +413,14 @@ const ProductDetail: React.FC = () => {
                                         setRfqSubmitting(true);
                                         setRfqError(null);
                                         try {
-                                            const token = localStorage.getItem('supabase.auth.token'); // Assuming this is where it's stored
+                                            const { data: { session } } = await supabase.auth.getSession();
+                                            const token = session?.access_token;
+
                                             if (!token) throw new Error('Please login to submit a technical enquiry');
 
                                             const res = await api.rfqs.submit(token, {
                                                 product_id: product.id,
+                                                vendor_id: selectedVendor?.vendor_id,
                                                 submitted_fields: rfqForm
                                             });
 
@@ -341,8 +436,17 @@ const ProductDetail: React.FC = () => {
                                         }
                                     }} className="space-y-6">
                                         {rfqError && (
-                                            <div className="bg-red-50 text-red-600 p-4 rounded-xl text-sm font-bold flex items-center gap-2">
-                                                <X className="w-4 h-4" /> {rfqError}
+                                            <div
+                                                className={`p-4 rounded-xl text-sm font-bold flex items-center gap-2 ${rfqError.toLowerCase().includes('login') ? 'bg-red-50 text-red-600 cursor-pointer hover:bg-red-100 transition-colors' : 'bg-red-50 text-red-600'}`}
+                                                onClick={() => {
+                                                    if (rfqError.toLowerCase().includes('login')) {
+                                                        window.location.href = '/login';
+                                                    }
+                                                }}
+                                            >
+                                                <X className="w-4 h-4" />
+                                                {rfqError}
+                                                {rfqError.toLowerCase().includes('login') && <span className="underline ml-1">Click here to Login</span>}
                                             </div>
                                         )}
                                         <div className="grid grid-cols-2 gap-6">

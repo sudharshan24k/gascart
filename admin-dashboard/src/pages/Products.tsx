@@ -25,7 +25,8 @@ import {
     fetchVendors,
     fetchProductVendors,
     assignVendorToProduct,
-    removeVendorFromProduct
+    removeVendorFromProduct,
+    updateProductVendor
 } from '../services/admin.service';
 
 const AdminProducts = () => {
@@ -38,6 +39,8 @@ const AdminProducts = () => {
     const [editingProduct, setEditingProduct] = useState<any>(null);
     const [productVendors, setProductVendors] = useState<any[]>([]);
     const [showFilters, setShowFilters] = useState(false);
+    const [showVendorModal, setShowVendorModal] = useState(false);
+    const [editingVendor, setEditingVendor] = useState<any>(null);
     const [filters, setFilters] = useState({
         category: '',
         purchaseModel: '',
@@ -61,6 +64,16 @@ const AdminProducts = () => {
         min_rfq_fields: [] as any[],
         variants: [] as any[],
         documents: [] as { name: string, url: string }[]
+    });
+
+    const [vendorFormData, setVendorFormData] = useState({
+        vendor_id: '',
+        vendor_sku: '',
+        vendor_price: '',
+        vendor_stock_quantity: '',
+        vendor_lead_time_days: '',
+        is_primary: false,
+        priority: '0'
     });
 
     useEffect(() => {
@@ -95,19 +108,68 @@ const AdminProducts = () => {
         }
     };
 
-    const handleAssignVendor = async (vendorId: string) => {
+    const handleOpenVendorModal = (vendor?: any) => {
+        if (vendor) {
+            // Editing existing vendor
+            setEditingVendor(vendor);
+            setVendorFormData({
+                vendor_id: vendor.vendor_id,
+                vendor_sku: vendor.vendor_sku || '',
+                vendor_price: vendor.vendor_price?.toString() || '',
+                vendor_stock_quantity: vendor.vendor_stock_quantity?.toString() || '',
+                vendor_lead_time_days: vendor.vendor_lead_time_days?.toString() || '',
+                is_primary: vendor.is_primary || false,
+                priority: vendor.priority?.toString() || '0'
+            });
+        } else {
+            // Adding new vendor
+            setEditingVendor(null);
+            setVendorFormData({
+                vendor_id: '',
+                vendor_sku: '',
+                vendor_price: '',
+                vendor_stock_quantity: '',
+                vendor_lead_time_days: '',
+                is_primary: false,
+                priority: '0'
+            });
+        }
+        setShowVendorModal(true);
+    };
+
+    const handleSaveVendor = async () => {
         if (!editingProduct) return;
+
         try {
-            await assignVendorToProduct(editingProduct.id, vendorId);
+            const vendorData = {
+                vendor_sku: vendorFormData.vendor_sku || undefined,
+                vendor_price: vendorFormData.vendor_price ? parseFloat(vendorFormData.vendor_price) : undefined,
+                vendor_stock_quantity: vendorFormData.vendor_stock_quantity ? parseInt(vendorFormData.vendor_stock_quantity) : undefined,
+                vendor_lead_time_days: vendorFormData.vendor_lead_time_days ? parseInt(vendorFormData.vendor_lead_time_days) : undefined,
+                is_primary: vendorFormData.is_primary,
+                priority: parseInt(vendorFormData.priority)
+            };
+
+            if (editingVendor) {
+                // Update existing vendor
+                await updateProductVendor(editingProduct.id, vendorFormData.vendor_id, vendorData);
+            } else {
+                // Assign new vendor
+                await assignVendorToProduct(editingProduct.id, vendorFormData.vendor_id, vendorData);
+            }
+
             await loadProductVendors(editingProduct.id);
+            setShowVendorModal(false);
         } catch (err) {
-            console.error('Failed to assign vendor', err);
-            alert('Failed to assign vendor. It may already be assigned.');
+            console.error('Failed to save vendor', err);
+            alert('Failed to save vendor. ' + (err as any)?.message || 'Please try again.');
         }
     };
 
     const handleRemoveVendor = async (vendorId: string) => {
         if (!editingProduct) return;
+        if (!window.confirm('Remove this vendor from the product?')) return;
+
         try {
             await removeVendorFromProduct(editingProduct.id, vendorId);
             await loadProductVendors(editingProduct.id);
@@ -411,8 +473,19 @@ const AdminProducts = () => {
                                     </td>
                                     <td className="py-8 px-10">
                                         <div className="flex flex-col">
-                                            <span className="text-lg font-bold text-gray-900">₹{parseFloat(product.price).toLocaleString()}</span>
-                                            <span className="text-[10px] text-gray-400 font-bold uppercase tracking-tight">Stock: {product.stock_quantity} units</span>
+                                            {product.price_min && product.price_max && product.price_min !== product.price_max ? (
+                                                <>
+                                                    <span className="text-lg font-bold text-gray-900">₹{parseFloat(product.price_min).toLocaleString()} - ₹{parseFloat(product.price_max).toLocaleString()}</span>
+                                                    <span className="text-[10px] text-blue-600 font-bold uppercase tracking-tight">{product.vendor_count || 0} vendors</span>
+                                                </>
+                                            ) : (
+                                                <>
+                                                    <span className="text-lg font-bold text-gray-900">₹{parseFloat(product.price).toLocaleString()}</span>
+                                                    {product.vendor_count > 0 && (
+                                                        <span className="text-[10px] text-gray-400 font-bold uppercase tracking-tight">{product.vendor_count} vendor{product.vendor_count > 1 ? 's' : ''}</span>
+                                                    )}
+                                                </>
+                                            )}
                                         </div>
                                     </td>
                                     <td className="py-8 px-10">
@@ -855,35 +928,74 @@ const AdminProducts = () => {
                                             </div>
                                         </section>
 
-                                        {/* Vendor Assignment - Streamlined */}
+                                        {/* Vendor Assignment - Enhanced */}
                                         {editingProduct && (
                                             <section className="space-y-6 pt-6 border-t border-gray-100">
                                                 <div className="flex items-center justify-between">
                                                     <h4 className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em]">Authorized Vendors</h4>
-                                                    <span className="text-[10px] font-black text-primary px-3 py-1 bg-primary/10 rounded-full">{productVendors.length}</span>
+                                                    <div className="flex items-center gap-3">
+                                                        <span className="text-[10px] font-black text-primary px-3 py-1 bg-primary/10 rounded-full">{productVendors.length}</span>
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => handleOpenVendorModal()}
+                                                            className="px-4 py-2 bg-primary text-white rounded-xl text-[10px] font-black uppercase hover:bg-primary-dark transition-all flex items-center gap-2"
+                                                        >
+                                                            <Plus className="w-3.5 h-3.5" />
+                                                            Add Vendor
+                                                        </button>
+                                                    </div>
                                                 </div>
-                                                <div className="flex flex-wrap gap-2 mb-4">
+                                                <div className="space-y-3">
                                                     {productVendors.map((pv: any) => (
-                                                        <span key={pv.vendor_id} className="px-4 py-2 bg-white border border-gray-100 rounded-xl text-xs font-bold text-gray-600 flex items-center gap-2 shadow-sm">
-                                                            {pv.profiles?.company_name || 'Vendor'}
-                                                            <button
-                                                                type="button"
-                                                                onClick={() => handleRemoveVendor(pv.vendor_id)}
-                                                                className="hover:text-red-500"
-                                                            >
-                                                                <X className="w-3.5 h-3.5" />
-                                                            </button>
-                                                        </span>
+                                                        <div key={pv.vendor_id} className="p-4 bg-white border border-gray-100 rounded-2xl hover:shadow-md transition-all group">
+                                                            <div className="flex items-start justify-between">
+                                                                <div className="flex-grow">
+                                                                    <div className="flex items-center gap-2 mb-2">
+                                                                        <span className="font-bold text-gray-900">{pv.profiles?.company_name || 'Vendor'}</span>
+                                                                        {pv.is_primary && (
+                                                                            <span className="text-[9px] font-black bg-green-100 text-green-600 px-2 py-0.5 rounded uppercase">Primary</span>
+                                                                        )}
+                                                                    </div>
+                                                                    <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-[10px]">
+                                                                        {pv.vendor_sku && (
+                                                                            <div><span className="text-gray-400 font-bold">SKU:</span> <span className="text-gray-600">{pv.vendor_sku}</span></div>
+                                                                        )}
+                                                                        {pv.vendor_price && (
+                                                                            <div><span className="text-gray-400 font-bold">Price:</span> <span className="text-gray-900 font-bold">₹{pv.vendor_price}</span></div>
+                                                                        )}
+                                                                        {pv.vendor_stock_quantity !== null && pv.vendor_stock_quantity !== undefined && (
+                                                                            <div><span className="text-gray-400 font-bold">Stock:</span> <span className="text-gray-600">{pv.vendor_stock_quantity}</span></div>
+                                                                        )}
+                                                                        {pv.vendor_lead_time_days && (
+                                                                            <div><span className="text-gray-400 font-bold">Lead Time:</span> <span className="text-gray-600">{pv.vendor_lead_time_days} days</span></div>
+                                                                        )}
+                                                                    </div>
+                                                                </div>
+                                                                <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                                                    <button
+                                                                        type="button"
+                                                                        onClick={() => handleOpenVendorModal(pv)}
+                                                                        className="p-2 text-gray-400 hover:text-primary hover:bg-primary/5 rounded-lg transition-all"
+                                                                    >
+                                                                        <Edit2 className="w-4 h-4" />
+                                                                    </button>
+                                                                    <button
+                                                                        type="button"
+                                                                        onClick={() => handleRemoveVendor(pv.vendor_id)}
+                                                                        className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all"
+                                                                    >
+                                                                        <Trash2 className="w-4 h-4" />
+                                                                    </button>
+                                                                </div>
+                                                            </div>
+                                                        </div>
                                                     ))}
+                                                    {productVendors.length === 0 && (
+                                                        <div className="text-center py-8 text-gray-400 text-sm">
+                                                            No vendors assigned yet. Click "Add Vendor" to get started.
+                                                        </div>
+                                                    )}
                                                 </div>
-                                                <select
-                                                    className="w-full px-6 py-4 bg-white border-2 border-dashed border-gray-200 rounded-2xl outline-none font-bold text-[10px] uppercase tracking-widest text-gray-400 hover:border-primary/50 transition-all cursor-pointer"
-                                                    value=""
-                                                    onChange={(e) => e.target.value && (handleAssignVendor(e.target.value), e.target.value = '')}
-                                                >
-                                                    <option value="">+ Authorize New Partner</option>
-                                                    {vendors.map(v => <option key={v.id} value={v.id}>{v.company_name || v.full_name}</option>)}
-                                                </select>
                                             </section>
                                         )}
                                     </div>
@@ -905,6 +1017,175 @@ const AdminProducts = () => {
                                 >
                                     <CheckCircle className="w-5 h-5" />
                                     <span>Sync Technical Profile</span>
+                                </button>
+                            </div>
+                        </motion.div>
+                    </div>
+                )}
+            </AnimatePresence>
+
+            {/* Vendor Add/Edit Modal */}
+            <AnimatePresence>
+                {showVendorModal && (
+                    <div className="fixed inset-0 z-[110] flex items-center justify-center p-4">
+                        <motion.div
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            className="absolute inset-0 bg-gray-900/40 backdrop-blur-md"
+                            onClick={() => setShowVendorModal(false)}
+                        />
+                        <motion.div
+                            initial={{ scale: 0.95, opacity: 0, y: 20 }}
+                            animate={{ scale: 1, opacity: 1, y: 0 }}
+                            exit={{ scale: 0.95, opacity: 0, y: 20 }}
+                            className="bg-white w-full max-w-2xl rounded-[40px] shadow-2xl overflow-hidden relative z-20 border border-white/20"
+                        >
+                            {/* Header */}
+                            <div className="relative p-10 border-b border-gray-100 flex justify-between items-center">
+                                <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-primary via-blue-500 to-emerald-500" />
+                                <div>
+                                    <h3 className="text-3xl font-black text-gray-900">
+                                        {editingVendor ? 'Edit Vendor Details' : 'Assign Vendor'}
+                                    </h3>
+                                    <p className="text-gray-400 font-bold mt-1 text-sm">
+                                        Configure vendor-specific pricing and availability
+                                    </p>
+                                </div>
+                                <button
+                                    onClick={() => setShowVendorModal(false)}
+                                    className="p-3 bg-gray-50 hover:bg-white text-gray-400 hover:text-gray-900 rounded-2xl transition-all"
+                                >
+                                    <X className="w-6 h-6" />
+                                </button>
+                            </div>
+
+                            {/* Form */}
+                            <div className="p-10 space-y-6">
+                                {!editingVendor && (
+                                    <div>
+                                        <label className="block text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] mb-3">
+                                            Select Vendor *
+                                        </label>
+                                        <select
+                                            required
+                                            className="w-full px-6 py-4 bg-gray-50 border-2 border-transparent focus:border-primary/10 rounded-2xl outline-none focus:ring-4 focus:ring-primary/5 transition-all font-bold"
+                                            value={vendorFormData.vendor_id}
+                                            onChange={(e) => setVendorFormData({ ...vendorFormData, vendor_id: e.target.value })}
+                                        >
+                                            <option value="">Choose a vendor</option>
+                                            {vendors
+                                                .filter(v => !productVendors.some(pv => pv.vendor_id === v.id))
+                                                .map(v => (
+                                                    <option key={v.id} value={v.id}>
+                                                        {v.company_name || v.full_name}
+                                                    </option>
+                                                ))
+                                            }
+                                        </select>
+                                    </div>
+                                )}
+
+                                <div className="grid grid-cols-2 gap-6">
+                                    <div>
+                                        <label className="block text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] mb-3">
+                                            Vendor SKU
+                                        </label>
+                                        <input
+                                            type="text"
+                                            placeholder="e.g., COMP-5HP-V1"
+                                            className="w-full px-6 py-4 bg-gray-50 border-2 border-transparent focus:border-primary/10 rounded-2xl outline-none focus:ring-4 focus:ring-primary/5 transition-all font-bold"
+                                            value={vendorFormData.vendor_sku}
+                                            onChange={(e) => setVendorFormData({ ...vendorFormData, vendor_sku: e.target.value })}
+                                        />
+                                    </div>
+
+                                    <div>
+                                        <label className="block text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] mb-3">
+                                            Vendor Price (₹)
+                                        </label>
+                                        <input
+                                            type="number"
+                                            step="0.01"
+                                            placeholder="0.00"
+                                            className="w-full px-6 py-4 bg-gray-50 border-2 border-transparent focus:border-primary/10 rounded-2xl outline-none focus:ring-4 focus:ring-primary/5 transition-all font-bold"
+                                            value={vendorFormData.vendor_price}
+                                            onChange={(e) => setVendorFormData({ ...vendorFormData, vendor_price: e.target.value })}
+                                        />
+                                    </div>
+
+                                    <div>
+                                        <label className="block text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] mb-3">
+                                            Stock Quantity
+                                        </label>
+                                        <input
+                                            type="number"
+                                            placeholder="0"
+                                            className="w-full px-6 py-4 bg-gray-50 border-2 border-transparent focus:border-primary/10 rounded-2xl outline-none focus:ring-4 focus:ring-primary/5 transition-all font-bold"
+                                            value={vendorFormData.vendor_stock_quantity}
+                                            onChange={(e) => setVendorFormData({ ...vendorFormData, vendor_stock_quantity: e.target.value })}
+                                        />
+                                    </div>
+
+                                    <div>
+                                        <label className="block text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] mb-3">
+                                            Lead Time (days)
+                                        </label>
+                                        <input
+                                            type="number"
+                                            placeholder="7"
+                                            className="w-full px-6 py-4 bg-gray-50 border-2 border-transparent focus:border-primary/10 rounded-2xl outline-none focus:ring-4 focus:ring-primary/5 transition-all font-bold"
+                                            value={vendorFormData.vendor_lead_time_days}
+                                            onChange={(e) => setVendorFormData({ ...vendorFormData, vendor_lead_time_days: e.target.value })}
+                                        />
+                                    </div>
+
+                                    <div>
+                                        <label className="block text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] mb-3">
+                                            Priority
+                                        </label>
+                                        <input
+                                            type="number"
+                                            placeholder="0"
+                                            className="w-full px-6 py-4 bg-gray-50 border-2 border-transparent focus:border-primary/10 rounded-2xl outline-none focus:ring-4 focus:ring-primary/5 transition-all font-bold"
+                                            value={vendorFormData.priority}
+                                            onChange={(e) => setVendorFormData({ ...vendorFormData, priority: e.target.value })}
+                                        />
+                                        <p className="text-[9px] text-gray-400 mt-2">Higher values appear first</p>
+                                    </div>
+
+                                    <div className="flex items-center">
+                                        <label className="flex items-center gap-3 cursor-pointer">
+                                            <input
+                                                type="checkbox"
+                                                className="w-5 h-5 rounded border-gray-300 text-primary focus:ring-primary"
+                                                checked={vendorFormData.is_primary}
+                                                onChange={(e) => setVendorFormData({ ...vendorFormData, is_primary: e.target.checked })}
+                                            />
+                                            <div>
+                                                <span className="text-sm font-bold text-gray-900 block">Set as Primary Vendor</span>
+                                                <span className="text-[9px] text-gray-400">Recommended vendor for customers</span>
+                                            </div>
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Footer */}
+                            <div className="p-8 bg-gray-50 border-t border-gray-100 flex justify-end gap-4">
+                                <button
+                                    type="button"
+                                    onClick={() => setShowVendorModal(false)}
+                                    className="px-8 py-4 text-sm font-black text-gray-400 hover:text-gray-900 uppercase tracking-widest transition-all"
+                                >
+                                    Cancel
+                                </button>
+                                <button
+                                    onClick={handleSaveVendor}
+                                    disabled={!editingVendor && !vendorFormData.vendor_id}
+                                    className="px-10 py-4 bg-primary hover:bg-primary-dark text-white rounded-2xl text-sm font-black uppercase tracking-widest shadow-xl shadow-primary/30 transition-all hover:scale-105 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
+                                >
+                                    {editingVendor ? 'Update Vendor' : 'Assign Vendor'}
                                 </button>
                             </div>
                         </motion.div>

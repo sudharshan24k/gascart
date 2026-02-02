@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import { supabase } from '../config/supabase';
 import archiver from 'archiver';
-import { generateInvoiceBuffer } from '../utils/invoice.util';
+import { generateInvoiceBuffer, generateInvoiceStream } from '../utils/invoice.util';
 
 export const getDashboardStats = async (req: Request, res: Response, next: NextFunction) => {
     try {
@@ -139,17 +139,32 @@ export const exportInvoicesZIP = async (req: Request, res: Response, next: NextF
         res.setHeader('Content-Type', 'application/zip');
         res.setHeader('Content-Disposition', 'attachment; filename=invoices-bulk.zip');
 
+        // Pipe archive to response
         archive.pipe(res);
 
+        // Handle archive errors
+        archive.on('error', (err) => {
+            console.error('Archive error:', err);
+            throw err;
+        });
+
+        // Process orders sequentially to avoid memory overload
         for (const orderId of orderIds) {
             try {
-                const { buffer, filename } = await generateInvoiceBuffer(orderId);
-                archive.append(buffer, { name: filename });
-            } catch (err) {
-                console.error(`Failed to generate invoice for ${orderId}:`, err);
+                const { stream, filename } = await generateInvoiceStream(orderId);
+
+                // Append the stream directly to the archive (memory-efficient)
+                archive.append(stream as any, { name: filename });
+
+                // End the PDF document stream
+                stream.end();
+            } catch (err: any) {
+                console.error(`Failed to generate invoice for ${orderId}:`, err.message);
+                // Continue with other orders even if one fails
             }
         }
 
+        // Finalize the archive (no more files will be added)
         await archive.finalize();
     } catch (err) {
         console.error('ZIP export error:', err);

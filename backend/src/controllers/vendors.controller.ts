@@ -181,7 +181,7 @@ export const getProductVendors = async (req: Request, res: Response, next: NextF
 
         const { data, error } = await supabase
             .from('product_vendors')
-            .select('vendor_id, profiles!product_vendors_vendor_id_fkey(*)')
+            .select('*, profiles!product_vendors_vendor_id_fkey(*)')
             .eq('product_id', productId);
 
         if (error) throw error;
@@ -198,11 +198,38 @@ export const getProductVendors = async (req: Request, res: Response, next: NextF
 // Admin: Assign vendor to product
 export const assignVendorToProduct = async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const { product_id, vendor_id } = req.body;
+        const {
+            product_id,
+            vendor_id,
+            vendor_sku,
+            vendor_price,
+            vendor_stock_quantity,
+            vendor_lead_time_days,
+            vendor_specifications,
+            is_primary,
+            priority
+        } = req.body;
+
+        // If setting as primary, unset other primary vendors for this product
+        if (is_primary) {
+            await supabase
+                .from('product_vendors')
+                .update({ is_primary: false })
+                .eq('product_id', product_id);
+        }
+
+        const insertData: any = { product_id, vendor_id };
+        if (vendor_sku !== undefined) insertData.vendor_sku = vendor_sku;
+        if (vendor_price !== undefined) insertData.vendor_price = vendor_price;
+        if (vendor_stock_quantity !== undefined) insertData.vendor_stock_quantity = vendor_stock_quantity;
+        if (vendor_lead_time_days !== undefined) insertData.vendor_lead_time_days = vendor_lead_time_days;
+        if (vendor_specifications !== undefined) insertData.vendor_specifications = vendor_specifications;
+        if (is_primary !== undefined) insertData.is_primary = is_primary;
+        if (priority !== undefined) insertData.priority = priority;
 
         const { data, error } = await supabase
             .from('product_vendors')
-            .insert([{ product_id, vendor_id }])
+            .insert([insertData])
             .select()
             .single();
 
@@ -226,6 +253,42 @@ export const removeVendorFromProduct = async (req: Request, res: Response, next:
 
         if (error) throw error;
         res.json({ status: 'success', message: 'Vendor removed from product' });
+    } catch (err) {
+        next(err);
+    }
+};
+
+// Admin: Update vendor-product association details
+export const updateProductVendor = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const { product_id, vendor_id, ...updates } = req.body;
+
+        if (!product_id || !vendor_id) {
+            return res.status(400).json({
+                status: 'error',
+                message: 'Both product_id and vendor_id are required'
+            });
+        }
+
+        // If setting as primary, unset others
+        if (updates.is_primary === true) {
+            await supabase
+                .from('product_vendors')
+                .update({ is_primary: false })
+                .eq('product_id', product_id)
+                .neq('vendor_id', vendor_id);
+        }
+
+        const { data, error } = await supabase
+            .from('product_vendors')
+            .update(updates)
+            .eq('product_id', product_id)
+            .eq('vendor_id', vendor_id)
+            .select()
+            .single();
+
+        if (error) throw error;
+        res.json({ status: 'success', data });
     } catch (err) {
         next(err);
     }

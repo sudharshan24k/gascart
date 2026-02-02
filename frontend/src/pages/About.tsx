@@ -27,6 +27,14 @@ const About: React.FC = () => {
             {/* Overview Section */}
             <section className="py-24">
                 <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+                    <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+                        <div className="text-center mb-16 animate-fade-in">
+                            <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6 font-display">About Gascart</h1>
+                            <p className="text-xl text-gray-600 leading-relaxed max-w-3xl mx-auto">
+                                India's pioneering B2B marketplace for industrial Bio-CNG and gasification technology.
+                            </p>
+                        </div>
+                    </div>
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
                         <div>
                             <h2 className="text-3xl font-display font-bold text-gray-900 mb-6">Who We Are</h2>

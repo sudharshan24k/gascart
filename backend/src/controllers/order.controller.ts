@@ -51,16 +51,23 @@ export const createOrder = async (req: Request, res: Response, next: NextFunctio
         // 4. Create Order Items
         const orderItems = cart.cart_items.map((item: any) => {
             // If variant has specific price, use it. Otherwise use product base price.
-            // Assuming variant object has 'price' key if it overrides.
+            // A vendor-specific price overrides both if present (as it is the price the user saw/agreed to)
             const variantPrice = item.selected_variant?.price;
-            const finalPrice = variantPrice !== undefined ? variantPrice : item.product.price;
+            let finalPrice = variantPrice !== undefined ? variantPrice : item.product.price;
+
+            if (item.vendor_price !== null && item.vendor_price !== undefined) {
+                finalPrice = item.vendor_price;
+            }
 
             return {
                 order_id: order.id,
                 product_id: item.product_id,
                 quantity: item.quantity,
                 price_at_purchase: finalPrice,
-                selected_variant: item.selected_variant // Copy the snapshot
+                selected_variant: item.selected_variant, // Copy the snapshot
+                vendor_id: item.vendor_id,
+                vendor_price: item.vendor_price,
+                vendor_sku: item.vendor_sku
             };
         });
 
@@ -171,11 +178,13 @@ export const getAllOrders = async (req: Request, res: Response, next: NextFuncti
 export const updateOrderStatus = async (req: Request, res: Response, next: NextFunction) => {
     try {
         const { id } = req.params;
-        const { status, payment_status } = req.body;
+        const { status, payment_status, paid_amount, balance_due } = req.body;
 
         const updates: any = {};
         if (status) updates.status = status;
         if (payment_status) updates.payment_status = payment_status;
+        if (paid_amount !== undefined) updates.paid_amount = paid_amount;
+        if (balance_due !== undefined) updates.balance_due = balance_due;
 
         const { data, error } = await supabase
             .from('orders')

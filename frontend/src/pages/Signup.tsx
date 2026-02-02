@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { authService } from '../services/auth.service';
-import { Leaf, User, Mail, Lock, Phone, ArrowRight, Loader2, CheckCircle2 } from 'lucide-react';
+import { Leaf, User, Mail, Lock, Phone, ArrowRight, Loader2, CheckCircle2, Building2, FileText } from 'lucide-react';
 
 const Signup = () => {
     const navigate = useNavigate();
@@ -20,6 +20,16 @@ const Signup = () => {
         const confirmPassword = formData.get('confirm_password') as string;
         const fullName = formData.get('full_name') as string;
         const phone = formData.get('phone') as string;
+        const companyName = formData.get('company_name') as string;
+        const businessDetails = formData.get('business_details') as string;
+
+        // Indian Phone Regex: Starts with optional +91, then 6-9, then 9 digits
+        const phoneRegex = /^(\+91[\-\s]?)?[6789]\d{9}$/;
+        if (!phoneRegex.test(phone)) {
+            setError('Please enter a valid Indian phone number (e.g., +91 9876543210)');
+            setLoading(false);
+            return;
+        }
 
         if (password !== confirmPassword) {
             setError('Passwords do not match');
@@ -30,7 +40,9 @@ const Signup = () => {
         try {
             await authService.signUp(email, password, {
                 full_name: fullName,
-                phone: phone
+                phone: phone,
+                company_name: companyName,
+                business_details: businessDetails
             });
             setSuccess(true);
             // Optional: delay redirect if auto-login logic exists, otherwise show success msg
@@ -116,6 +128,42 @@ const Signup = () => {
                         </div>
 
                         <div>
+                            <label htmlFor="company_name" className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-2">
+                                Company Name <span className="text-gray-400 font-normal lowercase">(optional)</span>
+                            </label>
+                            <div className="relative">
+                                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                                    <Building2 className="h-5 w-5 text-gray-400" />
+                                </div>
+                                <input
+                                    id="company_name"
+                                    name="company_name"
+                                    type="text"
+                                    className="appearance-none block w-full pl-11 pr-3 py-3 border border-gray-200 rounded-xl leading-5 bg-gray-50 text-gray-900 placeholder-gray-400 focus:outline-none focus:bg-white focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all duration-200 sm:text-sm font-medium"
+                                    placeholder="Your Business Name"
+                                />
+                            </div>
+                        </div>
+
+                        <div>
+                            <label htmlFor="business_details" className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-2">
+                                Business Details <span className="text-gray-400 font-normal lowercase">(optional)</span>
+                            </label>
+                            <div className="relative">
+                                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                                    <FileText className="h-5 w-5 text-gray-400" />
+                                </div>
+                                <input
+                                    id="business_details"
+                                    name="business_details"
+                                    type="text"
+                                    className="appearance-none block w-full pl-11 pr-3 py-3 border border-gray-200 rounded-xl leading-5 bg-gray-50 text-gray-900 placeholder-gray-400 focus:outline-none focus:bg-white focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all duration-200 sm:text-sm font-medium"
+                                    placeholder="GST / Type of Business"
+                                />
+                            </div>
+                        </div>
+
+                        <div>
                             <label htmlFor="phone" className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-2">Phone Number</label>
                             <div className="relative">
                                 <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
@@ -128,7 +176,7 @@ const Signup = () => {
                                     autoComplete="tel"
                                     required
                                     className="appearance-none block w-full pl-11 pr-3 py-3 border border-gray-200 rounded-xl leading-5 bg-gray-50 text-gray-900 placeholder-gray-400 focus:outline-none focus:bg-white focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all duration-200 sm:text-sm font-medium"
-                                    placeholder="+1 (555) 000-0000"
+                                    placeholder="+91 98765 43210"
                                 />
                             </div>
                         </div>

@@ -73,8 +73,11 @@ const Footer: React.FC = () => {
                     </div>
                 </div>
 
-                <div className="border-t border-gray-800 mt-12 pt-8 text-center text-gray-500 text-sm">
-                    <p>&copy; {new Date().getFullYear()} Gascart. All rights reserved.</p>
+                <div className="mt-12 border-t border-gray-200 pt-8">
+                    <div className="flex flex-col md:flex-row justify-between items-center gap-4">
+                        <p className="text-sm text-gray-500">
+                            © {new Date().getFullYear()} Gascart. All rights reserved.</p>
+                    </div>
                 </div>
             </div>
         </footer>

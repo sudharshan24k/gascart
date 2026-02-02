@@ -27,7 +27,7 @@ console.log('[App] Initializing with config:', JSON.stringify({
 // Middleware
 app.use(cors());
 // Routes that need raw body (webhooks) must be before express.json()
-app.use('/api/v1/webhooks/stripe', webhookRoutes);
+app.use('/api/v1/webhooks/razorpay', webhookRoutes);
 
 app.use(express.json());
 

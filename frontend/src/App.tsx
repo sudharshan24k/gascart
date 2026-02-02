@@ -22,6 +22,8 @@ import ProductListing from './pages/ProductListing';
 import ProductDetail from './pages/ProductDetail';
 import OrderConfirmation from './pages/OrderConfirmation';
 import Login from './pages/Login';
+import ForgotPassword from './pages/ForgotPassword';
+import ResetPassword from './pages/ResetPassword';
 import { EnquiryProvider } from './context/EnquiryContext';
 import { AuthProvider } from './context/AuthContext';
 import Signup from './pages/Signup';
@@ -32,6 +34,8 @@ import OrderSuccess from './pages/OrderSuccess';
 import Profile from './pages/Profile';
 import PaymentSuccess from './pages/PaymentSuccess';
 import PaymentCancel from './pages/PaymentCancel';
+import AdminProducts from './pages/Admin/Products';
+import VendorManager from './pages/Admin/VendorManager';
 
 function App() {
     // Default Marketplace Routes
@@ -64,6 +68,8 @@ function App() {
                                 <Route path="cart" element={<Cart />} />
                                 <Route path="order-confirmation" element={<OrderConfirmation />} />
                                 <Route path="login" element={<Login />} />
+                                <Route path="forgot-password" element={<ForgotPassword />} />
+                                <Route path="reset-password" element={<ResetPassword />} />
                                 <Route path="signup" element={<Signup />} />
                                 <Route path="checkout" element={<Checkout />} />
                                 <Route path="order-success" element={<OrderSuccess />} />
@@ -72,6 +78,10 @@ function App() {
                                 <Route path="order-tracking/:id" element={<OrderTracking />} />
                                 <Route path="payment-success" element={<PaymentSuccess />} />
                                 <Route path="payment-cancel" element={<PaymentCancel />} />
+
+                                {/* Admin Routes */}
+                                <Route path="admin/products" element={<AdminProducts />} />
+                                <Route path="admin/vendors" element={<VendorManager />} />
                             </Route>
                         </Routes>
                     </Router>

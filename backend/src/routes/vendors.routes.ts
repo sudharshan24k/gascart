@@ -9,7 +9,8 @@ import {
     deleteVendor,
     getProductVendors,
     assignVendorToProduct,
-    removeVendorFromProduct
+    removeVendorFromProduct,
+    updateProductVendor
 } from '../controllers/vendors.controller';
 import { requireAuth, requireAdmin } from '../middlewares/auth.middleware';
 
@@ -34,6 +35,7 @@ router.put('/:id', updateVendor);
 router.delete('/:id', deleteVendor);
 
 router.post('/assign', assignVendorToProduct);
+router.put('/assign', updateProductVendor);
 router.delete('/assign', removeVendorFromProduct);
 
 export default router;
