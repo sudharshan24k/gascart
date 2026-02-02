@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, Search, Edit2, Trash2, X, CheckCircle, Package, Users, BoxIcon } from 'lucide-react';
+import { Plus, Search, Edit2, Trash2, X, Package, Users, BoxIcon } from 'lucide-react';
 import { fetchAdminProducts, addProduct, updateProduct, deleteProduct } from '../../services/admin.service.ts';
 import ManageProductVendorsModal from './ManageProductVendorsModal';
 import ManageInventoryModal from './ManageInventoryModal';
@@ -196,8 +196,8 @@ const AdminProducts = () => {
                                             return (
                                                 <div className="flex items-center gap-2">
                                                     <span className={`px-2 py-1 rounded-full text-xs font-bold ${isOut ? 'bg-red-100 text-red-700' :
-                                                            isLow ? 'bg-yellow-100 text-yellow-700' :
-                                                                'bg-green-100 text-green-700'
+                                                        isLow ? 'bg-yellow-100 text-yellow-700' :
+                                                            'bg-green-100 text-green-700'
                                                         }`}>
                                                         {stock} units
                                                     </span>

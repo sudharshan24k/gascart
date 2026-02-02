@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { CheckCircle, XCircle, Search, Mail, Phone, Building2, User } from 'lucide-react';
+import { CheckCircle, XCircle, Mail, Phone, User } from 'lucide-react';
 import { api } from '../../services/api';
 
 const VendorManager: React.FC = () => {
@@ -61,8 +61,8 @@ const VendorManager: React.FC = () => {
                 <button
                     onClick={() => setActiveTab('enquiries')}
                     className={`px-6 py-3 rounded-xl font-bold transition-all ${activeTab === 'enquiries'
-                            ? 'bg-primary text-white shadow-lg shadow-primary/20'
-                            : 'bg-white text-gray-600 hover:bg-gray-50'
+                        ? 'bg-primary text-white shadow-lg shadow-primary/20'
+                        : 'bg-white text-gray-600 hover:bg-gray-50'
                         }`}
                 >
                     Vendor Enquiries
@@ -70,8 +70,8 @@ const VendorManager: React.FC = () => {
                 <button
                     onClick={() => setActiveTab('vendors')}
                     className={`px-6 py-3 rounded-xl font-bold transition-all ${activeTab === 'vendors'
-                            ? 'bg-primary text-white shadow-lg shadow-primary/20'
-                            : 'bg-white text-gray-600 hover:bg-gray-50'
+                        ? 'bg-primary text-white shadow-lg shadow-primary/20'
+                        : 'bg-white text-gray-600 hover:bg-gray-50'
                         }`}
                 >
                     Active Vendors
@@ -121,8 +121,8 @@ const VendorManager: React.FC = () => {
                                             </td>
                                             <td className="p-6">
                                                 <span className={`px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wide ${enquiry.status === 'approved' ? 'bg-green-100 text-green-700' :
-                                                        enquiry.status === 'rejected' ? 'bg-red-100 text-red-700' :
-                                                            'bg-amber-100 text-amber-700'
+                                                    enquiry.status === 'rejected' ? 'bg-red-100 text-red-700' :
+                                                        'bg-amber-100 text-amber-700'
                                                     }`}>
                                                     {enquiry.status}
                                                 </span>
@@ -170,8 +170,8 @@ const VendorManager: React.FC = () => {
                                                 <button
                                                     onClick={() => handleToggleVendorStatus(vendor)}
                                                     className={`px-4 py-2 rounded-lg text-xs font-bold transition-colors ${vendor.visibility_status === 'active'
-                                                            ? 'bg-red-50 text-red-600 hover:bg-red-100'
-                                                            : 'bg-green-50 text-green-600 hover:bg-green-100'
+                                                        ? 'bg-red-50 text-red-600 hover:bg-red-100'
+                                                        : 'bg-green-50 text-green-600 hover:bg-green-100'
                                                         }`}
                                                 >
                                                     {vendor.visibility_status === 'active' ? 'Deactivate' : 'Activate'}

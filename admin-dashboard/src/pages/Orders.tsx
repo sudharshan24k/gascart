@@ -47,7 +47,7 @@ const AdminOrders = () => {
 
     const handleStatusUpdate = async (id: string, newStatus: string) => {
         try {
-            const updated = await updateOrderStatus(id, { status: newStatus });
+            await updateOrderStatus(id, { status: newStatus });
             if (selectedOrder && selectedOrder.id === id) {
                 setSelectedOrder({ ...selectedOrder, status: newStatus });
             }

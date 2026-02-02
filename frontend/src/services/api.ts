@@ -475,6 +475,15 @@ export const api = {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
             return res.json();
+        },
+        getSessionStatus: async (sessionId: string) => {
+            const token = (await supabase.auth.getSession()).data.session?.access_token;
+            if (!token) throw new Error('Not authenticated');
+            const apiUrl = getBaseUrl();
+            const res = await fetch(`${apiUrl}/payments/session/${sessionId}`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            return res.json();
         }
     }
 };
