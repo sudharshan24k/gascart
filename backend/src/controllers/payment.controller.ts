@@ -73,8 +73,8 @@ export const createPaymentOrder = async (req: AuthRequest, res: Response) => {
             }
         });
 
-        if (!razorpayResult.success) {
-            throw new Error(razorpayResult.error);
+        if (!razorpayResult.success || !razorpayResult.order) {
+            throw new Error(razorpayResult.error || 'Failed to create Razorpay order');
         }
 
         // 4. Update order with Razorpay order ID
@@ -126,7 +126,7 @@ export const verifyPayment = async (req: AuthRequest, res: Response) => {
         // 2. Fetch payment details from Razorpay
         const paymentResult = await getPaymentDetails(razorpay_payment_id);
 
-        if (!paymentResult.success) {
+        if (!paymentResult.success || !paymentResult.payment) {
             return res.status(400).json({ error: 'Payment verification failed' });
         }
 
@@ -139,7 +139,7 @@ export const verifyPayment = async (req: AuthRequest, res: Response) => {
                 razorpay_payment_id: razorpay_payment_id,
                 razorpay_signature: razorpay_signature,
                 payment_status: payment.status === 'captured' ? 'paid' : 'pending',
-                paid_amount: payment.amount / 100, // Convert from paise to rupees
+                paid_amount: (Number(payment.amount) || 0) / 100, // Convert from paise to rupees
                 status: payment.status === 'captured' ? 'confirmed' : 'pending'
             })
             .eq('id', order_id)
@@ -201,14 +201,14 @@ export const getPaymentStatus = async (req: AuthRequest, res: Response) => {
 
         const paymentResult = await getPaymentDetails(paymentId);
 
-        if (!paymentResult.success) {
+        if (!paymentResult.success || !paymentResult.payment) {
             return res.status(404).json({ error: 'Payment not found' });
         }
 
         res.json({
             success: true,
             status: paymentResult.payment.status,
-            amount: paymentResult.payment.amount / 100,
+            amount: (Number(paymentResult.payment.amount) || 0) / 100,
             currency: paymentResult.payment.currency,
             method: paymentResult.payment.method
         });
