@@ -1,4 +1,5 @@
 import { Router } from 'express';
+import multer from 'multer';
 import {
     submitVendorEnquiry,
     getVendorEnquiries,
@@ -10,7 +11,8 @@ import {
     getProductVendors,
     assignVendorToProduct,
     removeVendorFromProduct,
-    updateProductVendor
+    updateProductVendor,
+    uploadVendorDocument
 } from '../controllers/vendors.controller';
 import { requireAuth, requireAdmin } from '../middlewares/auth.middleware';
 
@@ -21,6 +23,11 @@ router.post('/enquiry', submitVendorEnquiry);
 
 // Public route - get vendors for a product
 router.get('/product/:productId', getProductVendors);
+
+const upload = multer({ storage: multer.memoryStorage() });
+
+// Public route for document upload
+router.post('/upload', upload.single('document'), uploadVendorDocument);
 
 // Admin routes
 router.use(requireAuth);

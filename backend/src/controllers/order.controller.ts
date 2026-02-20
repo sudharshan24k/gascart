@@ -131,15 +131,54 @@ export const createOrder = async (req: Request, res: Response, next: NextFunctio
 export const getMyOrders = async (req: Request, res: Response, next: NextFunction) => {
     try {
         const userId = getUserId(req);
-        const { data, error } = await supabase
+        const { status, search, days } = req.query;
+
+        let query = supabase
             .from('orders')
             .select('*, order_items(*, product:products(name, image))')
-            .eq('user_id', userId)
-            .order('created_at', { ascending: false });
+            .eq('user_id', userId);
+
+        // Filter by Status
+        if (status && status !== 'all') {
+            query = query.eq('status', status);
+        }
+
+        // Filter by Date Range
+        if (days && days !== 'all') {
+            const date = new Date();
+            date.setDate(date.getDate() - parseInt(days as string));
+            query = query.gte('created_at', date.toISOString());
+        }
+
+        // Search (Client-side filtering for joined tables is hard in Supabase without specific RPC or view, 
+        // but for order ID it's easy. For product name it requires inner join filtering which is verbose.
+        // Let's implement basic filtering here and maybe refined search later if needed.
+        // Supabase .textSearch or .ilike is good for single table columns.)
+        if (search) {
+            query = query.ilike('id', `%${search}%`); // Search by Order ID
+        }
+
+        const { data, error } = await query.order('created_at', { ascending: false });
 
         if (error) throw error;
 
-        res.json({ status: 'success', results: data.length, data });
+        // If search is provided, we might want to also filter by product name in memory 
+        // because Supabase complex join filtering needs exact syntax or RPC.
+        // Simple in-memory filter for product names if search is present:
+        let filteredData = data;
+        if (search) {
+            const searchLower = (search as string).toLowerCase();
+            filteredData = data.filter((order: any) => {
+                // Match ID
+                if (order.id.toLowerCase().includes(searchLower)) return true;
+                // Match Product Names
+                return order.order_items.some((item: any) =>
+                    item.product?.name?.toLowerCase().includes(searchLower)
+                );
+            });
+        }
+
+        res.json({ status: 'success', results: filteredData.length, data: filteredData });
     } catch (err) {
         next(err);
     }
@@ -147,10 +186,17 @@ export const getMyOrders = async (req: Request, res: Response, next: NextFunctio
 
 export const getAllOrders = async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const { data: orders, error } = await supabase
+        const { status } = req.query;
+        let query = supabase
             .from('orders')
             .select('*, order_items(*, product:products(name, images))')
             .order('created_at', { ascending: false });
+
+        if (status && status !== 'All') {
+            query = query.eq('status', status);
+        }
+
+        const { data: orders, error } = await query;
 
         if (error) throw error;
 
@@ -377,6 +423,18 @@ export const updateTracking = async (req: Request, res: Response, next: NextFunc
             .single();
 
         if (error) throw error;
+
+        // Send Email Async
+        const userId = data.user_id;
+        supabase.from('profiles').select('email').eq('id', userId).single()
+            .then(({ data: profile }) => {
+                if (profile?.email) {
+                    import('../services/email.service').then(({ sendShippingUpdate }) => {
+                        sendShippingUpdate(profile.email, data.id, carrier, tracking_number)
+                            .catch(err => console.error('Failed to send shipping email:', err));
+                    });
+                }
+            });
 
         res.json({ status: 'success', data });
     } catch (err) {

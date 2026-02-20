@@ -40,6 +40,10 @@ app.get('/health', (req, res) => {
     res.json({ status: 'ok', version: '1.0.0' });
 });
 
+app.get('/api/v1/health', (req, res) => {
+    res.status(200).json({ status: 'success', message: 'Backend is running' });
+});
+
 
 app.use('/api/v1/products', productRoutes);
 app.use('/api/v1/cart', cartRoutes); // Auth handled in controller for guest support

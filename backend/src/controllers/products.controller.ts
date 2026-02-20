@@ -1,9 +1,26 @@
 import { Request, Response, NextFunction } from 'express';
 import { supabase } from '../config/supabase';
+import redis from '../services/redis.service';
 
 export const getProducts = async (req: Request, res: Response, next: NextFunction) => {
     try {
         const { category, minPrice, maxPrice, sort, search, low_stock, vendor } = req.query;
+
+        // Generate Cache Key based on query params
+        const cacheKey = `products:${JSON.stringify(req.query)}`;
+
+        // Check Cache
+        let cachedData = null;
+        try {
+            cachedData = await redis.get(cacheKey);
+            if (cachedData) {
+                return res.json(JSON.parse(cachedData));
+            }
+        } catch (cacheErr: any) {
+            if (!cacheErr.message.includes("enableOfflineQueue options is false")) {
+                console.warn('[Products] Cache GET failed, skipping:', cacheErr.message);
+            }
+        }
 
         let query = supabase
             .from('products')
@@ -48,6 +65,12 @@ export const getProducts = async (req: Request, res: Response, next: NextFunctio
 
         if (error) throw error;
 
+        let responseData = {
+            status: 'success',
+            results: count,
+            data,
+        };
+
         // Enhance products with vendor information
         if (data && data.length > 0) {
             const enhancedData = await Promise.all(data.map(async (product: any) => {
@@ -82,18 +105,19 @@ export const getProducts = async (req: Request, res: Response, next: NextFunctio
                 };
             }));
 
-            return res.json({
-                status: 'success',
-                results: count,
-                data: enhancedData,
-            });
+            responseData.data = enhancedData;
         }
 
-        res.json({
-            status: 'success',
-            results: count,
-            data,
-        });
+        // Set Cache (TTL: 1 hour)
+        try {
+            await redis.setex(cacheKey, 3600, JSON.stringify(responseData));
+        } catch (cacheErr: any) {
+            if (!cacheErr.message.includes("enableOfflineQueue options is false")) {
+                console.warn('[Products] Cache SET failed:', cacheErr.message);
+            }
+        }
+
+        res.json(responseData);
     } catch (err) {
         next(err);
     }

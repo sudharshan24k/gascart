@@ -37,54 +37,58 @@ import PaymentCancel from './pages/PaymentCancel';
 import AdminProducts from './pages/Admin/Products';
 import VendorManager from './pages/Admin/VendorManager';
 
+import { ToastProvider } from './context/ToastContext';
+
 function App() {
     // Default Marketplace Routes
     return (
         <AuthProvider>
             <CartProvider>
                 <EnquiryProvider>
-                    <Router>
-                        <Routes>
-                            <Route path="/" element={<Layout />}>
-                                <Route index element={<Home />} />
-                                <Route path="about" element={<About />} />
-                                <Route path="services" element={<Services />} />
-                                <Route path="technology" element={<Technology />} />
-                                <Route path="learn" element={<Learn />} />
-                                <Route path="learn/:slug" element={<ArticleDetail />} />
-                                <Route path="experts" element={<Consultants />} />
-                                <Route path="experts/:id" element={<ExpertProfile />} />
-                                <Route path="consultant-registration" element={<ConsultantRegistration />} />
-                                <Route path="consultant-dashboard" element={<ConsultantDashboard />} />
-                                <Route path="vendor-enquiry" element={<VendorEnquiry />} />
-                                <Route path="contact" element={<Contact />} />
+                    <ToastProvider>
+                        <Router>
+                            <Routes>
+                                <Route path="/" element={<Layout />}>
+                                    <Route index element={<Home />} />
+                                    <Route path="about" element={<About />} />
+                                    <Route path="services" element={<Services />} />
+                                    <Route path="technology" element={<Technology />} />
+                                    <Route path="learn" element={<Learn />} />
+                                    <Route path="learn/:slug" element={<ArticleDetail />} />
+                                    <Route path="experts" element={<Consultants />} />
+                                    <Route path="experts/:id" element={<ExpertProfile />} />
+                                    <Route path="consultant-registration" element={<ConsultantRegistration />} />
+                                    <Route path="consultant-dashboard" element={<ConsultantDashboard />} />
+                                    <Route path="vendor-enquiry" element={<VendorEnquiry />} />
+                                    <Route path="contact" element={<Contact />} />
 
-                                {/* Industrial Marketplace Routes */}
-                                <Route path="shop" element={<ProductListing />} />
-                                <Route path="compare" element={<Compare />} />
-                                <Route path="product/:id" element={<ProductDetail />} />
-                                <Route path="enquiry-list" element={<EnquiryList />} />
-                                <Route path="submit-rfq" element={<SubmitRFQ />} />
-                                <Route path="cart" element={<Cart />} />
-                                <Route path="order-confirmation" element={<OrderConfirmation />} />
-                                <Route path="login" element={<Login />} />
-                                <Route path="forgot-password" element={<ForgotPassword />} />
-                                <Route path="reset-password" element={<ResetPassword />} />
-                                <Route path="signup" element={<Signup />} />
-                                <Route path="checkout" element={<Checkout />} />
-                                <Route path="order-success" element={<OrderSuccess />} />
-                                <Route path="profile" element={<Profile />} />
-                                <Route path="my-orders" element={<MyOrders />} />
-                                <Route path="order-tracking/:id" element={<OrderTracking />} />
-                                <Route path="payment-success" element={<PaymentSuccess />} />
-                                <Route path="payment-cancel" element={<PaymentCancel />} />
+                                    {/* Industrial Marketplace Routes */}
+                                    <Route path="shop" element={<ProductListing />} />
+                                    <Route path="compare" element={<Compare />} />
+                                    <Route path="product/:id" element={<ProductDetail />} />
+                                    <Route path="enquiry-list" element={<EnquiryList />} />
+                                    <Route path="submit-rfq" element={<SubmitRFQ />} />
+                                    <Route path="cart" element={<Cart />} />
+                                    <Route path="order-confirmation" element={<OrderConfirmation />} />
+                                    <Route path="login" element={<Login />} />
+                                    <Route path="forgot-password" element={<ForgotPassword />} />
+                                    <Route path="reset-password" element={<ResetPassword />} />
+                                    <Route path="signup" element={<Signup />} />
+                                    <Route path="checkout" element={<Checkout />} />
+                                    <Route path="order-success" element={<OrderSuccess />} />
+                                    <Route path="profile" element={<Profile />} />
+                                    <Route path="my-orders" element={<MyOrders />} />
+                                    <Route path="order-tracking/:id" element={<OrderTracking />} />
+                                    <Route path="payment-success" element={<PaymentSuccess />} />
+                                    <Route path="payment-cancel" element={<PaymentCancel />} />
 
-                                {/* Admin Routes */}
-                                <Route path="admin/products" element={<AdminProducts />} />
-                                <Route path="admin/vendors" element={<VendorManager />} />
-                            </Route>
-                        </Routes>
-                    </Router>
+                                    {/* Admin Routes */}
+                                    <Route path="admin/products" element={<AdminProducts />} />
+                                    <Route path="admin/vendors" element={<VendorManager />} />
+                                </Route>
+                            </Routes>
+                        </Router>
+                    </ToastProvider>
                 </EnquiryProvider>
             </CartProvider>
         </AuthProvider>

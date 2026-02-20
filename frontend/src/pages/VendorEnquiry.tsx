@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
-import { Building2, User, Mail, Phone, Briefcase, Award, MessageSquare, CheckCircle, ArrowLeft, Send, ShieldCheck, Globe, Zap, Download, FileText, Gavel, Scale, Loader2, AlertCircle } from 'lucide-react';
+import { Building2, User, Mail, Phone, Briefcase, Award, MessageSquare, CheckCircle, ArrowLeft, Send, ShieldCheck, Globe, Zap, Download, FileText, Gavel, Scale, Loader2, AlertCircle, UploadCloud } from 'lucide-react';
 import { api } from '../services/api';
 
 interface Document {
@@ -37,6 +37,7 @@ const VendorEnquiry: React.FC = () => {
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [isSubmitted, setIsSubmitted] = useState(false);
     const [error, setError] = useState('');
+    const [selectedFile, setSelectedFile] = useState<File | null>(null);
 
     const [documents, setDocuments] = useState<Document[]>([]);
     const [docsLoading, setDocsLoading] = useState(true);
@@ -116,7 +117,14 @@ const VendorEnquiry: React.FC = () => {
         setError('');
 
         try {
-            await api.vendors.submitEnquiry(formData);
+            let documentUrl;
+            if (selectedFile) {
+                const uploadRes = await api.vendors.uploadDocument(selectedFile);
+                documentUrl = uploadRes.data.url;
+            }
+
+            const payload = { ...formData, document_url: documentUrl };
+            await api.vendors.submitEnquiry(payload);
             setIsSubmitted(true);
         } catch (err: any) {
             setError(err.message || 'Failed to submit enquiry. Please try again.');
@@ -384,6 +392,33 @@ const VendorEnquiry: React.FC = () => {
                                         onChange={(e) => setFormData({ ...formData, message: e.target.value })}
                                         placeholder="Please provide a brief overview of your business..."
                                     />
+                                </div>
+                            </div>
+
+                            <div>
+                                <label className="block text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] mb-3">Supporting Documents (Optional)</label>
+                                <div className="relative">
+                                    <div className="flex items-center justify-center w-full">
+                                        <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-gray-300 border-dashed rounded-[30px] cursor-pointer bg-gray-50 hover:bg-gray-100 transition-colors">
+                                            <div className="flex flex-col items-center justify-center pt-5 pb-6">
+                                                <UploadCloud className="w-8 h-8 mb-3 text-gray-400" />
+                                                <p className="mb-2 text-sm text-gray-500 font-bold">
+                                                    {selectedFile ? <span className="text-primary">{selectedFile.name}</span> : <span>Click to upload company profile, deck, or catalog</span>}
+                                                </p>
+                                                <p className="text-xs text-gray-500">PDF, PPTX, or DOCX (MAX. 10MB)</p>
+                                            </div>
+                                            <input
+                                                type="file"
+                                                className="hidden"
+                                                accept=".pdf,.doc,.docx,.ppt,.pptx"
+                                                onChange={(e) => {
+                                                    if (e.target.files && e.target.files.length > 0) {
+                                                        setSelectedFile(e.target.files[0]);
+                                                    }
+                                                }}
+                                            />
+                                        </label>
+                                    </div>
                                 </div>
                             </div>
 

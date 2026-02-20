@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Package, Users, ClipboardCheck, Clock, Plus, LayoutGrid } from 'lucide-react';
+import { Package, ClipboardCheck, Clock, Plus, LayoutGrid } from 'lucide-react';
 import { getDashboardStats } from '../services/admin.service';
 import { Link } from 'react-router-dom';
 
@@ -60,27 +60,27 @@ const AdminDashboard = () => {
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
                 <StatCard
-                    title="Total Products"
-                    value={stats?.totalProducts || 0}
+                    title="Total Revenue"
+                    value={`₹${(stats?.totalRevenue || 0).toLocaleString()}`}
+                    icon={LayoutGrid}
+                    color="bg-emerald-50 text-emerald-600"
+                />
+                <StatCard
+                    title="Total Orders"
+                    value={stats?.totalOrders || 0}
                     icon={Package}
                     color="bg-blue-50 text-blue-600"
                 />
                 <StatCard
-                    title="Active Products"
-                    value={stats?.activeProducts || 0}
-                    icon={LayoutGrid}
-                    color="bg-green-50 text-green-600"
-                />
-                <StatCard
-                    title="Pending Consultants"
-                    value={stats?.pendingConsultants || 0}
+                    title="Pending Orders"
+                    value={stats?.pendingOrders || 0}
                     icon={Clock}
                     color="bg-amber-50 text-amber-600"
                 />
                 <StatCard
-                    title="Approved Consultants"
-                    value={stats?.approvedConsultants || 0}
-                    icon={Users}
+                    title="Total Products"
+                    value={stats?.totalProducts || 0}
+                    icon={Package}
                     color="bg-purple-50 text-purple-600"
                 />
             </div>

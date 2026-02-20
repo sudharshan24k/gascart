@@ -14,7 +14,11 @@ import {
     Activity,
     Users,
     Globe,
-    Lock
+    Lock,
+    Phone,
+    Briefcase,
+    Award,
+    DownloadCloud
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
@@ -97,8 +101,9 @@ const VendorManagement = () => {
             }
             setIsDossierOpen(false);
             loadData();
-        } catch (err) {
+        } catch (err: any) {
             console.error('Failed to save vendor', err);
+            alert(`Failed to save partner: ${err.message || 'Unknown error'}`);
         }
     };
 
@@ -354,7 +359,7 @@ const VendorManagement = () => {
                             </div>
 
                             {/* Panel Body */}
-                            <form onSubmit={handleSubmit} className="flex-grow overflow-y-auto p-12 custom-scrollbar space-y-12">
+                            <form id="vendor-form" onSubmit={handleSubmit} className="flex-grow overflow-y-auto p-12 custom-scrollbar space-y-12">
                                 <section>
                                     <h4 className="text-[11px] font-black uppercase tracking-[0.2em] text-primary mb-8 flex items-center gap-2">
                                         <Building2 className="w-4 h-4" /> Structural Information
@@ -434,7 +439,8 @@ const VendorManagement = () => {
                             {/* Panel Footer */}
                             <div className="p-12 border-t border-gray-50 bg-white grid grid-cols-1">
                                 <button
-                                    onClick={handleSubmit}
+                                    type="submit"
+                                    form="vendor-form"
                                     className="w-full bg-gray-900 text-white font-black py-6 rounded-[28px] shadow-2xl shadow-gray-900/20 hover:bg-black transition-all active:scale-95 text-xs uppercase tracking-[0.3em] flex items-center justify-center gap-3"
                                 >
                                     <ShieldCheck className="w-5 h-5" />
@@ -486,13 +492,33 @@ const VendorManagement = () => {
                                                 <div>
                                                     <h4 className="text-3xl font-black text-gray-900 tracking-tighter">{enquiry.company_name}</h4>
                                                     <div className="flex flex-wrap gap-4 mt-2">
-                                                        <div className="flex items-center gap-2 text-[10px] font-black text-gray-400 uppercase tracking-widest bg-white px-3 py-1.5 rounded-xl border border-gray-100">
+                                                        <div className="flex items-center gap-2 text-[10px] font-black text-gray-400 uppercase tracking-widest bg-white px-3 py-1.5 rounded-xl border border-gray-100 shadow-sm">
                                                             <Users className="w-3.5 h-3.5 text-primary" /> {enquiry.contact_person}
                                                         </div>
-                                                        <div className="flex items-center gap-2 text-[10px] font-black text-gray-400 uppercase tracking-widest bg-white px-3 py-1.5 rounded-xl border border-gray-100">
+                                                        <div className="flex items-center gap-2 text-[10px] font-black text-gray-400 uppercase tracking-widest bg-white px-3 py-1.5 rounded-xl border border-gray-100 shadow-sm">
                                                             <Mail className="w-3.5 h-3.5 text-primary" /> {enquiry.email}
                                                         </div>
+                                                        {enquiry.phone && (
+                                                            <div className="flex items-center gap-2 text-[10px] font-black text-gray-400 uppercase tracking-widest bg-white px-3 py-1.5 rounded-xl border border-gray-100 shadow-sm">
+                                                                <Phone className="w-3.5 h-3.5 text-primary" /> {enquiry.phone}
+                                                            </div>
+                                                        )}
+                                                        {enquiry.business_type && (
+                                                            <div className="flex items-center gap-2 text-[10px] font-black text-gray-400 uppercase tracking-widest bg-primary/5 px-3 py-1.5 rounded-xl border border-primary/10 text-primary shadow-sm">
+                                                                <Briefcase className="w-3.5 h-3.5" /> {enquiry.business_type}
+                                                            </div>
+                                                        )}
                                                     </div>
+
+                                                    {enquiry.certifications && enquiry.certifications.length > 0 && (
+                                                        <div className="flex flex-wrap gap-2 mt-4">
+                                                            {enquiry.certifications.map((cert: string, i: number) => (
+                                                                <span key={i} className="flex items-center gap-1.5 text-[9px] font-black text-emerald-600 uppercase tracking-widest bg-emerald-50 px-2.5 py-1 rounded-lg border border-emerald-100">
+                                                                    <Award className="w-3 h-3" /> {cert}
+                                                                </span>
+                                                            ))}
+                                                        </div>
+                                                    )}
                                                 </div>
                                             </div>
                                             <div className="text-right shrink-0">
@@ -502,14 +528,24 @@ const VendorManagement = () => {
                                         </div>
 
                                         {enquiry.message && (
-                                            <div className="relative mb-10">
-                                                <p className="text-gray-600 font-medium leading-relaxed italic border-l-4 border-primary/20 pl-8 py-2 text-lg">
+                                            <div className="relative mb-8">
+                                                <p className="text-gray-600 font-medium w-full p-6 bg-white rounded-2xl border border-gray-100 leading-relaxed italic shadow-inner">
                                                     "{enquiry.message}"
                                                 </p>
                                             </div>
                                         )}
 
                                         <div className="flex flex-col sm:flex-row gap-4">
+                                            {enquiry.document_url && (
+                                                <a
+                                                    href={enquiry.document_url}
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                    className="flex-1 bg-gray-900 text-white font-black py-5 rounded-[24px] hover:bg-black transition-all shadow-xl shadow-gray-900/20 flex items-center justify-center gap-3 text-xs uppercase tracking-widest"
+                                                >
+                                                    <DownloadCloud className="w-5 h-5" /> View Attached Document
+                                                </a>
+                                            )}
                                             <button
                                                 onClick={() => handleEnquiryAction(enquiry.id, 'approved')}
                                                 className="flex-1 bg-emerald-500 text-white font-black py-5 rounded-[24px] hover:bg-emerald-600 transition-all shadow-xl shadow-emerald-500/10 flex items-center justify-center gap-3 text-xs uppercase tracking-widest"

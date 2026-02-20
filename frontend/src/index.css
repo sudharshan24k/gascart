@@ -14,7 +14,8 @@
   }
 
   body {
-    @apply antialiased text-gray-900 bg-gray-50 font-sans;
+    @apply antialiased text-neutral-800 bg-neutral-light font-sans;
+    /* Updated text/bg colors */
     min-height: 100vh;
     overflow-x: hidden;
   }
@@ -26,8 +27,10 @@
   h4,
   h5,
   h6 {
-    @apply font-display font-bold;
+    @apply font-display font-bold text-neutral-900;
     text-wrap: balance;
+    letter-spacing: -0.02em;
+    /* Tighter tracking for headings */
   }
 
   h1 {
@@ -49,8 +52,9 @@
   /* Focus Styles (Accessibility) */
   *:focus-visible {
     outline: 2px solid theme('colors.primary.DEFAULT');
-    outline-offset: 2px;
-    border-radius: theme('borderRadius.DEFAULT');
+    outline-offset: 4px;
+    /* increased offset */
+    border-radius: theme('borderRadius.sm');
   }
 
   /* Remove default focus for mouse users */
@@ -61,26 +65,25 @@
   /* Custom Scrollbar */
   * {
     scrollbar-width: thin;
-    scrollbar-color: theme('colors.gray.300') theme('colors.gray.100');
+    scrollbar-color: theme('colors.neutral.dark') transparent;
   }
 
   *::-webkit-scrollbar {
-    width: 8px;
-    height: 8px;
+    width: 6px;
+    height: 6px;
   }
 
   *::-webkit-scrollbar-track {
-    background: theme('colors.gray.100');
-    border-radius: 9999px;
+    background: transparent;
   }
 
   *::-webkit-scrollbar-thumb {
-    background: theme('colors.gray.300');
+    background: theme('colors.neutral.dark');
     border-radius: 9999px;
   }
 
   *::-webkit-scrollbar-thumb:hover {
-    background: theme('colors.gray.400');
+    background: theme('colors.neutral.700');
   }
 
   /* Prevent Layout Shift for Images */
@@ -99,6 +102,7 @@
   button:disabled {
     cursor: not-allowed;
     opacity: 0.6;
+    pointer-events: none;
   }
 
   /* Link Defaults */
@@ -117,22 +121,24 @@
   /* Prevent text overflow */
   p {
     text-wrap: pretty;
+    line-height: 1.6;
+    /* Better readability */
   }
 
   /* Custom Text Selection */
   ::selection {
-    background-color: theme('colors.primary.200');
+    background-color: theme('colors.primary.100');
     color: theme('colors.primary.900');
   }
 
   ::-moz-selection {
-    background-color: theme('colors.primary.200');
+    background-color: theme('colors.primary.100');
     color: theme('colors.primary.900');
   }
 
   /* Improved Link Hover */
   a:hover {
-    transition: all 0.2s ease;
+    transition: color 0.2s ease;
   }
 
   /* Enhanced Form Focus States */
@@ -158,69 +164,85 @@
 
   /* Container Utilities */
   .container-padding {
-    @apply px-4 sm:px-6 lg:px-8;
+    @apply px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto;
   }
 
   /* Card Component Base */
   .card {
-    @apply bg-white rounded-2xl shadow-sm border border-gray-100;
+    @apply bg-white rounded-2xl shadow-card border border-neutral-100/50 backdrop-blur-sm;
   }
 
   .card-hover {
-    @apply transition-all duration-300 hover:shadow-lg hover:border-gray-200;
+    @apply transition-all duration-300 hover:shadow-card-hover hover:-translate-y-1 hover:border-neutral-200;
   }
 
   /* Button Base Styles */
   .btn {
-    @apply inline-flex items-center justify-center px-6 py-3 rounded-xl font-bold transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2;
-    min-height: 44px;
-    /* Touch target */
+    @apply inline-flex items-center justify-center px-6 py-3 rounded-full font-semibold transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-offset-2 active:scale-95;
+    min-height: 48px;
+    /* Slightly larger buttons */
   }
 
   .btn-primary {
-    @apply bg-primary text-white hover:bg-primary-dark focus:ring-primary;
+    @apply bg-primary text-white hover:bg-primary-600 hover:shadow-lg focus:ring-primary shadow-md shadow-primary/20;
   }
 
   .btn-secondary {
-    @apply bg-secondary text-white hover:bg-secondary-dark focus:ring-secondary;
+    @apply bg-secondary text-white hover:bg-secondary-600 hover:shadow-lg focus:ring-secondary shadow-md shadow-secondary/20;
   }
 
   .btn-outline {
-    @apply border-2 border-gray-300 text-gray-700 hover:bg-gray-50 focus:ring-gray-300;
+    @apply border-2 border-neutral-300 text-neutral-800 hover:border-primary hover:text-primary hover:bg-primary-50 focus:ring-primary-200 bg-transparent;
+  }
+
+  .btn-ghost {
+    @apply text-neutral-600 hover:text-primary hover:bg-primary-50 bg-transparent shadow-none;
   }
 
   .btn-sm {
-    @apply px-4 py-2 text-sm;
+    @apply px-4 py-2 text-sm rounded-lg;
     min-height: 36px;
   }
 
   .btn-lg {
-    @apply px-8 py-4 text-lg;
-    min-height: 52px;
+    @apply px-8 py-4 text-lg rounded-full;
+    min-height: 56px;
   }
 
   /* Input Base Styles */
   .input {
-    @apply w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all;
-    min-height: 44px;
+    @apply w-full px-5 py-3 bg-white border border-neutral-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-300 focus:border-primary transition-all placeholder:text-neutral-400 text-neutral-900;
+    min-height: 48px;
   }
 
   .input-error {
-    @apply border-red-500 focus:ring-red-500;
+    @apply border-error-500 focus:ring-error-200 focus:border-error-500;
   }
 
   /* Badge Component */
   .badge {
-    @apply inline-flex items-center px-3 py-1 rounded-full text-xs font-bold;
+    @apply inline-flex items-center px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wide;
+  }
+
+  .badge-primary {
+    @apply bg-primary-100 text-primary-800;
+  }
+
+  .badge-secondary {
+    @apply bg-secondary-100 text-secondary-800;
+  }
+
+  .badge-neutral {
+    @apply bg-neutral-100 text-neutral-600;
   }
 
   /* Section Spacing */
   .section {
-    @apply py-16 md:py-24;
+    @apply py-20 md:py-28;
   }
 
   .section-sm {
-    @apply py-8 md:py-12;
+    @apply py-12 md:py-16;
   }
 
   .section-lg {
@@ -251,11 +273,19 @@
 
   /* Glass Effect */
   .glass {
-    @apply bg-white/80 backdrop-blur-md;
+    @apply bg-white/70 backdrop-blur-lg border border-white/20 shadow-lg;
+  }
+
+  .glass-dark {
+    @apply bg-neutral-900/80 backdrop-blur-lg border border-white/10 shadow-lg;
   }
 
   /* Gradient Text */
   .gradient-text {
-    @apply bg-clip-text text-transparent bg-gradient-to-r from-primary to-secondary;
+    @apply bg-clip-text text-transparent bg-gradient-to-r from-primary-600 to-primary-400;
+  }
+
+  .gradient-primary {
+    @apply bg-gradient-to-br from-primary-900 via-primary-800 to-primary-700;
   }
 }

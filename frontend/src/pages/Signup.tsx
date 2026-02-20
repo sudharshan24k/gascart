@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { authService } from '../services/auth.service';
 import { Leaf, User, Mail, Lock, Phone, ArrowRight, Loader2, CheckCircle2, Building2, FileText } from 'lucide-react';
+import { motion } from 'framer-motion';
 
 const Signup = () => {
     const navigate = useNavigate();
@@ -55,15 +56,15 @@ const Signup = () => {
 
     if (success) {
         return (
-            <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+            <div className="min-h-screen bg-neutral-50 flex items-center justify-center p-4">
                 <div className="max-w-md w-full bg-white rounded-3xl shadow-xl p-8 text-center animate-in fade-in zoom-in duration-300">
-                    <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
-                        <CheckCircle2 className="w-10 h-10 text-green-600" />
+                    <div className="w-20 h-20 bg-success-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                        <CheckCircle2 className="w-10 h-10 text-success-600" />
                     </div>
-                    <h2 className="text-3xl font-bold text-gray-900 mb-2 font-display">Account Created!</h2>
-                    <p className="text-gray-500 mb-8">Welcome to Gascart. Redirecting you to login...</p>
-                    <div className="w-full bg-gray-100 rounded-full h-1 overflow-hidden">
-                        <div className="h-full bg-green-500 animate-[progress_2s_ease-in-out]"></div>
+                    <h2 className="text-3xl font-bold text-neutral-900 mb-2 font-display">Account Created!</h2>
+                    <p className="text-neutral-500 mb-8">Welcome to Gascart. Redirecting you to login...</p>
+                    <div className="w-full bg-neutral-100 rounded-full h-1 overflow-hidden">
+                        <div className="h-full bg-success-500 animate-[progress_2s_ease-in-out]"></div>
                     </div>
                 </div>
             </div>
@@ -71,48 +72,117 @@ const Signup = () => {
     }
 
     return (
-        <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
-            <div className="sm:mx-auto sm:w-full sm:max-w-md mb-8 text-center">
-                <Link to="/" className="inline-flex items-center gap-2 group">
-                    <div className="bg-primary/10 p-2 rounded-xl group-hover:scale-110 transition-transform">
-                        <Leaf className="h-8 w-8 text-primary" />
+        <div className="min-h-screen flex text-neutral-800 font-sans">
+            {/* Left Side - Image/Branding */}
+            <div className="hidden lg:flex lg:w-1/2 relative bg-neutral-900 overflow-hidden order-1 lg:order-1">
+                <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1532601224476-15c79f2f7a51?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80')] bg-cover bg-center opacity-40"></div>
+                <div className="absolute inset-0 bg-gradient-to-t from-neutral-900 via-transparent to-transparent"></div>
+
+                <div className="relative z-10 w-full flex flex-col justify-between p-16 text-white h-full">
+                    <div>
+                        <Link to="/" className="inline-flex items-center gap-3">
+                            <div className="bg-white/10 backdrop-blur-md p-2 rounded-xl">
+                                <Leaf className="h-6 w-6 text-white" />
+                            </div>
+                            <span className="text-2xl font-bold tracking-tight font-display">Gascart</span>
+                        </Link>
                     </div>
-                    <span className="text-3xl font-bold text-gray-900 tracking-tight font-display">Gascart</span>
-                </Link>
-                <h2 className="mt-6 text-3xl font-bold text-gray-900 font-display">Create your account</h2>
-                <p className="mt-2 text-gray-600">Join the leading industrial marketplace</p>
+
+                    <div className="max-w-md">
+                        <h2 className="text-4xl font-display font-bold mb-6">Join the Future of Sustainable Energy</h2>
+                        <p className="text-lg text-neutral-300 leading-relaxed mb-8">
+                            Create an account to access our marketplace, track orders, and get personalized recommendations for your bio-energy plant.
+                        </p>
+                        <div className="flex gap-4">
+                            <div className="flex -space-x-3 overflow-hidden">
+                                {[1, 2, 3, 4].map((i) => (
+                                    <img key={i} className="inline-block h-10 w-10 rounded-full ring-2 ring-neutral-900" src={`https://randomuser.me/api/portraits/men/${i + 20}.jpg`} alt="" />
+                                ))}
+                            </div>
+                            <div className="flex flex-col justify-center">
+                                <span className="text-white font-bold">2,000+</span>
+                                <span className="text-xs text-neutral-400">Industry Partners</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
 
-            <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
-                <div className="bg-white py-10 px-4 shadow-[0_20px_50px_rgb(0,0,0,0.05)] sm:rounded-[2rem] sm:px-10 border border-gray-100">
-                    <form className="space-y-6" onSubmit={handleSubmit}>
+            {/* Right Side - Form */}
+            <div className="flex-1 flex flex-col justify-center py-12 px-4 sm:px-6 lg:px-20 xl:px-24 bg-white relative order-2 lg:order-2 overflow-y-auto">
+                <div className="mx-auto w-full max-w-lg">
+                    <div className="lg:hidden mb-10">
+                        <Link to="/" className="inline-flex items-center gap-2">
+                            <Leaf className="h-8 w-8 text-primary" />
+                            <span className="text-2xl font-bold font-display text-neutral-900">Gascart</span>
+                        </Link>
+                    </div>
+
+                    <div className="mb-8">
+                        <h2 className="text-3xl font-bold font-display text-neutral-900 mb-2">Create an Account</h2>
+                        <p className="text-neutral-500">
+                            Already have an account?{' '}
+                            <Link to="/login" className="font-medium text-primary hover:text-primary-600 transition-colors">
+                                Sign in instead
+                            </Link>
+                        </p>
+                    </div>
+
+                    <form className="space-y-5" onSubmit={handleSubmit}>
                         {error && (
-                            <div className="bg-red-50 text-red-600 p-4 rounded-xl text-sm font-bold flex items-center justify-center animate-shake">
+                            <motion.div
+                                initial={{ opacity: 0, height: 0 }}
+                                animate={{ opacity: 1, height: 'auto' }}
+                                className="bg-red-50 border border-red-100 text-red-600 p-4 rounded-xl text-sm font-medium flex items-center"
+                            >
+                                <svg className="w-5 h-5 mr-3 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
                                 {error}
-                            </div>
+                            </motion.div>
                         )}
 
-                        <div>
-                            <label htmlFor="full_name" className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-2">Full Name</label>
-                            <div className="relative">
-                                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                                    <User className="h-5 w-5 text-gray-400" />
+                        <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
+                            <div>
+                                <label htmlFor="full_name" className="block text-sm font-semibold text-neutral-700 mb-2">Full Name</label>
+                                <div className="relative group">
+                                    <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none transition-colors group-focus-within:text-primary">
+                                        <User className="h-5 w-5 text-gray-400" />
+                                    </div>
+                                    <input
+                                        id="full_name"
+                                        name="full_name"
+                                        type="text"
+                                        required
+                                        className="appearance-none block w-full pl-11 pr-4 py-3.5 border border-gray-200 rounded-xl leading-5 bg-neutral-50 text-neutral-900 placeholder-gray-400 focus:outline-none focus:bg-white focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all duration-200 font-medium sm:text-sm"
+                                        placeholder="John Doe"
+                                    />
                                 </div>
-                                <input
-                                    id="full_name"
-                                    name="full_name"
-                                    type="text"
-                                    required
-                                    className="appearance-none block w-full pl-11 pr-3 py-3 border border-gray-200 rounded-xl leading-5 bg-gray-50 text-gray-900 placeholder-gray-400 focus:outline-none focus:bg-white focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all duration-200 sm:text-sm font-medium"
-                                    placeholder="John Doe"
-                                />
+                            </div>
+
+                            <div>
+                                <label htmlFor="phone" className="block text-sm font-semibold text-neutral-700 mb-2">Phone Number</label>
+                                <div className="relative group">
+                                    <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none transition-colors group-focus-within:text-primary">
+                                        <Phone className="h-5 w-5 text-gray-400" />
+                                    </div>
+                                    <input
+                                        id="phone"
+                                        name="phone"
+                                        type="tel"
+                                        autoComplete="tel"
+                                        required
+                                        className="appearance-none block w-full pl-11 pr-4 py-3.5 border border-gray-200 rounded-xl leading-5 bg-neutral-50 text-neutral-900 placeholder-gray-400 focus:outline-none focus:bg-white focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all duration-200 font-medium sm:text-sm"
+                                        placeholder="+91 98765 43210"
+                                    />
+                                </div>
                             </div>
                         </div>
 
                         <div>
-                            <label htmlFor="email" className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-2">Email Address</label>
-                            <div className="relative">
-                                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                            <label htmlFor="email" className="block text-sm font-semibold text-neutral-700 mb-2">Email Address</label>
+                            <div className="relative group">
+                                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none transition-colors group-focus-within:text-primary">
                                     <Mail className="h-5 w-5 text-gray-400" />
                                 </div>
                                 <input
@@ -121,97 +191,79 @@ const Signup = () => {
                                     type="email"
                                     autoComplete="email"
                                     required
-                                    className="appearance-none block w-full pl-11 pr-3 py-3 border border-gray-200 rounded-xl leading-5 bg-gray-50 text-gray-900 placeholder-gray-400 focus:outline-none focus:bg-white focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all duration-200 sm:text-sm font-medium"
+                                    className="appearance-none block w-full pl-11 pr-4 py-3.5 border border-gray-200 rounded-xl leading-5 bg-neutral-50 text-neutral-900 placeholder-gray-400 focus:outline-none focus:bg-white focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all duration-200 font-medium sm:text-sm"
                                     placeholder="john@company.com"
                                 />
                             </div>
                         </div>
 
-                        <div>
-                            <label htmlFor="company_name" className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-2">
-                                Company Name <span className="text-gray-400 font-normal lowercase">(optional)</span>
-                            </label>
-                            <div className="relative">
-                                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                                    <Building2 className="h-5 w-5 text-gray-400" />
+                        <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
+                            <div>
+                                <label htmlFor="company_name" className="block text-sm font-semibold text-neutral-700 mb-2">Company Name <span className="text-neutral-400 font-normal">(opt)</span></label>
+                                <div className="relative group">
+                                    <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none transition-colors group-focus-within:text-primary">
+                                        <Building2 className="h-5 w-5 text-gray-400" />
+                                    </div>
+                                    <input
+                                        id="company_name"
+                                        name="company_name"
+                                        type="text"
+                                        className="appearance-none block w-full pl-11 pr-4 py-3.5 border border-gray-200 rounded-xl leading-5 bg-neutral-50 text-neutral-900 placeholder-gray-400 focus:outline-none focus:bg-white focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all duration-200 font-medium sm:text-sm"
+                                        placeholder="Business Name"
+                                    />
                                 </div>
-                                <input
-                                    id="company_name"
-                                    name="company_name"
-                                    type="text"
-                                    className="appearance-none block w-full pl-11 pr-3 py-3 border border-gray-200 rounded-xl leading-5 bg-gray-50 text-gray-900 placeholder-gray-400 focus:outline-none focus:bg-white focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all duration-200 sm:text-sm font-medium"
-                                    placeholder="Your Business Name"
-                                />
+                            </div>
+
+                            <div>
+                                <label htmlFor="business_details" className="block text-sm font-semibold text-neutral-700 mb-2">GST / Business Type <span className="text-neutral-400 font-normal">(opt)</span></label>
+                                <div className="relative group">
+                                    <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none transition-colors group-focus-within:text-primary">
+                                        <FileText className="h-5 w-5 text-gray-400" />
+                                    </div>
+                                    <input
+                                        id="business_details"
+                                        name="business_details"
+                                        type="text"
+                                        className="appearance-none block w-full pl-11 pr-4 py-3.5 border border-gray-200 rounded-xl leading-5 bg-neutral-50 text-neutral-900 placeholder-gray-400 focus:outline-none focus:bg-white focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all duration-200 font-medium sm:text-sm"
+                                        placeholder="GST No."
+                                    />
+                                </div>
                             </div>
                         </div>
 
-                        <div>
-                            <label htmlFor="business_details" className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-2">
-                                Business Details <span className="text-gray-400 font-normal lowercase">(optional)</span>
-                            </label>
-                            <div className="relative">
-                                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                                    <FileText className="h-5 w-5 text-gray-400" />
+                        <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
+                            <div>
+                                <label htmlFor="password" className="block text-sm font-semibold text-neutral-700 mb-2">Password</label>
+                                <div className="relative group">
+                                    <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none transition-colors group-focus-within:text-primary">
+                                        <Lock className="h-5 w-5 text-gray-400" />
+                                    </div>
+                                    <input
+                                        id="password"
+                                        name="password"
+                                        type="password"
+                                        required
+                                        className="appearance-none block w-full pl-11 pr-4 py-3.5 border border-gray-200 rounded-xl leading-5 bg-neutral-50 text-neutral-900 placeholder-gray-400 focus:outline-none focus:bg-white focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all duration-200 font-medium sm:text-sm"
+                                        placeholder="••••••••"
+                                    />
                                 </div>
-                                <input
-                                    id="business_details"
-                                    name="business_details"
-                                    type="text"
-                                    className="appearance-none block w-full pl-11 pr-3 py-3 border border-gray-200 rounded-xl leading-5 bg-gray-50 text-gray-900 placeholder-gray-400 focus:outline-none focus:bg-white focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all duration-200 sm:text-sm font-medium"
-                                    placeholder="GST / Type of Business"
-                                />
                             </div>
-                        </div>
 
-                        <div>
-                            <label htmlFor="phone" className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-2">Phone Number</label>
-                            <div className="relative">
-                                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                                    <Phone className="h-5 w-5 text-gray-400" />
+                            <div>
+                                <label htmlFor="confirm_password" className="block text-sm font-semibold text-neutral-700 mb-2">Confirm Password</label>
+                                <div className="relative group">
+                                    <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none transition-colors group-focus-within:text-primary">
+                                        <Lock className="h-5 w-5 text-gray-400" />
+                                    </div>
+                                    <input
+                                        id="confirm_password"
+                                        name="confirm_password"
+                                        type="password"
+                                        required
+                                        className="appearance-none block w-full pl-11 pr-4 py-3.5 border border-gray-200 rounded-xl leading-5 bg-neutral-50 text-neutral-900 placeholder-gray-400 focus:outline-none focus:bg-white focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all duration-200 font-medium sm:text-sm"
+                                        placeholder="••••••••"
+                                    />
                                 </div>
-                                <input
-                                    id="phone"
-                                    name="phone"
-                                    type="tel"
-                                    autoComplete="tel"
-                                    required
-                                    className="appearance-none block w-full pl-11 pr-3 py-3 border border-gray-200 rounded-xl leading-5 bg-gray-50 text-gray-900 placeholder-gray-400 focus:outline-none focus:bg-white focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all duration-200 sm:text-sm font-medium"
-                                    placeholder="+91 98765 43210"
-                                />
-                            </div>
-                        </div>
-
-                        <div>
-                            <label htmlFor="password" className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-2">Password</label>
-                            <div className="relative">
-                                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                                    <Lock className="h-5 w-5 text-gray-400" />
-                                </div>
-                                <input
-                                    id="password"
-                                    name="password"
-                                    type="password"
-                                    required
-                                    className="appearance-none block w-full pl-11 pr-3 py-3 border border-gray-200 rounded-xl leading-5 bg-gray-50 text-gray-900 placeholder-gray-400 focus:outline-none focus:bg-white focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all duration-200 sm:text-sm font-medium"
-                                    placeholder="••••••••"
-                                />
-                            </div>
-                        </div>
-
-                        <div>
-                            <label htmlFor="confirm_password" className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-2">Confirm Password</label>
-                            <div className="relative">
-                                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                                    <Lock className="h-5 w-5 text-gray-400" />
-                                </div>
-                                <input
-                                    id="confirm_password"
-                                    name="confirm_password"
-                                    type="password"
-                                    required
-                                    className="appearance-none block w-full pl-11 pr-3 py-3 border border-gray-200 rounded-xl leading-5 bg-gray-50 text-gray-900 placeholder-gray-400 focus:outline-none focus:bg-white focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all duration-200 sm:text-sm font-medium"
-                                    placeholder="••••••••"
-                                />
                             </div>
                         </div>
 
@@ -219,7 +271,7 @@ const Signup = () => {
                             <button
                                 type="submit"
                                 disabled={loading}
-                                className="w-full flex justify-center items-center py-4 px-4 border border-transparent rounded-xl shadow-lg text-sm font-bold text-white bg-gray-900 hover:bg-black focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-900 disabled:opacity-50 disabled:cursor-not-allowed transition-all transform hover:-translate-y-0.5"
+                                className="w-full flex justify-center items-center py-3.5 px-4 border border-transparent rounded-xl shadow-lg shadow-primary/20 text-sm font-bold text-white bg-primary hover:bg-primary-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary disabled:opacity-70 disabled:cursor-not-allowed transition-all transform active:scale-[0.98]"
                             >
                                 {loading ? (
                                     <>
@@ -233,29 +285,12 @@ const Signup = () => {
                                 )}
                             </button>
                         </div>
+
+                        <p className="text-xs text-center text-neutral-400 pt-4">
+                            By creating an account, you agree to our <Link to="/terms" className="underline hover:text-neutral-600">Terms of Service</Link> and <Link to="/privacy" className="underline hover:text-neutral-600">Privacy Policy</Link>.
+                        </p>
                     </form>
-
-                    <div className="mt-8">
-                        <div className="relative">
-                            <div className="absolute inset-0 flex items-center">
-                                <div className="w-full border-t border-gray-100"></div>
-                            </div>
-                            <div className="relative flex justify-center text-sm">
-                                <span className="px-4 bg-white text-gray-500 font-medium">Already have an account?</span>
-                            </div>
-                        </div>
-
-                        <div className="mt-8 grid grid-cols-1 gap-3">
-                            <Link to="/login" className="w-full inline-flex justify-center items-center py-3 px-4 border border-gray-200 rounded-xl shadow-sm bg-white text-sm font-bold text-gray-700 hover:bg-gray-50 hover:border-gray-300 transition-all">
-                                Sign In
-                            </Link>
-                        </div>
-                    </div>
                 </div>
-
-                <p className="mt-8 text-center text-xs text-gray-400">
-                    By signing up, you agree to our <a href="#" className="font-medium text-primary hover:text-primary-dark">Terms</a> and <a href="#" className="font-medium text-primary hover:text-primary-dark">Privacy Policy</a>
-                </p>
             </div>
         </div>
     );

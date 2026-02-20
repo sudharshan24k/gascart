@@ -109,11 +109,12 @@ export const api = {
             });
             return res.json();
         },
-        list: async () => {
+        list: async (params?: { status?: string, search?: string, days?: string }) => {
             const token = (await supabase.auth.getSession()).data.session?.access_token;
             if (!token) throw new Error('Not authenticated');
             const apiUrl = getBaseUrl();
-            const res = await fetch(`${apiUrl}/orders`, {
+            const query = new URLSearchParams(params as any).toString();
+            const res = await fetch(`${apiUrl}/orders?${query}`, {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
             return res.json();
@@ -250,6 +251,21 @@ export const api = {
             if (!res.ok) {
                 const error = await res.json();
                 throw new Error(error.message || 'Failed to submit enquiry');
+            }
+            return res.json();
+        },
+        uploadDocument: async (file: File) => {
+            const apiUrl = getBaseUrl();
+            const formData = new FormData();
+            formData.append('document', file);
+
+            const res = await fetch(`${apiUrl}/vendors/upload`, {
+                method: 'POST',
+                body: formData
+            });
+            if (!res.ok) {
+                const error = await res.json();
+                throw new Error(error.message || 'Failed to upload document');
             }
             return res.json();
         },

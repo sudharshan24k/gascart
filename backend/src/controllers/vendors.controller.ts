@@ -4,7 +4,7 @@ import { supabase } from '../config/supabase';
 // Public vendor enquiry submission
 export const submitVendorEnquiry = async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const { company_name, contact_person, email, phone, business_type, certifications, message } = req.body;
+        const { company_name, contact_person, email, phone, business_type, certifications, message, document_url } = req.body;
 
         const { data, error } = await supabase
             .from('vendor_enquiries')
@@ -15,7 +15,8 @@ export const submitVendorEnquiry = async (req: Request, res: Response, next: Nex
                 phone,
                 business_type,
                 certifications: certifications || [],
-                message
+                message,
+                document_url
             }])
             .select()
             .single();
@@ -27,6 +28,42 @@ export const submitVendorEnquiry = async (req: Request, res: Response, next: Nex
             message: 'Your vendor enquiry has been submitted. Our team will review and contact you shortly.',
             data
         });
+    } catch (err) {
+        next(err);
+    }
+};
+
+// Public upload vendor document
+export const uploadVendorDocument = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        if (!req.file) {
+            return res.status(400).json({ status: 'error', message: 'No file uploaded' });
+        }
+
+        const file = req.file;
+        const fileExt = file.originalname.split('.').pop() || 'pdf';
+        const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
+        const filePath = `applications/${fileName}`;
+
+        // Upload to Supabase Storage
+        const { error: uploadError } = await supabase.storage
+            .from('vendor-documents')
+            .upload(filePath, file.buffer, {
+                contentType: file.mimetype,
+                upsert: false
+            });
+
+        if (uploadError) {
+            console.error('[Vendor Upload] Storage error:', uploadError);
+            throw new Error(`Failed to upload document: ${uploadError.message}`);
+        }
+
+        // Get public URL
+        const { data: { publicUrl } } = supabase.storage
+            .from('vendor-documents')
+            .getPublicUrl(filePath);
+
+        res.status(200).json({ status: 'success', data: { url: publicUrl } });
     } catch (err) {
         next(err);
     }
@@ -66,15 +103,69 @@ export const updateVendorEnquiryStatus = async (req: Request, res: Response, nex
             .from('vendor_enquiries')
             .update({
                 status,
-                reviewed_at: new Date().toISOString(),
-                reviewed_by: admin_id
+                reviewed_at: new Date().toISOString()
             })
             .eq('id', id)
             .select()
             .single();
 
         if (error) throw error;
-        res.json({ status: 'success', data });
+
+        // If approved, create the actual vendor profile
+        let tempPassword;
+        if (status === 'approved' && data) {
+            tempPassword = Math.random().toString(36).slice(-10) + 'A1!';
+
+            // 1. Create auth user
+            const { data: authData, error: authError } = await supabase.auth.admin.createUser({
+                email: data.email,
+                password: tempPassword,
+                email_confirm: true,
+                user_metadata: { full_name: data.contact_person }
+            });
+
+            let targetUserId: string | null = null;
+
+            if (authError) {
+                // If the user already exists, we should just update their existing profile instead of failing.
+                if (authError.message.includes('User already registered') || authError.status === 400) {
+                    console.log('[Vendor Approval] User already exists or error, attempting to find existing user by email:', data.email);
+                    // Since we can't easily get user by email directly without a specific API, we can query profiles
+                    const { data: existingProfile } = await supabase.from('profiles').select('id').eq('email', data.email).single();
+                    if (existingProfile) {
+                        targetUserId = existingProfile.id;
+                        console.log('[Vendor Approval] Found existing profile id:', targetUserId);
+                    } else {
+                        throw authError; // Really failed
+                    }
+                } else {
+                    console.error('[Vendor Approval] Failed to create auth user:', authError);
+                    throw authError; // Throw the error so it propagates as a proper API response instead of silently failing
+                }
+            } else if (authData?.user) {
+                targetUserId = authData.user.id;
+            }
+
+            if (targetUserId) {
+                // 2. Update auto-created/existing profile with vendor specifics
+                const { error: profileError } = await supabase
+                    .from('profiles')
+                    .update({
+                        company_name: data.company_name,
+                        role: 'vendor',
+                        certifications: data.certifications || [],
+                        visibility_status: 'active'
+                    })
+                    .eq('id', authData.user!.id);
+
+                if (profileError) {
+                    console.error('[Vendor Approval] Failed to update profile:', profileError);
+                    throw profileError;
+                }
+            }
+        }
+
+        res.json({ status: 'success', data: { ...data, temporary_password: tempPassword } });
     } catch (err) {
         next(err);
     }
@@ -109,27 +200,35 @@ export const createVendor = async (req: Request, res: Response, next: NextFuncti
     try {
         const { email, full_name, company_name, certifications, visibility_status, vendor_documents } = req.body;
 
-        // First, create auth user (in real implementation, this would use Supabase Admin API)
-        // For now, we'll just create the profile entry
-        // NOTE: In production, you'd need to use Supabase Admin SDK to create auth users
+        // 1. Create auth user with Supabase Admin API
+        const tempPassword = Math.random().toString(36).slice(-10) + 'A1!';
+        const { data: authData, error: authError } = await supabase.auth.admin.createUser({
+            email,
+            password: tempPassword,
+            email_confirm: true,
+            user_metadata: { full_name }
+        });
 
+        if (authError) throw authError;
+
+        // 2. The DB trigger automatically created a 'profiles' row. Update it with vendor specifics.
         const { data, error } = await supabase
             .from('profiles')
-            .insert([{
-                email,
-                full_name,
+            .update({
                 company_name,
                 role: 'vendor',
                 certifications: certifications || [],
                 visibility_status: visibility_status || 'inactive',
                 vendor_documents: vendor_documents || {}
-            }])
+            })
+            .eq('id', authData.user!.id)
             .select()
             .single();
 
         if (error) throw error;
 
-        res.status(201).json({ status: 'success', data });
+        // Include the temporary password in response so admin could share it with the vendor (if needed)
+        res.status(201).json({ status: 'success', data: { ...data, temporary_password: tempPassword } });
     } catch (err) {
         next(err);
     }

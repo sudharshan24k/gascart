@@ -11,14 +11,22 @@ export const getDashboardStats = async (req: Request, res: Response, next: NextF
             { count: activeProducts },
             { count: pendingConsultants },
             { count: approvedConsultants },
-            { count: totalUsers }
+            { count: totalUsers },
+            { count: totalOrders },
+            { count: pendingOrders },
+            { data: revenueData } // For revenue sum
         ] = await Promise.all([
             supabase.from('products').select('*', { count: 'exact', head: true }),
             supabase.from('products').select('*', { count: 'exact', head: true }).eq('is_active', true),
             supabase.from('consultants').select('*', { count: 'exact', head: true }).eq('status', 'pending'),
             supabase.from('consultants').select('*', { count: 'exact', head: true }).eq('status', 'approved'),
-            supabase.from('profiles').select('*', { count: 'exact', head: true })
+            supabase.from('profiles').select('*', { count: 'exact', head: true }),
+            supabase.from('orders').select('*', { count: 'exact', head: true }),
+            supabase.from('orders').select('*', { count: 'exact', head: true }).eq('status', 'pending'),
+            supabase.from('orders').select('total_amount').eq('payment_status', 'paid')
         ]);
+
+        const totalRevenue = revenueData?.reduce((sum, order) => sum + (order.total_amount || 0), 0) || 0;
 
         res.json({
             status: 'success',
@@ -28,6 +36,9 @@ export const getDashboardStats = async (req: Request, res: Response, next: NextF
                 pendingConsultants: pendingConsultants || 0,
                 approvedConsultants: approvedConsultants || 0,
                 totalUsers: totalUsers || 0,
+                totalOrders: totalOrders || 0,
+                pendingOrders: pendingOrders || 0,
+                totalRevenue,
                 lastUpdate: new Date().toISOString()
             }
         });

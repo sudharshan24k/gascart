@@ -1,82 +1,93 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Leaf, Mail, MapPin, Phone, Linkedin, Twitter, Facebook } from 'lucide-react';
+import { Leaf, Mail, MapPin, Phone, Linkedin, Twitter, Facebook, ArrowRight } from 'lucide-react';
 
 const Footer: React.FC = () => {
     return (
-        <footer className="bg-gray-900 text-white pt-12 md:pt-16 pb-8 border-t border-gray-800">
+        <footer className="bg-neutral-900 text-white pt-20 pb-10 border-t border-neutral-800">
             <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-7xl">
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 md:gap-12">
-                    {/* Company Info */}
-                    <div className="sm:col-span-2 lg:col-span-1">
-                        <div className="flex items-center mb-6">
-                            <Leaf className="h-8 w-8 text-primary" />
-                            <span className="ml-2 text-2xl font-bold">Gascart</span>
-                        </div>
-                        <p className="text-gray-400 mb-6 leading-relaxed">
-                            Leading the way in clean biomethane and Bio-CNG gasification solutions. Transforming waste into sustainable energy for a greener future.
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-12 lg:gap-8 mb-16">
+                    {/* Brand Column */}
+                    <div className="lg:col-span-4">
+                        <Link to="/" className="flex items-center mb-6 group">
+                            <div className="bg-primary/10 p-2 rounded-xl group-hover:bg-primary/20 transition-colors">
+                                <Leaf className="h-8 w-8 text-primary" />
+                            </div>
+                            <span className="ml-3 text-3xl font-display font-bold text-white tracking-tight">
+                                Gascart<span className="text-primary">.</span>
+                            </span>
+                        </Link>
+                        <p className="text-gray-400 mb-8 leading-relaxed max-w-sm">
+                            Pioneering the future of sustainable energy with advanced biomethane and Bio-CNG solutions. Join us in building a greener tomorrow.
                         </p>
                         <div className="flex space-x-4">
-                            <a href="#" className="text-gray-400 hover:text-primary transition-all transform hover:scale-110">
-                                <Linkedin className="h-6 w-6" />
-                            </a>
-                            <a href="#" className="text-gray-400 hover:text-primary transition-all transform hover:scale-110">
-                                <Twitter className="h-6 w-6" />
-                            </a>
-                            <a href="#" className="text-gray-400 hover:text-primary transition-all transform hover:scale-110">
-                                <Facebook className="h-6 w-6" />
-                            </a>
+                            {[Linkedin, Twitter, Facebook].map((Icon, idx) => (
+                                <a
+                                    key={idx}
+                                    href="#"
+                                    className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center text-gray-400 hover:bg-primary hover:text-white transition-all duration-300 hover:-translate-y-1"
+                                >
+                                    <Icon className="h-5 w-5" />
+                                </a>
+                            ))}
                         </div>
                     </div>
 
-                    {/* Quick Links */}
-                    <div>
-                        <h3 className="text-lg font-bold mb-6 text-white">Quick Links</h3>
-                        <ul className="space-y-3">
-                            <li><Link to="/" className="text-gray-400 hover:text-primary transition-colors">Home</Link></li>
-                            <li><Link to="/about" className="text-gray-400 hover:text-primary transition-colors">About Us</Link></li>
-                            <li><Link to="/services" className="text-gray-400 hover:text-primary transition-colors">Services</Link></li>
-                            <li><Link to="/technology" className="text-gray-400 hover:text-primary transition-colors">Technology</Link></li>
-                            <li><Link to="/shop" className="text-gray-400 hover:text-primary transition-colors">Products</Link></li>
-                            <li><Link to="/contact" className="text-gray-400 hover:text-primary transition-colors">Contact</Link></li>
-                        </ul>
-                    </div>
-
-                    {/* Services */}
-                    <div>
-                        <h3 className="text-lg font-bold mb-6 text-white">Our Services</h3>
-                        <ul className="space-y-3">
-                            <li className="text-gray-400 hover:text-white transition-colors cursor-default">Plant Design & Installation</li>
-                            <li className="text-gray-400 hover:text-white transition-colors cursor-default">Equipment Supply</li>
-                            <li className="text-gray-400 hover:text-white transition-colors cursor-default">Commissioning & Training</li>
-                            <li className="text-gray-400 hover:text-white transition-colors cursor-default">Maintenance & Support</li>
-                        </ul>
-                    </div>
-
-                    {/* Contact Info */}
-                    <div>
-                        <h3 className="text-lg font-bold mb-6 text-white">Contact Us</h3>
+                    {/* Quick Link Columns */}
+                    <div className="lg:col-span-2">
+                        <h4 className="text-lg font-bold mb-6 text-white font-display">Company</h4>
                         <ul className="space-y-4">
+                            {['About Us', 'Careers', 'Blog', 'Contact'].map((item) => (
+                                <li key={item}>
+                                    <Link to={`/${item.toLowerCase().replace(' ', '-')}`} className="text-gray-400 hover:text-primary transition-colors flex items-center group">
+                                        <span className="group-hover:translate-x-1 transition-transform">{item}</span>
+                                    </Link>
+                                </li>
+                            ))}
+                        </ul>
+                    </div>
+
+                    <div className="lg:col-span-3">
+                        <h4 className="text-lg font-bold mb-6 text-white font-display">Solutions</h4>
+                        <ul className="space-y-4">
+                            {['Plant Design', 'Equipment Supply', 'Commissioning', 'Maintenance'].map((item) => (
+                                <li key={item}>
+                                    <a href="#" className="text-gray-400 hover:text-primary transition-colors flex items-center group">
+                                        <span className="group-hover:translate-x-1 transition-transform">{item}</span>
+                                    </a>
+                                </li>
+                            ))}
+                        </ul>
+                    </div>
+
+                    <div className="lg:col-span-3">
+                        <h4 className="text-lg font-bold mb-6 text-white font-display">Get in Touch</h4>
+                        <ul className="space-y-6">
                             <li className="flex items-start">
-                                <MapPin className="h-6 w-6 text-primary mr-3 mt-1 flex-shrink-0" />
+                                <MapPin className="h-6 w-6 text-primary mr-4 mt-1 flex-shrink-0" />
                                 <span className="text-gray-400">123 Innovation Drive, Green Tech Park, CA 90210</span>
                             </li>
                             <li className="flex items-center">
-                                <Phone className="h-6 w-6 text-primary mr-3 flex-shrink-0" />
+                                <Phone className="h-5 w-5 text-primary mr-4 flex-shrink-0" />
                                 <span className="text-gray-400">+1 (555) 123-4567</span>
                             </li>
                             <li className="flex items-center">
-                                <Mail className="h-6 w-6 text-primary mr-3 flex-shrink-0" />
+                                <Mail className="h-5 w-5 text-primary mr-4 flex-shrink-0" />
                                 <a href="mailto:info@gascart.com" className="text-gray-400 hover:text-primary transition-colors">info@gascart.com</a>
                             </li>
                         </ul>
                     </div>
                 </div>
 
-                <div className="mt-12 border-t border-gray-200 pt-8">
+                <div className="pt-8 border-t border-white/5">
                     <div className="flex flex-col md:flex-row justify-between items-center gap-4">
                         <p className="text-sm text-gray-500">
-                            © {new Date().getFullYear()} Gascart. All rights reserved.</p>
+                            © {new Date().getFullYear()} Gascart Inc. All rights reserved.
+                        </p>
+                        <div className="flex gap-6 text-sm text-gray-500">
+                            <Link to="/privacy" className="hover:text-primary transition-colors">Privacy Policy</Link>
+                            <Link to="/terms" className="hover:text-primary transition-colors">Terms of Service</Link>
+                        </div>
                     </div>
                 </div>
             </div>

@@ -2,7 +2,8 @@ import React, { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { api } from '../services/api';
 import { formatDateIST } from '../utils/dateUtils';
-import { Package, ChevronLeft, MapPin, CreditCard, Clock, CheckCircle, Truck, Info, FileText } from 'lucide-react';
+import { Package, ChevronLeft, MapPin, CreditCard, Clock, CheckCircle, Truck, Info, FileText, Loader2, XCircle } from 'lucide-react';
+import { motion } from 'framer-motion';
 
 const OrderTracking: React.FC = () => {
     const { id } = useParams<{ id: string }>();
@@ -49,119 +50,140 @@ const OrderTracking: React.FC = () => {
 
 
     const steps = [
-        { key: 'pending', label: 'Order Placed', icon: <Clock className="h-5 w-5" /> },
-        { key: 'processing', label: 'Processing', icon: <Info className="h-5 w-5" /> },
-        { key: 'shipped', label: 'Shipped', icon: <Truck className="h-5 w-5" /> },
-        { key: 'delivered', label: 'Delivered', icon: <CheckCircle className="h-5 w-5" /> },
+        { key: 'pending', label: 'Order Placed', icon: Clock },
+        { key: 'processing', label: 'Processing', icon: Info },
+        { key: 'shipped', label: 'Shipped', icon: Truck },
+        { key: 'delivered', label: 'Delivered', icon: CheckCircle },
     ];
 
     const currentStatus = order?.status.toLowerCase() || 'pending';
-    const currentStepIndex = steps.findIndex(step => step.key === currentStatus);
+    let currentStepIndex = steps.findIndex(step => step.key === currentStatus);
+    if (currentStatus === 'cancelled') currentStepIndex = -1; // Handle cancelled state separately
 
     if (loading) {
         return (
-            <div className="min-h-screen flex items-center justify-center">
-                <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
+            <div className="min-h-screen pt-32 flex justify-center bg-neutral-50">
+                <Loader2 className="w-10 h-10 animate-spin text-primary" />
             </div>
         );
     }
 
     if (!order) {
         return (
-            <div className="min-h-screen bg-neutral-light py-12 flex items-center justify-center">
-                <div className="text-center">
-                    <h2 className="text-2xl font-bold mb-4">Order not found</h2>
-                    <Link to="/my-orders" className="text-primary font-bold hover:underline">Return to My Orders</Link>
+            <div className="min-h-screen pt-32 pb-24 bg-neutral-50 flex flex-col items-center justify-center text-center px-4">
+                <div className="w-24 h-24 bg-neutral-100 rounded-full flex items-center justify-center mb-6">
+                    <Package className="w-10 h-10 text-neutral-400" />
                 </div>
+                <h2 className="text-2xl font-bold text-neutral-900 mb-2">Order Not Found</h2>
+                <p className="text-neutral-500 mb-8">The order you are looking for does not exist or you do not have permission to view it.</p>
+                <Link to="/my-orders" className="text-primary font-bold hover:underline">Return to My Orders</Link>
             </div>
         );
     }
 
     return (
-        <div className="min-h-screen bg-neutral-light py-12">
-            <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-5xl">
-                <Link to="/my-orders" className="inline-flex items-center text-gray-600 hover:text-primary mb-8 font-semibold transition-colors">
-                    <ChevronLeft className="mr-2 h-5 w-5" /> Back to My Orders
+        <div className="min-h-screen pt-28 pb-24 bg-neutral-50">
+            <div className="container mx-auto px-4 max-w-5xl">
+                <Link to="/my-orders" className="inline-flex items-center text-neutral-500 hover:text-neutral-900 mb-8 font-bold transition-colors group">
+                    <ChevronLeft className="mr-2 w-5 h-5 group-hover:-translate-x-1 transition-transform" /> Back to My Orders
                 </Link>
 
-                <div className="bg-white rounded-[2.5rem] shadow-xl overflow-hidden border border-neutral-dark/10">
+                <div className="bg-white rounded-[40px] shadow-xl shadow-neutral-200/50 overflow-hidden border border-neutral-100">
                     {/* Header */}
-                    <div className="bg-primary-dark p-8 md:p-12 text-white">
-                        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+                    <div className="bg-neutral-900 p-8 md:p-12 text-white relative overflow-hidden">
+                        <div className="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2"></div>
+
+                        <div className="relative z-10 flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
                             <div>
-                                <h1 className="text-3xl font-display font-bold mb-2">Order Tracking</h1>
-                                <p className="text-primary-light opacity-90 font-mono">#{order.id.toUpperCase()}</p>
+                                <h1 className="text-3xl md:text-4xl font-display font-bold mb-2">Order Tracking</h1>
+                                <p className="text-neutral-400 font-mono text-lg">#{order.id.toUpperCase()}</p>
                             </div>
                             <div className="flex flex-col items-end">
-                                <span className={`px-4 py-1.5 rounded-full text-sm font-bold uppercase mb-2 ${order.status === 'delivered' ? 'bg-green-500' : 'bg-primary'
+                                <span className={`px-6 py-2 rounded-xl text-sm font-black uppercase tracking-widest mb-2 ${order.status === 'delivered' ? 'bg-green-500 text-white' :
+                                        order.status === 'cancelled' ? 'bg-red-500 text-white' :
+                                            'bg-white text-neutral-900'
                                     }`}>
                                     {order.status}
                                 </span>
-                                <p className="text-sm opacity-80">Placed on {formatDateIST(order.created_at)}</p>
+                                <p className="text-sm text-neutral-400 font-medium">Placed on {formatDateIST(order.created_at)}</p>
+
                                 {order.status === 'pending' && (
                                     <button
                                         onClick={handleCancelOrder}
-                                        className="mt-4 text-xs font-bold text-red-300 hover:text-red-100 transition-colors uppercase tracking-widest border border-red-300/30 px-4 py-2 rounded-xl"
+                                        className="mt-6 text-xs font-bold text-red-400 hover:text-red-300 transition-colors uppercase tracking-widest border border-red-400/30 hover:border-red-300 px-6 py-3 rounded-xl flex items-center gap-2 group"
                                     >
-                                        Cancel Order
+                                        <XCircle className="w-4 h-4" /> Cancel Order
                                     </button>
                                 )}
                             </div>
                         </div>
 
                         {/* Timeline */}
-                        <div className="mt-12 relative">
-                            <div className="absolute top-1/2 left-0 w-full h-1 bg-white/20 -translate-y-1/2 hidden md:block"></div>
-                            <div className="grid grid-cols-1 md:grid-cols-4 gap-8 relative z-10">
-                                {steps.map((step, index) => {
-                                    const isCompleted = index <= currentStepIndex;
-                                    const isCurrent = index === currentStepIndex;
+                        {order.status !== 'cancelled' && (
+                            <div className="mt-16 mb-4 relative">
+                                <div className="absolute top-1/2 left-0 w-full h-1 bg-white/10 -translate-y-1/2 hidden md:block rounded-full"></div>
+                                <div className="absolute top-1/2 left-0 h-1 bg-primary -translate-y-1/2 hidden md:block rounded-full transition-all duration-1000" style={{ width: `${(currentStepIndex / (steps.length - 1)) * 100}%` }}></div>
 
-                                    return (
-                                        <div key={step.key} className="flex flex-row md:flex-col items-center gap-4 md:text-center">
-                                            <div className={`w-12 h-12 rounded-full flex items-center justify-center transition-all shadow-lg ${isCompleted ? 'bg-secondary text-white scale-110' : 'bg-white/10 text-white/50 border border-white/20'
-                                                } ${isCurrent ? 'ring-4 ring-secondary/30' : ''}`}>
-                                                {step.icon}
+                                <div className="grid grid-cols-1 md:grid-cols-4 gap-8 relative z-10">
+                                    {steps.map((step, index) => {
+                                        const isCompleted = index <= currentStepIndex;
+                                        const isCurrent = index === currentStepIndex;
+
+                                        return (
+                                            <div key={step.key} className="flex flex-row md:flex-col items-center gap-4 md:text-center group">
+                                                <div className={`w-14 h-14 rounded-full flex items-center justify-center transition-all duration-500 border-4 ${isCompleted ? 'bg-primary border-neutral-900 text-white shadow-lg shadow-primary/50' : 'bg-neutral-800 border-neutral-900 text-neutral-600'
+                                                    } ${isCurrent ? 'scale-110 ring-4 ring-primary/20' : ''}`}>
+                                                    <step.icon className="w-6 h-6" />
+                                                </div>
+                                                <div className="flex flex-col md:items-center">
+                                                    <span className={`text-sm font-bold transition-colors ${isCompleted ? 'text-white' : 'text-neutral-500'}`}>
+                                                        {step.label}
+                                                    </span>
+                                                    {isCurrent && <span className="text-[10px] uppercase tracking-widest text-primary font-black mt-1 animate-pulse">In Progress</span>}
+                                                </div>
                                             </div>
-                                            <div className="flex flex-col md:items-center">
-                                                <span className={`text-sm font-bold ${isCompleted ? 'text-white' : 'text-white/40'}`}>
-                                                    {step.label}
-                                                </span>
-                                                {isCurrent && <span className="text-[10px] uppercase tracking-widest text-secondary font-bold">In Progress</span>}
-                                            </div>
-                                        </div>
-                                    );
-                                })}
+                                        );
+                                    })}
+                                </div>
                             </div>
-                        </div>
+                        )}
+                        {order.status === 'cancelled' && (
+                            <div className="mt-12 p-6 bg-red-500/10 border border-red-500/20 rounded-2xl text-red-200 flex items-center gap-4">
+                                <XCircle className="w-8 h-8 text-red-500" />
+                                <div>
+                                    <h3 className="font-bold text-lg text-white">Order Cancelled</h3>
+                                    <p className="text-sm opacity-80">This order was cancelled. If you have any questions, please contact support.</p>
+                                </div>
+                            </div>
+                        )}
                     </div>
 
-                    <div className="p-8 md:p-12">
-                        <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
+                    <div className="p-8 md:p-12 bg-white">
+                        <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
                             {/* Left Column: Items */}
-                            <div className="lg:col-span-2 space-y-8">
+                            <div className="lg:col-span-7 space-y-8">
                                 <div>
-                                    <h3 className="text-xl font-bold mb-6 flex items-center gap-2">
-                                        <Package className="h-6 w-6 text-primary" /> Order Items
+                                    <h3 className="text-xl font-bold mb-6 flex items-center gap-3 text-neutral-900">
+                                        <Package className="w-6 h-6 text-primary" /> Order Items
                                     </h3>
                                     <div className="space-y-4">
                                         {order.order_items.map((item: any) => (
-                                            <div key={item.id} className="flex gap-6 p-6 bg-neutral-light rounded-[1.5rem] border border-neutral-dark/10 group hover:shadow-md transition-all">
-                                                <div className="h-24 w-24 bg-white rounded-2xl flex-shrink-0 overflow-hidden shadow-sm border border-neutral-dark/10">
-                                                    {item.product?.image ? (
-                                                        <img src={item.product.image} alt={item.product.name} className="h-full w-full object-cover group-hover:scale-110 transition-transform" />
+                                            <div key={item.id} className="flex gap-6 p-6 bg-neutral-50 rounded-[24px] border border-neutral-100 group hover:bg-neutral-100/50 transition-colors">
+                                                <div className="h-24 w-24 bg-white rounded-2xl flex-shrink-0 overflow-hidden shadow-sm border border-neutral-200">
+                                                    {item.product?.image_url ? (
+                                                        <img src={item.product.image_url} alt={item.product.name} className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-500" />
                                                     ) : (
-                                                        <div className="h-full w-full flex items-center justify-center text-gray-300">
+                                                        <div className="h-full w-full flex items-center justify-center text-neutral-300">
                                                             <Package className="h-10 w-10" />
                                                         </div>
                                                     )}
                                                 </div>
                                                 <div className="flex-grow">
-                                                    <h4 className="text-lg font-bold text-gray-900 mb-1">{item.product?.name || 'Product'}</h4>
-                                                    <p className="text-gray-500 text-sm mb-4 line-clamp-1">{item.product?.description}</p>
-                                                    <div className="flex justify-between items-center">
-                                                        <span className="text-sm font-semibold px-3 py-1 bg-white rounded-lg border border-neutral-dark/10">Qty: {item.quantity}</span>
-                                                        <span className="font-bold text-primary">₹{item.price_at_purchase.toFixed(2)}</span>
+                                                    <h4 className="text-lg font-bold text-neutral-900 mb-1">{item.product?.name || 'Product'}</h4>
+                                                    <p className="text-neutral-500 text-sm mb-4 line-clamp-1">{item.product?.description}</p>
+                                                    <div className="flex justify-between items-center bg-white p-3 rounded-xl border border-neutral-100 shadow-sm">
+                                                        <span className="text-xs font-black uppercase tracking-widest text-neutral-500">Qty: {item.quantity}</span>
+                                                        <span className="font-bold text-neutral-900">₹{item.price_at_purchase.toLocaleString()}</span>
                                                     </div>
                                                 </div>
                                             </div>
@@ -171,51 +193,54 @@ const OrderTracking: React.FC = () => {
                             </div>
 
                             {/* Right Column: Order Summary & Info */}
-                            <div className="space-y-8">
-                                <div className="bg-neutral-light p-8 rounded-[2rem] border border-neutral-dark/10">
-                                    <h3 className="text-xl font-bold mb-6">Order Summary</h3>
-                                    <div className="space-y-4 mb-6">
-                                        <div className="flex justify-between text-gray-600">
+                            <div className="lg:col-span-5 space-y-8">
+                                <div className="bg-neutral-50 p-8 rounded-[32px] border border-neutral-100">
+                                    <h3 className="text-xl font-bold mb-6 text-neutral-900">Order Summary</h3>
+                                    <div className="space-y-4 mb-8">
+                                        <div className="flex justify-between text-neutral-600 font-medium">
                                             <span>Subtotal</span>
-                                            <span>₹{order.total_amount.toFixed(2)}</span>
+                                            <span className="text-neutral-900 font-bold">₹{order.total_amount.toFixed(2)}</span>
                                         </div>
-                                        <div className="flex justify-between text-gray-600">
+                                        <div className="flex justify-between text-neutral-600 font-medium">
                                             <span>Shipping</span>
-                                            <span className="text-green-600 font-bold uppercase text-xs">Free</span>
+                                            <span className="text-green-600 font-bold uppercase text-xs bg-green-50 px-2 py-1 rounded">Free</span>
                                         </div>
-                                        <div className="pt-4 border-t border-neutral-dark/10 flex justify-between items-center">
-                                            <span className="font-bold text-lg">Total</span>
-                                            <span className="font-display font-bold text-2xl text-primary">₹{order.total_amount.toFixed(2)}</span>
+                                        <div className="pt-6 border-t border-dashed border-neutral-200 flex justify-between items-end">
+                                            <span className="font-bold text-xl text-neutral-900">Total</span>
+                                            <span className="font-black text-3xl text-neutral-900">₹{order.total_amount.toLocaleString()}</span>
                                         </div>
                                     </div>
-                                    <a
-                                        href={api.orders.getInvoiceUrl(order.id)}
-                                        download
-                                        className="w-full flex items-center justify-center gap-2 bg-gray-900 text-white font-bold py-4 rounded-2xl hover:bg-black transition-all shadow-lg"
+                                    <button
+                                        onClick={() => window.open(api.orders.getInvoiceUrl(order.id), '_blank')}
+                                        className="w-full flex items-center justify-center gap-2 bg-white text-neutral-900 border-2 border-neutral-100 font-bold py-4 rounded-2xl hover:bg-neutral-50 hover:border-neutral-200 transition-all shadow-sm"
                                     >
-                                        <FileText className="h-5 w-5" />
+                                        <FileText className="w-5 h-5" />
                                         Download Invoice
-                                    </a>
+                                    </button>
                                 </div>
 
-                                <div className="space-y-6 px-4">
-                                    <div className="flex gap-4">
-                                        <div className="w-10 h-10 bg-primary/10 text-primary rounded-xl flex items-center justify-center flex-shrink-0">
-                                            <MapPin className="h-5 w-5" />
+                                <div className="space-y-6">
+                                    <div className="flex gap-5 p-6 bg-white rounded-[24px] border border-neutral-100 shadow-sm">
+                                        <div className="w-12 h-12 bg-neutral-50 text-neutral-400 rounded-2xl flex items-center justify-center flex-shrink-0">
+                                            <MapPin className="w-6 h-6" />
                                         </div>
                                         <div>
-                                            <h4 className="font-bold text-sm uppercase tracking-wider text-gray-500 mb-1">Shipping Address</h4>
-                                            <p className="text-gray-900 text-sm leading-relaxed">{order.shipping_address}</p>
+                                            <h4 className="font-black text-xs uppercase tracking-widest text-neutral-400 mb-2">Shipping Address</h4>
+                                            <p className="text-neutral-900 font-medium leading-relaxed">{order.shipping_address || 'No address provided'}</p>
                                         </div>
                                     </div>
-                                    <div className="flex gap-4">
-                                        <div className="w-10 h-10 bg-secondary/10 text-secondary rounded-xl flex items-center justify-center flex-shrink-0">
-                                            <CreditCard className="h-5 w-5" />
+
+                                    <div className="flex gap-5 p-6 bg-white rounded-[24px] border border-neutral-100 shadow-sm">
+                                        <div className="w-12 h-12 bg-neutral-50 text-neutral-400 rounded-2xl flex items-center justify-center flex-shrink-0">
+                                            <CreditCard className="w-6 h-6" />
                                         </div>
                                         <div>
-                                            <h4 className="font-bold text-sm uppercase tracking-wider text-gray-500 mb-1">Payment Method</h4>
-                                            <p className="text-gray-900 text-sm">{order.payment_method?.toUpperCase() || 'Not Specified'}</p>
-                                            <p className="text-xs text-green-600 font-bold mt-1 uppercase">{order.payment_status}</p>
+                                            <h4 className="font-black text-xs uppercase tracking-widest text-neutral-400 mb-2">Payment Details</h4>
+                                            <p className="text-neutral-900 font-bold text-sm mb-1">{order.payment_method?.toUpperCase() || 'ONLINE'}</p>
+                                            <span className={`text-[10px] font-black uppercase tracking-widest px-2 py-1 rounded ${order.payment_status === 'paid' ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'
+                                                }`}>
+                                                {order.payment_status || 'Pending'}
+                                            </span>
                                         </div>
                                     </div>
                                 </div>

@@ -104,11 +104,18 @@ export const createPaymentOrder = async (req: AuthRequest, res: Response) => {
 /**
  * Verify Payment after user completes payment
  */
+/**
+ * Verify Payment after user completes payment
+ */
 export const verifyPayment = async (req: AuthRequest, res: Response) => {
     try {
         const { razorpay_order_id, razorpay_payment_id, razorpay_signature, order_id } = req.body;
+        const userId = req.user?.id;
+
+        console.log(`[Payment Verification] Start - User: ${userId}, Order: ${order_id}, Payment: ${razorpay_payment_id}`);
 
         if (!razorpay_order_id || !razorpay_payment_id || !razorpay_signature) {
+            console.error('[Payment Verification] Missing details');
             return res.status(400).json({ error: 'Missing payment details' });
         }
 
@@ -120,6 +127,7 @@ export const verifyPayment = async (req: AuthRequest, res: Response) => {
         );
 
         if (!isValid) {
+            console.error('[Payment Verification] Invalid signature');
             return res.status(400).json({ error: 'Invalid payment signature' });
         }
 
@@ -127,12 +135,33 @@ export const verifyPayment = async (req: AuthRequest, res: Response) => {
         const paymentResult = await getPaymentDetails(razorpay_payment_id);
 
         if (!paymentResult.success || !paymentResult.payment) {
+            console.error('[Payment Verification] Failed to fetch from Razorpay');
             return res.status(400).json({ error: 'Payment verification failed' });
         }
 
         const payment = paymentResult.payment;
 
-        // 3. Update order in database
+        // 3. Idempotency Check: Check if order is already marked as paid
+        const { data: existingOrder, error: fetchError } = await supabase
+            .from('orders')
+            .select('payment_status, status')
+            .eq('id', order_id)
+            .single();
+
+        if (fetchError) throw fetchError;
+
+        if (existingOrder.payment_status === 'paid' && existingOrder.status !== 'pending') {
+            console.log(`[Payment Verification] Order ${order_id} already processed. Skipping stock deduction.`);
+            return res.json({
+                success: true,
+                orderId: order_id,
+                paymentStatus: payment.status,
+                message: 'Payment already processed',
+                invoiceUrl: `/orders/${order_id}/invoice`
+            });
+        }
+
+        // 4. Update order in database
         const { data: order, error: updateError } = await supabase
             .from('orders')
             .update({
@@ -148,34 +177,40 @@ export const verifyPayment = async (req: AuthRequest, res: Response) => {
 
         if (updateError) throw updateError;
 
-        // 4. Deduct stock if payment is successful
+        // 5. Deduct stock if payment is successful
         if (payment.status === 'captured') {
-            for (const item of order.order_items) {
-                if (item.selected_variant) {
-                    await supabase.rpc('deduct_variant_stock', {
-                        variant_id: item.selected_variant.id,
-                        qty: item.quantity
-                    });
-                } else {
-                    await supabase.rpc('deduct_product_stock', {
-                        prod_id: item.product_id,
-                        qty: item.quantity
-                    });
+            try {
+                for (const item of order.order_items) {
+                    if (item.selected_variant) {
+                        await supabase.rpc('deduct_variant_stock', {
+                            variant_id: item.selected_variant.id,
+                            qty: item.quantity
+                        });
+                    } else {
+                        await supabase.rpc('deduct_product_stock', {
+                            prod_id: item.product_id,
+                            qty: item.quantity
+                        });
+                    }
                 }
-            }
 
-            // Clear cart items
-            const { data: cart } = await supabase
-                .from('carts')
-                .select('id')
-                .eq('user_id', req.user?.id)
-                .single();
+                // Clear cart items
+                const { data: cart } = await supabase
+                    .from('carts')
+                    .select('id')
+                    .eq('user_id', req.user?.id)
+                    .single();
 
-            if (cart) {
-                await supabase
-                    .from('cart_items')
-                    .delete()
-                    .eq('cart_id', cart.id);
+                if (cart) {
+                    await supabase
+                        .from('cart_items')
+                        .delete()
+                        .eq('cart_id', cart.id);
+                }
+                console.log(`[Payment Verification] Success - Order ${order_id} confirmed.`);
+            } catch (stockError) {
+                console.error('[Payment Verification] Stock deduction failed:', stockError);
+                // Note: We don't rollback payment here, but we should alert admin or retry
             }
         }
 
@@ -187,7 +222,7 @@ export const verifyPayment = async (req: AuthRequest, res: Response) => {
             invoiceUrl: payment.status === 'captured' ? `/orders/${order.id}/invoice` : null
         });
     } catch (error: any) {
-        console.error('Payment verification error:', error);
+        console.error('[Payment Verification] Critical Error:', error);
         res.status(500).json({ error: error.message });
     }
 };

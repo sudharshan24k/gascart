@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
-import { Filter, ClipboardList, Building2, ShieldCheck, GitCompare, Plus, Loader2 } from 'lucide-react';
+import { Filter, ClipboardList, Building2, ShieldCheck, GitCompare, Plus, Loader2, Search, X, ChevronDown, LayoutGrid, List } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useEnquiry } from '../context/EnquiryContext';
 import { api } from '../services/api';
@@ -10,8 +10,7 @@ const ProductListing: React.FC = () => {
     const [filterOpen, setFilterOpen] = useState(false);
     const [categories, setCategories] = useState<any[]>([]);
     const [vendors, setVendors] = useState<any[]>([]);
-    // Actually, the previous logic used .find on these arrays. If they are empty [], logic fails.
-    // I should initialize them with the hardcoded values I used in the UI so the ID mapping logic works (assuming ID=Name for legacy/mock compatibility until real IDs are used)
+    const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
 
     const [loading, setLoading] = useState(true);
     const [searchParams, setSearchParams] = useSearchParams();
@@ -57,25 +56,16 @@ const ProductListing: React.FC = () => {
         setLoading(true);
         try {
             const params: any = {};
-            if (activeCategory !== 'All') params.category = activeCategory; // Backend expects ID usually, but if relying on simple name match in legacy mock, we need to ensure backend handles it. But wait, backend filtering expects category ID.
-            // Assumption: we need to fetch categories first to map name -> id, or backend supports slug/name.
-            // For now, let's assume we fetch products and distinct them, OR better, fetch filters.
 
-            // Wait, backend `category` filter expects ID currently (eq 'category_id', category).
-            // Frontend UI uses Names (Strings).
-            // We should fetch Categories to get IDs.
-
-            // Let's modify params handling.
             if (activeCategory !== 'All' && categories.length > 0) {
                 const cat = categories.find(c => c.name === activeCategory);
                 if (cat) params.category = cat.id;
             }
             if (activeVendor !== 'All' && vendors.length > 0) {
                 const ven = vendors.find(v => v.company_name === activeVendor);
-                if (ven) params.vendor = ven.id; // Correct param is vendor (id)
+                if (ven) params.vendor = ven.id;
             }
 
-            // Search Param
             const searchQuery = searchParams.get('search');
             if (searchQuery) {
                 params.search = searchQuery;
@@ -84,22 +74,12 @@ const ProductListing: React.FC = () => {
             const { data } = await api.products.list(params);
             setProducts(data || []);
 
-            // Dynamic Filters Fetching (if not already done)
-            // This is non-optimal but for MVP fine: derive unique categories/vendors from full list or separate endpoint
-            if (categories.length === 0) {
-                // Fetch categories. api.ts need categories.list?
-                // Let's try to infer from products for now or add api.categories.list
-                // Ideally we should have api.categories.list
-            }
-
         } catch (err) {
             console.error('Failed to load products', err);
         } finally {
             setLoading(false);
         }
     };
-
-
 
     const updateFilter = (type: 'category' | 'vendor', value: string) => {
         const newParams = new URLSearchParams(searchParams);
@@ -112,266 +92,237 @@ const ProductListing: React.FC = () => {
     };
 
     return (
-        <div className="min-h-screen pt-32 pb-24 bg-gray-50">
-            <div className="container mx-auto px-4 max-w-7xl">
-                {/* Header Area */}
-                <div className="mb-8 md:mb-12 flex flex-col md:flex-row md:items-end justify-between gap-4 md:gap-6">
-                    <div>
-                        <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-900 mb-3 md:mb-4">Industrial Marketplace</h1>
-                        <p className="text-sm md:text-base text-gray-500 max-w-xl">Direct access to verified Bio-CNG equipment suppliers. Aggregate assets into a single Enquiry for technical quotation.</p>
-                    </div>
-                    <div className="flex gap-3 md:gap-4">
-                        {/* Mobile Filter Toggle */}
-                        <button
-                            onClick={() => setFilterOpen(!filterOpen)}
-                            className="lg:hidden flex items-center gap-2 bg-white text-gray-700 px-4 md:px-6 py-3 rounded-2xl border border-gray-100 shadow-sm hover:shadow-lg transition-all font-bold"
-                        >
-                            <Filter className="w-5 h-5 text-primary" />
-                            Filters
-                        </button>
-                        <Link
-                            to="/enquiry-list"
-                            className="flex items-center gap-2 bg-white text-gray-700 px-4 md:px-6 py-3 rounded-2xl border border-gray-100 shadow-sm hover:shadow-lg transition-all font-bold text-sm md:text-base"
-                        >
-                            <ClipboardList className="w-5 h-5 text-primary" />
-                            View Enquiry List
-                        </Link>
-                    </div>
-                </div>
-
-                {/* Search Results Indicator */}
-                {searchParams.get('search') && (
-                    <div className="mb-8 flex items-center justify-between bg-white p-4 rounded-2xl border border-gray-100 shadow-sm">
-                        <span className="text-lg font-bold text-gray-700">
-                            Search Results for: <span className="text-primary">"{searchParams.get('search')}"</span>
-                        </span>
-                        <button
-                            onClick={() => {
-                                const newParams = new URLSearchParams(searchParams);
-                                newParams.delete('search');
-                                setSearchParams(newParams);
-                            }}
-                            className="flex items-center gap-2 text-sm font-bold text-gray-400 hover:text-red-500 transition-colors px-4 py-2 hover:bg-red-50 rounded-lg"
-                        >
-                            <span className="sr-only">Clear Search</span>
-                            Clear Search
-                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6 6 18" /><path d="m6 6 12 12" /></svg>
-                        </button>
-                    </div>
-                )}
-
-                <div className="flex flex-col lg:flex-row gap-6 md:gap-8 lg:gap-12">
-                    {/* Filter Sidebar - Desktop */}
-                    <aside className="hidden lg:block w-72 flex-shrink-0 space-y-8">
-                        <div className="bg-white p-8 rounded-3xl shadow-sm border border-gray-100">
-                            <div className="flex items-center gap-2 mb-6 text-primary">
-                                <Filter className="w-5 h-5" />
-                                <h3 className="font-bold text-lg">Filters</h3>
-                            </div>
-
-                            <div className="space-y-8">
-                                <div>
-                                    <label className="block text-xs font-black text-gray-400 uppercase tracking-widest mb-4">Product Category</label>
-                                    <div className="space-y-2">
-                                        <div className="space-y-1">
-                                            <button
-                                                onClick={() => updateFilter('category', 'All')}
-                                                className={`block w-full text-left px-4 py-2.5 rounded-xl text-sm font-bold transition-all ${activeCategory === 'All' ? 'bg-primary text-white shadow-lg shadow-primary/20' : 'text-gray-500 hover:bg-gray-50'}`}
-                                            >
-                                                All Categories
-                                            </button>
-
-                                            {/* Recursive/Hierarchical Rendering */}
-                                            {(() => {
-                                                // 1. Build Tree
-                                                const roots = categories.filter(c => !c.parent_id);
-                                                const getChildren = (pid: string) => categories.filter(c => c.parent_id === pid);
-
-                                                const renderNode = (node: any, depth = 0) => {
-                                                    const children = getChildren(node.id);
-                                                    const isActive = activeCategory === node.id;
-
-                                                    return (
-                                                        <div key={node.id} className="w-full">
-                                                            <button
-                                                                onClick={() => updateFilter('category', node.id)}
-                                                                className={`block w-full text-left px-4 py-2.5 rounded-xl text-sm font-bold transition-all flex items-center justify-between ${isActive ? 'bg-primary text-white shadow-lg shadow-primary/20' : 'text-gray-500 hover:bg-gray-50'
-                                                                    }`}
-                                                                style={{ paddingLeft: `${(depth + 1) * 1}rem` }}
-                                                            >
-                                                                {node.name}
-                                                                {children.length > 0 && <span className="text-[10px] opacity-50 ml-2">▼</span>}
-                                                            </button>
-                                                            {children.length > 0 && (
-                                                                <div className="mt-1 space-y-1">
-                                                                    {children.map(child => renderNode(child, depth + 1))}
-                                                                </div>
-                                                            )}
-                                                        </div>
-                                                    )
-                                                };
-
-                                                // Fallback for flat list if hierarchy is missing or partial
-                                                return roots.length > 0 ? roots.map(root => renderNode(root)) : categories.map(c => (
-                                                    <button
-                                                        key={c.id}
-                                                        onClick={() => updateFilter('category', c.id)}
-                                                        className={`block w-full text-left px-4 py-2.5 rounded-xl text-sm font-bold transition-all ${activeCategory === c.id ? 'bg-primary text-white' : 'text-gray-500 hover:bg-gray-50'}`}
-                                                    >
-                                                        {c.name}
-                                                    </button>
-                                                ));
-                                            })()}
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div>
-                                    <label className="block text-xs font-black text-gray-400 uppercase tracking-widest mb-4">Verified Vendors</label>
-                                    <div className="space-y-2">
-                                        {['All', 'BioGas Solutions Inc', 'Green Energy Hub', 'TechFlow Systems'].map(vendor => (
-                                            <button
-                                                key={vendor}
-                                                onClick={() => updateFilter('vendor', vendor)}
-                                                className={`block w-full text-left px-4 py-2.5 rounded-xl text-sm font-bold transition-all ${activeVendor === vendor ? 'bg-primary text-white shadow-lg shadow-primary/20' : 'text-gray-500 hover:bg-gray-50'
-                                                    }`}
-                                            >
-                                                {vendor}
-                                            </button>
-                                        ))}
-                                    </div>
-                                </div>
-                            </div>
+        <div className="min-h-screen bg-neutral-50 pt-28 pb-20">
+            {/* Header Section */}
+            <div className="bg-white border-b border-neutral-200 sticky top-16 z-30 shadow-sm/50 backdrop-blur-xl bg-white/80 supports-[backdrop-filter]:bg-white/80">
+                <div className="container mx-auto px-4 max-w-7xl py-6">
+                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+                        <div>
+                            <h1 className="text-3xl font-display font-bold text-neutral-900">Marketplace</h1>
+                            <p className="text-neutral-500 mt-1">Found {products.length} industrial assets available</p>
                         </div>
 
-                        {/* Promo Unit */}
-                        <div className="bg-gray-900 p-8 rounded-[32px] text-white shadow-2xl relative overflow-hidden group">
-                            <ShieldCheck className="w-12 h-12 mb-6 text-primary" />
-                            <h4 className="font-bold text-lg mb-2 relative z-10">ISO-Verified Suppliers</h4>
-                            <p className="text-sm opacity-60 leading-relaxed relative z-10">
-                                Every asset in the Gascart marketplace is verified for industrial safety compliance.
-                            </p>
-                            <div className="absolute -bottom-10 -right-10 w-32 h-32 bg-primary/20 rounded-full blur-3xl group-hover:bg-primary/40 transition-all"></div>
-                        </div>
-
-                        {/* Join as Vendor CTA */}
-                        <div className="mt-12 p-8 bg-secondary-900 rounded-[32px] text-white relative overflow-hidden group">
-                            <div className="absolute top-0 right-0 w-32 h-32 bg-primary/20 rounded-full -mr-16 -mt-16 blur-3xl group-hover:bg-primary/30 transition-all duration-500"></div>
-                            <h3 className="text-xl font-bold mb-3 relative z-10">Sell on Gascart</h3>
-                            <p className="text-white/70 text-sm mb-6 relative z-10 leading-relaxed">
-                                Join India's largest Bio-CNG marketplace. Reach verified industrial buyers and expand your business.
-                            </p>
-                            <Link
-                                to="/vendor-enquiry"
-                                className="inline-flex items-center gap-2 bg-primary text-white px-6 py-3 rounded-2xl font-black text-sm hover:bg-primary-dark transition-all relative z-10 shadow-lg shadow-primary/20"
+                        <div className="flex items-center gap-3">
+                            <button
+                                onClick={() => setViewMode('grid')}
+                                className={`p-2.5 rounded-xl transition-all ${viewMode === 'grid' ? 'bg-neutral-100 text-neutral-900' : 'text-neutral-400 hover:text-neutral-600'}`}
                             >
-                                <Building2 className="w-4 h-4" /> Join as Vendor
+                                <LayoutGrid className="w-5 h-5" />
+                            </button>
+                            <button
+                                onClick={() => setViewMode('list')}
+                                className={`p-2.5 rounded-xl transition-all ${viewMode === 'list' ? 'bg-neutral-100 text-neutral-900' : 'text-neutral-400 hover:text-neutral-600'}`}
+                            >
+                                <List className="w-5 h-5" />
+                            </button>
+                            <div className="h-8 w-px bg-neutral-200 mx-2"></div>
+                            <button
+                                onClick={() => setFilterOpen(!filterOpen)}
+                                className="lg:hidden flex items-center gap-2 bg-neutral-900 text-white px-4 py-2.5 rounded-xl font-medium shadow-lg shadow-neutral-900/10"
+                            >
+                                <Filter className="w-4 h-4" /> Filters
+                            </button>
+                            <Link
+                                to="/enquiry-list"
+                                className="hidden md:flex items-center gap-2 bg-primary text-white px-5 py-2.5 rounded-xl font-bold shadow-lg shadow-primary/20 hover:bg-primary-600 transition-all transform hover:-translate-y-0.5"
+                            >
+                                <ClipboardList className="w-4 h-4" />
+                                Enquiry List
                             </Link>
                         </div>
-                    </aside>
+                    </div>
 
-                    {/* Mobile Filter Drawer */}
-                    {filterOpen && (
-                        <>
-                            <div
-                                className="lg:hidden fixed inset-0 bg-black/50 z-40"
-                                onClick={() => setFilterOpen(false)}
-                            />
-                            <aside className="lg:hidden fixed inset-y-0 left-0 w-80 max-w-[85vw] bg-white z-50 overflow-y-auto custom-scrollbar animate-slide-in-left">
-                                <div className="p-6 border-b border-gray-100 flex items-center justify-between sticky top-0 bg-white">
-                                    <div className="flex items-center gap-2 text-primary">
-                                        <Filter className="w-5 h-5" />
-                                        <h3 className="font-bold text-lg">Filters</h3>
-                                    </div>
+                    {/* Active Filters Pills */}
+                    {(activeCategory !== 'All' || activeVendor !== 'All' || searchParams.get('search')) && (
+                        <div className="flex flex-wrap items-center gap-2 mt-6 pt-4 border-t border-neutral-100">
+                            <span className="text-xs font-bold text-neutral-400 uppercase tracking-wider mr-2">Active Filters:</span>
+
+                            {searchParams.get('search') && (
+                                <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-neutral-100 text-neutral-700 rounded-full text-sm font-medium">
+                                    Search: "{searchParams.get('search')}"
+                                    <button onClick={() => {
+                                        const newParams = new URLSearchParams(searchParams);
+                                        newParams.delete('search');
+                                        setSearchParams(newParams);
+                                    }} className="hover:text-red-500"><X className="w-3.5 h-3.5" /></button>
+                                </span>
+                            )}
+
+                            {activeCategory !== 'All' && (
+                                <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-primary/10 text-primary-700 rounded-full text-sm font-medium border border-primary/20">
+                                    {categories.find(c => c.id === activeCategory)?.name || activeCategory}
+                                    <button onClick={() => updateFilter('category', 'All')} className="hover:text-red-500"><X className="w-3.5 h-3.5" /></button>
+                                </span>
+                            )}
+
+                            {activeVendor !== 'All' && (
+                                <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-secondary/10 text-secondary-700 rounded-full text-sm font-medium border border-secondary/20">
+                                    {activeVendor}
+                                    <button onClick={() => updateFilter('vendor', 'All')} className="hover:text-red-500"><X className="w-3.5 h-3.5" /></button>
+                                </span>
+                            )}
+
+                            <button
+                                onClick={() => setSearchParams({})}
+                                className="text-xs font-bold text-red-500 hover:text-red-600 ml-auto"
+                            >
+                                Clear All
+                            </button>
+                        </div>
+                    )}
+                </div>
+            </div>
+
+            <div className="container mx-auto px-4 max-w-7xl py-8">
+                <div className="flex flex-col lg:flex-row gap-8">
+                    {/* Sidebar Filters */}
+                    <aside className={`lg:w-72 flex-shrink-0 ${filterOpen ? 'fixed inset-0 z-50 bg-white p-6 lg:static lg:bg-transparent lg:p-0' : 'hidden lg:block'}`}>
+                        {filterOpen && (
+                            <div className="flex justify-between items-center mb-6 lg:hidden">
+                                <h2 className="text-2xl font-bold font-display">Filters</h2>
+                                <button onClick={() => setFilterOpen(false)} className="p-2 bg-neutral-100 rounded-full"><X className="w-6 h-6" /></button>
+                            </div>
+                        )}
+
+                        <div className="space-y-8 sticky top-32">
+                            {/* Categories */}
+                            <div className="bg-white p-6 rounded-3xl shadow-sm border border-neutral-100">
+                                <h3 className="font-bold text-neutral-900 mb-4 flex items-center gap-2">
+                                    <LayoutGrid className="w-4 h-4 text-primary" /> Categories
+                                </h3>
+                                <div className="space-y-1">
                                     <button
-                                        onClick={() => setFilterOpen(false)}
-                                        className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
-                                        aria-label="Close filters"
+                                        onClick={() => { updateFilter('category', 'All'); setFilterOpen(false); }}
+                                        className={`w-full text-left px-3 py-2 rounded-lg text-sm font-medium transition-colors ${activeCategory === 'All' ? 'bg-primary text-white shadow-md shadow-primary/20' : 'text-neutral-600 hover:bg-neutral-50'}`}
                                     >
-                                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6 6 18" /><path d="m6 6 12 12" /></svg>
+                                        All Categories
                                     </button>
-                                </div>
-                                <div className="p-6 space-y-8">
-                                    <div>
-                                        <label className="block text-xs font-black text-gray-400 uppercase tracking-widest mb-4">Product Category</label>
-                                        <div className="space-y-2">
-                                            <div className="space-y-1">
+                                    {categories.filter(c => !c.parent_id).map(category => (
+                                        <div key={category.id}>
+                                            <button
+                                                onClick={() => { updateFilter('category', category.id); setFilterOpen(false); }}
+                                                className={`w-full text-left px-3 py-2 rounded-lg text-sm font-medium transition-colors ${activeCategory === category.id ? 'bg-primary text-white shadow-md shadow-primary/20' : 'text-neutral-600 hover:bg-neutral-50'}`}
+                                            >
+                                                {category.name}
+                                            </button>
+                                            {categories.filter(sub => sub.parent_id === category.id).map(sub => (
                                                 <button
-                                                    onClick={() => { updateFilter('category', 'All'); setFilterOpen(false); }}
-                                                    className={`block w-full text-left px-4 py-2.5 rounded-xl text-sm font-bold transition-all ${activeCategory === 'All' ? 'bg-primary text-white shadow-lg shadow-primary/20' : 'text-gray-500 hover:bg-gray-50'}`}
+                                                    key={sub.id}
+                                                    onClick={() => { updateFilter('category', sub.id); setFilterOpen(false); }}
+                                                    className={`w-full text-left px-3 py-2 pl-6 rounded-lg text-sm transition-colors ${activeCategory === sub.id ? 'text-primary font-bold bg-primary/5' : 'text-neutral-500 hover:text-neutral-900'}`}
                                                 >
-                                                    All Categories
-                                                </button>
-                                                {(() => {
-                                                    const roots = categories.filter(c => !c.parent_id);
-                                                    const getChildren = (pid: string) => categories.filter(c => c.parent_id === pid);
-                                                    const renderNode = (node: any, depth = 0) => {
-                                                        const children = getChildren(node.id);
-                                                        const isActive = activeCategory === node.id;
-                                                        return (
-                                                            <div key={node.id} className="w-full">
-                                                                <button
-                                                                    onClick={() => { updateFilter('category', node.id); setFilterOpen(false); }}
-                                                                    className={`block w-full text-left px-4 py-2.5 rounded-xl text-sm font-bold transition-all flex items-center justify-between ${isActive ? 'bg-primary text-white shadow-lg shadow-primary/20' : 'text-gray-500 hover:bg-gray-50'}`}
-                                                                    style={{ paddingLeft: `${(depth + 1) * 1}rem` }}
-                                                                >
-                                                                    {node.name}
-                                                                    {children.length > 0 && <span className="text-[10px] opacity-50 ml-2">▼</span>}
-                                                                </button>
-                                                                {children.length > 0 && (
-                                                                    <div className="mt-1 space-y-1">
-                                                                        {children.map(child => renderNode(child, depth + 1))}
-                                                                    </div>
-                                                                )}
-                                                            </div>
-                                                        )
-                                                    };
-                                                    return roots.length > 0 ? roots.map(root => renderNode(root)) : categories.map(c => (
-                                                        <button
-                                                            key={c.id}
-                                                            onClick={() => { updateFilter('category', c.id); setFilterOpen(false); }}
-                                                            className={`block w-full text-left px-4 py-2.5 rounded-xl text-sm font-bold transition-all ${activeCategory === c.id ? 'bg-primary text-white' : 'text-gray-500 hover:bg-gray-50'}`}
-                                                        >
-                                                            {c.name}
-                                                        </button>
-                                                    ));
-                                                })()}
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div>
-                                        <label className="block text-xs font-black text-gray-400 uppercase tracking-widest mb-4">Verified Vendors</label>
-                                        <div className="space-y-2">
-                                            {['All', 'BioGas Solutions Inc', 'Green Energy Hub', 'TechFlow Systems'].map(vendor => (
-                                                <button
-                                                    key={vendor}
-                                                    onClick={() => { updateFilter('vendor', vendor); setFilterOpen(false); }}
-                                                    className={`block w-full text-left px-4 py-2.5 rounded-xl text-sm font-bold transition-all ${activeVendor === vendor ? 'bg-primary text-white shadow-lg shadow-primary/20' : 'text-gray-500 hover:bg-gray-50'}`}
-                                                >
-                                                    {vendor}
+                                                    • {sub.name}
                                                 </button>
                                             ))}
                                         </div>
-                                    </div>
+                                    ))}
                                 </div>
-                            </aside>
-                        </>
-                    )}
+                            </div>
+
+                            {/* Vendors */}
+                            <div className="bg-white p-6 rounded-3xl shadow-sm border border-neutral-100">
+                                <h3 className="font-bold text-neutral-900 mb-4 flex items-center gap-2">
+                                    <Building2 className="w-4 h-4 text-primary" /> Vendors
+                                </h3>
+                                <div className="space-y-1 max-h-60 overflow-y-auto custom-scrollbar">
+                                    <button
+                                        onClick={() => { updateFilter('vendor', 'All'); setFilterOpen(false); }}
+                                        className={`w-full text-left px-3 py-2 rounded-lg text-sm font-medium transition-colors ${activeVendor === 'All' ? 'bg-neutral-900 text-white shadow-md' : 'text-neutral-600 hover:bg-neutral-50'}`}
+                                    >
+                                        All Vendors
+                                    </button>
+                                    {vendors.map(vendor => (
+                                        <button
+                                            key={vendor.id}
+                                            onClick={() => { updateFilter('vendor', vendor.company_name); setFilterOpen(false); }}
+                                            className={`w-full text-left px-3 py-2 rounded-lg text-sm font-medium transition-colors ${activeVendor === vendor.company_name ? 'bg-neutral-900 text-white shadow-md' : 'text-neutral-600 hover:bg-neutral-50'}`}
+                                        >
+                                            {vendor.company_name}
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+
+                            {/* Promo Card */}
+                            <div className="bg-gradient-to-br from-neutral-900 to-neutral-800 p-6 rounded-3xl text-white relative overflow-hidden">
+                                <div className="relative z-10">
+                                    <ShieldCheck className="w-8 h-8 text-primary mb-3" />
+                                    <h4 className="font-display font-bold text-lg mb-1">Verify First</h4>
+                                    <p className="text-neutral-400 text-xs leading-relaxed mb-4">All suppliers on Gascart undergo a strict 3-step verification process.</p>
+                                    <Link to="/about" className="text-xs font-bold text-primary hover:text-white transition-colors">
+                                        Learn more
+                                    </Link>
+                                </div>
+                                <div className="absolute top-0 right-0 w-24 h-24 bg-primary/20 rounded-full blur-2xl -mr-10 -mt-10"></div>
+                            </div>
+                        </div>
+                    </aside>
 
                     {/* Product Grid */}
-                    <div className="flex-grow">
+                    <div className="flex-1">
                         {loading ? (
-                            <div className="flex justify-center py-20">
-                                <Loader2 className="w-10 h-10 text-primary animate-spin" />
+                            <div className="flex flex-col items-center justify-center py-20">
+                                <Loader2 className="w-10 h-10 text-primary animate-spin mb-4" />
+                                <p className="text-neutral-500 font-medium animate-pulse">Loading assets...</p>
+                            </div>
+                        ) : products.length === 0 ? (
+                            <div className="bg-white p-12 rounded-[32px] border border-neutral-100 text-center">
+                                <div className="w-20 h-20 bg-neutral-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                                    <Search className="w-8 h-8 text-neutral-400" />
+                                </div>
+                                <h3 className="text-xl font-bold text-neutral-900 mb-2">No results found</h3>
+                                <p className="text-neutral-500">Try adjusting your filters or search query.</p>
+                                <button
+                                    onClick={() => setSearchParams({})}
+                                    className="mt-6 px-6 py-3 bg-neutral-900 text-white rounded-xl font-bold text-sm hover:bg-black transition-colors"
+                                >
+                                    Clear All Filters
+                                </button>
                             </div>
                         ) : (
-                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-6 md:gap-8">
+                            <div className={viewMode === 'grid'
+                                ? "grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6"
+                                : "flex flex-col gap-4"
+                            }>
                                 {products.map((product) => {
                                     const isInComparison = state.comparisonItems.some(i => i.id === product.id);
-                                    // Handle image array or single string
                                     const mainImage = Array.isArray(product.images) ? product.images[0] : product.image;
                                     const vendorName = product.profiles?.company_name || product.vendor || 'Authorized Vendor';
-                                    const categoryName = product.categories?.name || product.category || 'Industrial';
+
+                                    if (viewMode === 'list') {
+                                        return (
+                                            <motion.div
+                                                key={product.id}
+                                                layout
+                                                initial={{ opacity: 0 }}
+                                                animate={{ opacity: 1 }}
+                                                className="bg-white p-4 rounded-3xl border border-neutral-100 hover:border-primary/30 shadow-sm hover:shadow-xl transition-all flex gap-6 items-center group"
+                                            >
+                                                <div className="w-24 h-24 bg-neutral-100 rounded-2xl flex-shrink-0 overflow-hidden">
+                                                    <img src={mainImage} className="w-full h-full object-cover" alt={product.name} />
+                                                </div>
+                                                <div className="flex-grow">
+                                                    <div className="text-xs font-bold text-primary mb-1 uppercase tracking-wider">{vendorName}</div>
+                                                    <h3 className="text-lg font-bold text-neutral-900 mb-1">{product.name}</h3>
+                                                    <div className="text-lg font-bold text-neutral-900">₹{Number(product.price).toLocaleString()}</div>
+                                                </div>
+                                                <div className="flex gap-2">
+                                                    <button
+                                                        onClick={() => dispatch({
+                                                            type: 'ADD_ITEM',
+                                                            payload: { id: product.id, name: product.name, price: Number(product.price), quantity: 1, image: mainImage, vendor: vendorName }
+                                                        })}
+                                                        className="px-6 py-3 bg-neutral-900 text-white rounded-xl font-bold text-sm hover:bg-primary transition-colors"
+                                                    >
+                                                        Add to Enquiry
+                                                    </button>
+                                                    <Link to={`/product/${product.id}`} className="px-6 py-3 border border-neutral-200 text-neutral-900 rounded-xl font-bold text-sm hover:bg-neutral-50 transition-colors">
+                                                        Details
+                                                    </Link>
+                                                </div>
+                                            </motion.div>
+                                        );
+                                    }
 
                                     return (
                                         <motion.div
@@ -379,73 +330,54 @@ const ProductListing: React.FC = () => {
                                             layout
                                             initial={{ opacity: 0, y: 10 }}
                                             animate={{ opacity: 1, y: 0 }}
-                                            className="bg-white rounded-[40px] overflow-hidden shadow-sm border border-gray-100 hover:shadow-2xl hover:-translate-y-2 transition-all duration-300 group relative"
+                                            className="bg-white rounded-3xl border border-neutral-100 overflow-hidden hover:shadow-[0_20px_40px_-15px_rgba(0,0,0,0.1)] hover:-translate-y-1 transition-all duration-300 group flex flex-col"
                                         >
-                                            {/* Purchase Model Badge */}
-                                            <div className="absolute top-6 left-6 z-10">
-                                                {product.purchase_model === 'rfq' ? (
-                                                    <span className="bg-gray-900/80 backdrop-blur text-white text-[10px] font-black px-4 py-2 rounded-xl uppercase tracking-widest flex items-center gap-2">
-                                                        <ClipboardList className="w-3 h-3 text-primary" /> Technical RFQ
-                                                    </span>
-                                                ) : product.purchase_model === 'both' ? (
-                                                    <span className="bg-blue-600/80 backdrop-blur text-white text-[10px] font-black px-4 py-2 rounded-xl uppercase tracking-widest flex items-center gap-2">
-                                                        <GitCompare className="w-3 h-3" /> Direct + RFQ
-                                                    </span>
-                                                ) : (
-                                                    <span className="bg-green-600/80 backdrop-blur text-white text-[10px] font-black px-4 py-2 rounded-xl uppercase tracking-widest flex items-center gap-2">
-                                                        <ShieldCheck className="w-3 h-3" /> Direct Buy
-                                                    </span>
-                                                )}
+                                            <div className="relative aspect-[4/3] overflow-hidden bg-neutral-100">
+                                                <img
+                                                    src={mainImage}
+                                                    alt={product.name}
+                                                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
+                                                />
+                                                <div className="absolute top-4 left-4">
+                                                    {product.purchase_model === 'rfq' && (
+                                                        <span className="bg-white/90 backdrop-blur text-neutral-900 text-[10px] font-black px-3 py-1.5 rounded-lg border border-white/20 shadow-sm uppercase tracking-widest">
+                                                            RFQ Only
+                                                        </span>
+                                                    )}
+                                                </div>
+                                                <button
+                                                    onClick={() => dispatch({
+                                                        type: 'TOGGLE_COMPARISON',
+                                                        payload: { id: product.id, name: product.name, image: mainImage, category: product.category }
+                                                    })}
+                                                    className={`absolute top-4 right-4 p-2 rounded-xl backdrop-blur-md transition-all ${isInComparison ? 'bg-primary text-white' : 'bg-white/80 text-neutral-600 hover:bg-white'}`}
+                                                >
+                                                    <GitCompare className="w-4 h-4" />
+                                                </button>
                                             </div>
 
-                                            <button
-                                                onClick={() => dispatch({
-                                                    type: 'TOGGLE_COMPARISON',
-                                                    payload: { id: product.id, name: product.name, image: mainImage, category: categoryName }
-                                                })}
-                                                className={`absolute top-6 right-6 z-10 p-3 rounded-2xl transition-all shadow-lg hover:-translate-y-1 active:translate-y-0 ${isInComparison ? 'bg-secondary text-white shadow-glow-secondary' : 'bg-white/90 backdrop-blur text-gray-400 hover:text-secondary'
-                                                    }`}
-                                            >
-                                                <GitCompare className="w-5 h-5" />
-                                            </button>
-
-                                            <Link to={`/product/${product.id}`} className="block aspect-[4/3] overflow-hidden bg-gray-50 relative p-4">
-                                                {mainImage ? (
-                                                    <img
-                                                        src={mainImage}
-                                                        alt={product.name}
-                                                        className="w-full h-full object-cover rounded-3xl group-hover:scale-105 transition-transform duration-700"
-                                                    />
-                                                ) : (
-                                                    <div className="w-full h-full flex items-center justify-center bg-gray-100 rounded-3xl text-gray-300">
-                                                        <Filter className="w-12 h-12" />
-                                                    </div>
-                                                )}
-                                            </Link>
-
-                                            <div className="p-8">
-                                                <div className="flex items-center gap-2 text-[10px] text-primary font-black uppercase tracking-widest mb-3">
-                                                    <Building2 className="w-3 h-3" />
-                                                    {vendorName}
+                                            <div className="p-6 flex flex-col flex-1">
+                                                <div className="flex items-center gap-2 mb-2">
+                                                    <Building2 className="w-3 h-3 text-neutral-400" />
+                                                    <span className="text-[10px] font-bold text-neutral-400 uppercase tracking-widest">{vendorName}</span>
                                                 </div>
-                                                <h3 className="font-bold text-xl text-gray-900 mb-4 group-hover:text-primary transition-colors h-14 overflow-hidden">{product.name}</h3>
+                                                <Link to={`/product/${product.id}`} className="block">
+                                                    <h3 className="font-bold text-lg text-neutral-900 mb-2 leading-tight group-hover:text-primary transition-colors line-clamp-2">{product.name}</h3>
+                                                </Link>
 
-                                                <div className="flex items-center justify-between mt-8 pt-8 border-t border-gray-50">
-                                                    <div className="flex flex-col">
-                                                        <span className="text-[10px] text-gray-400 font-bold uppercase tracking-tighter">
-                                                            {product.purchase_model === 'rfq' ? 'Project Est.' : product.purchase_model === 'both' ? 'Price/Est.' : 'Ex-Works Price'}
-                                                        </span>
-                                                        <span className="text-2xl font-black text-gray-900">₹{Number(product.price).toLocaleString()}</span>
+                                                <div className="mt-auto pt-6 flex items-end justify-between">
+                                                    <div>
+                                                        <p className="text-[10px] font-bold text-neutral-400 uppercase tracking-wider mb-0.5">Price</p>
+                                                        <p className="text-xl font-bold text-neutral-900 font-display">₹{Number(product.price).toLocaleString()}</p>
                                                     </div>
                                                     <button
                                                         onClick={() => dispatch({
                                                             type: 'ADD_ITEM',
                                                             payload: { id: product.id, name: product.name, price: Number(product.price), quantity: 1, image: mainImage, vendor: vendorName }
                                                         })}
-                                                        className={`p-4 rounded-2xl transition-all shadow-xl hover:-translate-y-1 hover:shadow-glow-primary active:scale-95 ${product.purchase_model === 'rfq' ? 'bg-gray-100 text-gray-400 hover:bg-primary hover:text-white' : product.purchase_model === 'both' ? 'bg-primary text-white shadow-primary' : 'bg-gray-900 text-white hover:bg-primary'
-                                                            }`}
+                                                        className="w-10 h-10 bg-neutral-900 rounded-xl flex items-center justify-center text-white hover:bg-primary transition-colors shadow-lg shadow-neutral-900/20 group-hover:scale-110"
                                                     >
-                                                        {product.purchase_model === 'rfq' ? <ClipboardList className="w-6 h-6" /> : <Plus className="w-6 h-6" />}
+                                                        <Plus className="w-5 h-5" />
                                                     </button>
                                                 </div>
                                             </div>
@@ -454,45 +386,38 @@ const ProductListing: React.FC = () => {
                                 })}
                             </div>
                         )}
-
-                        {!loading && products.length === 0 && (
-                            <div className="text-center py-20">
-                                <h3 className="text-2xl font-bold text-gray-900">No assets found</h3>
-                                <p className="text-gray-500 mt-2">Try adjusting your filters.</p>
-                            </div>
-                        )}
                     </div>
                 </div>
             </div>
 
-            {/* Comparison Bar (Floating) */}
+            {/* Comparison Floating Bar */}
             <AnimatePresence>
                 {state.comparisonItems.length > 0 && (
                     <motion.div
-                        initial={{ y: 100 }}
-                        animate={{ y: 0 }}
-                        exit={{ y: 100 }}
-                        className="fixed bottom-8 left-1/2 -translate-x-1/2 z-50 bg-gray-900/90 backdrop-blur-xl px-8 py-4 rounded-[32px] shadow-2xl border border-white/10 flex items-center gap-8"
+                        initial={{ y: 100, opacity: 0 }}
+                        animate={{ y: 0, opacity: 1 }}
+                        exit={{ y: 100, opacity: 0 }}
+                        className="fixed bottom-6 left-0 right-0 z-50 flex justify-center pointer-events-none"
                     >
-                        <div className="flex items-center gap-4">
-                            <GitCompare className="w-6 h-6 text-secondary" />
-                            <span className="text-white font-bold">{state.comparisonItems.length} Assets Selected</span>
+                        <div className="bg-neutral-900/90 backdrop-blur-xl text-white pl-6 pr-2 py-2 rounded-full shadow-2xl flex items-center gap-6 pointer-events-auto border border-white/10 ring-1 ring-black/20">
+                            <div className="flex items-center gap-3">
+                                <div className="bg-primary rounded-full p-1.5">
+                                    <GitCompare className="w-4 h-4 text-white" />
+                                </div>
+                                <span className="font-bold text-sm">{state.comparisonItems.length} items</span>
+                            </div>
+                            <div className="flex items-center gap-2">
+                                <Link to="/compare" className="px-5 py-2.5 bg-white text-neutral-900 rounded-full text-xs font-bold hover:bg-gray-100 transition-colors">
+                                    Compare Now
+                                </Link>
+                                <button
+                                    onClick={() => {/* Clear logic would go here via context */ }}
+                                    className="p-2.5 hover:bg-white/10 rounded-full transition-colors"
+                                >
+                                    <X className="w-4 h-4 text-neutral-400" />
+                                </button>
+                            </div>
                         </div>
-                        <div className="h-8 w-px bg-white/10"></div>
-                        <Link
-                            to="/compare"
-                            className="bg-secondary text-white px-6 py-2 rounded-xl font-bold hover:scale-105 transition-all text-sm"
-                        >
-                            Compare Details
-                        </Link>
-                        <button
-                            onClick={async () => {
-                                // Logic to remove all - needs action in context
-                            }}
-                            className="text-white/40 hover:text-white text-xs font-bold"
-                        >
-                            Clear
-                        </button>
                     </motion.div>
                 )}
             </AnimatePresence>

@@ -64,9 +64,17 @@ const CategoryManagement = () => {
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         try {
+            const sanitizedSlug = (formData.slug || formData.name)
+                .toLowerCase()
+                .trim()
+                .replace(/[^a-z0-9]+/g, '-') // Replace non-alphanumeric chars with hyphen
+                .replace(/^-+|-+$/g, ''); // Remove leading/trailing hyphens
+
             const payload = {
                 ...formData,
-                slug: formData.slug || formData.name.toLowerCase().replace(/ /g, '-')
+                slug: sanitizedSlug,
+                image_url: formData.image_url || null,
+                description: formData.description || null
             };
 
             if (editingCategory) {
@@ -76,8 +84,9 @@ const CategoryManagement = () => {
             }
             setIsModalOpen(false);
             loadData();
-        } catch (err) {
+        } catch (err: any) {
             console.error('Failed to save category', err);
+            alert('Failed to save category. ' + (err.response?.data?.message || err.message || 'It might be a duplicate slug.'));
         }
     };
 

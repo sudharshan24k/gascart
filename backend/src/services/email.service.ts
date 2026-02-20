@@ -85,3 +85,32 @@ export const sendOrderConfirmation = async (email: string, orderId: string, amou
         `
     });
 };
+
+export const sendShippingUpdate = async (email: string, orderId: string, carrier: string, trackingNumber: string) => {
+    await sendEmail({
+        to: email,
+        subject: `Your Order #${orderId.slice(0, 8).toUpperCase()} has Shipped!`,
+        text: `Good news! Your order has been shipped.
+
+        Order ID: ${orderId.toUpperCase()}
+        Carrier: ${carrier}
+        Tracking Number: ${trackingNumber}
+
+        Track here: ${process.env.FRONTEND_URL || 'http://localhost:5173'}/order-tracking/${orderId}
+
+        Best regards,
+        Gascart Team`,
+        html: `
+            <div style="font-family: Arial, sans-serif; padding: 20px; color: #333;">
+                <h2 style="color: #1a1a1a;">Your Order is on the way!</h2>
+                <p>Good news! Your items have been shipped.</p>
+                <div style="background: #f5f5f5; padding: 15px; border-radius: 8px; margin: 20px 0;">
+                    <p><strong>Order ID:</strong> #${orderId.toUpperCase()}</p>
+                    <p><strong>Carrier:</strong> ${carrier}</p>
+                    <p><strong>Tracking Number:</strong> ${trackingNumber}</p>
+                </div>
+                <p><a href="${process.env.FRONTEND_URL || 'http://localhost:5173'}/order-tracking/${orderId}" style="background-color: #000; color: #fff; padding: 10px 20px; text-decoration: none; border-radius: 5px;">Track Order</a></p>
+            </div>
+        `
+    });
+};

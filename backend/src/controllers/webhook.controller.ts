@@ -8,7 +8,9 @@ import { verifyWebhookSignature } from '../services/razorpay.service';
  */
 export const handleRazorpayWebhook = async (req: Request, res: Response) => {
     const webhookSignature = req.headers['x-razorpay-signature'] as string;
-    const webhookBody = JSON.stringify(req.body);
+
+    // req.body is a Buffer because of express.raw() in routes
+    const webhookBody = req.body.toString();
 
     // 1. Verify webhook signature
     const isValid = verifyWebhookSignature(webhookBody, webhookSignature);
@@ -18,13 +20,14 @@ export const handleRazorpayWebhook = async (req: Request, res: Response) => {
         return res.status(400).json({ error: 'Invalid signature' });
     }
 
-    // 2. Process webhook event
-    const event = req.body.event;
-    const payload = req.body.payload;
-
-    console.log(`Received Razorpay webhook: ${event}`);
-
     try {
+        // 2. Parse body
+        const body = JSON.parse(webhookBody);
+        const event = body.event;
+        const payload = body.payload;
+
+        console.log(`Received Razorpay webhook: ${event}`);
+
         switch (event) {
             case 'payment.captured':
                 await handlePaymentCaptured(payload);
@@ -62,6 +65,25 @@ async function handlePaymentCaptured(payload: any) {
 
     if (!orderId) {
         console.error('No order_id in payment notes');
+        return;
+    }
+
+    console.log(`[Webhook] Processing payment.captured for order ${orderId}`);
+
+    // IDEMPOTENCY CHECK
+    const { data: existingOrder, error: fetchError } = await supabase
+        .from('orders')
+        .select('payment_status, status')
+        .eq('id', orderId)
+        .single();
+
+    if (fetchError) {
+        console.error('Error fetching order:', fetchError);
+        return;
+    }
+
+    if (existingOrder.payment_status === 'paid' && existingOrder.status !== 'pending') {
+        console.log(`[Webhook] Order ${orderId} already processed. Skipping.`);
         return;
     }
 
@@ -104,7 +126,7 @@ async function handlePaymentCaptured(payload: any) {
         }
     }
 
-    console.log(`Payment captured for order ${orderId}. Amount: ₹${payment.amount / 100}`);
+    console.log(`[Webhook] Payment captured and processed for order ${orderId}. Amount: ₹${payment.amount / 100}`);
 }
 
 /**
