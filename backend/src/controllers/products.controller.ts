@@ -11,14 +11,16 @@ export const getProducts = async (req: Request, res: Response, next: NextFunctio
 
         // Check Cache
         let cachedData = null;
-        try {
-            cachedData = await redis.get(cacheKey);
-            if (cachedData) {
-                return res.json(JSON.parse(cachedData));
-            }
-        } catch (cacheErr: any) {
-            if (!cacheErr.message.includes("enableOfflineQueue options is false")) {
-                console.warn('[Products] Cache GET failed, skipping:', cacheErr.message);
+        if (redis.status === 'ready') {
+            try {
+                cachedData = await redis.get(cacheKey);
+                if (cachedData) {
+                    return res.json(JSON.parse(cachedData));
+                }
+            } catch (cacheErr: any) {
+                if (!cacheErr.message.includes("enableOfflineQueue options is false")) {
+                    console.warn('[Products] Cache GET failed, skipping:', cacheErr.message);
+                }
             }
         }
 
@@ -109,11 +111,13 @@ export const getProducts = async (req: Request, res: Response, next: NextFunctio
         }
 
         // Set Cache (TTL: 1 hour)
-        try {
-            await redis.setex(cacheKey, 3600, JSON.stringify(responseData));
-        } catch (cacheErr: any) {
-            if (!cacheErr.message.includes("enableOfflineQueue options is false")) {
-                console.warn('[Products] Cache SET failed:', cacheErr.message);
+        if (redis.status === 'ready') {
+            try {
+                await redis.setex(cacheKey, 3600, JSON.stringify(responseData));
+            } catch (cacheErr: any) {
+                if (!cacheErr.message.includes("enableOfflineQueue options is false")) {
+                    console.warn('[Products] Cache SET failed:', cacheErr.message);
+                }
             }
         }
 

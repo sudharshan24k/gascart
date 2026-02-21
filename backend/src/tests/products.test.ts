@@ -8,6 +8,7 @@ jest.mock('../services/redis.service', () => ({
     get: jest.fn(),
     setex: jest.fn(),
     on: jest.fn(),
+    status: 'ready',
 }));
 
 // Mock Supabase
