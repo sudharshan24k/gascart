@@ -355,17 +355,17 @@ const ProductListing: React.FC = () => {
                                             </div>
 
                                             <div className="p-6 flex flex-col flex-1">
-                                                <div className="flex items-center gap-2 mb-2">
+                                                <div className="flex items-center gap-2 mb-3 mt-1">
                                                     <Building2 className="w-3 h-3 text-neutral-400" />
-                                                    <span className="text-[10px] font-bold text-neutral-400 uppercase tracking-widest">{vendorName}</span>
+                                                    <span className="text-[10px] font-bold text-neutral-500 uppercase tracking-widest">{vendorName}</span>
                                                 </div>
-                                                <Link to={`/product/${product.id}`} className="block">
-                                                    <h3 className="font-bold text-lg text-neutral-900 mb-2 leading-tight group-hover:text-primary transition-colors line-clamp-2">{product.name}</h3>
+                                                <Link to={`/product/${product.id}`} className="block mb-2">
+                                                    <h3 className="font-bold text-lg text-neutral-900 leading-tight group-hover:text-primary transition-colors line-clamp-2">{product.name}</h3>
                                                 </Link>
 
-                                                <div className="mt-auto pt-6 flex items-end justify-between">
+                                                <div className="flex items-center gap-2 mt-auto pt-6 justify-between">
                                                     <div>
-                                                        <p className="text-[10px] font-bold text-neutral-400 uppercase tracking-wider mb-0.5">Price</p>
+                                                        <p className="text-[10px] font-bold text-neutral-400 uppercase tracking-wider mb-1">Unit Price</p>
                                                         <p className="text-xl font-bold text-neutral-900 font-display">₹{Number(product.price).toLocaleString()}</p>
                                                     </div>
                                                     <button

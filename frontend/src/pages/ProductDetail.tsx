@@ -556,8 +556,10 @@ const ProductDetail: React.FC = () => {
 
                                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                                 {(product.min_rfq_fields?.length > 0 ? product.min_rfq_fields : [
+                                                    { label: 'Company Name', type: 'text', placeholder: 'e.g. Acme Corp', required: true },
+                                                    { label: 'Contact Person', type: 'text', placeholder: 'John Doe', required: true },
                                                     { label: 'Project Location', type: 'text', placeholder: 'Site City, State', required: true },
-                                                    { label: 'Expected Volume', type: 'text', placeholder: 'e.g. 5 Units', required: true },
+                                                    { label: 'Expected Volume / Requirements', type: 'text', placeholder: 'Detailed Requirements', required: true },
                                                     { label: 'Timeline', type: 'select', options: ['Immediate', '1-3 Months', 'Budgeting'], required: true }
                                                 ]).map((field: any, i: number) => (
                                                     <div key={i} className={field.type === 'textarea' ? 'col-span-full' : ''}>
