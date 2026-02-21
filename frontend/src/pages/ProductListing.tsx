@@ -90,39 +90,72 @@ const ProductListing: React.FC = () => {
     };
 
     return (
-        <div className="min-h-screen bg-neutral-50 pt-28 pb-20">
-            {/* Header Section */}
-            <div className="bg-white border-b border-neutral-200 sticky top-16 z-30 shadow-sm/50 backdrop-blur-xl bg-white/80 supports-[backdrop-filter]:bg-white/80">
-                <div className="container mx-auto px-4 max-w-7xl py-6">
-                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
-                        <div>
-                            <h1 className="text-3xl font-display font-bold text-neutral-900">Marketplace</h1>
-                            <p className="text-neutral-500 mt-1">Found {products.length} industrial assets available</p>
+        <div className="min-h-screen bg-neutral-50 pb-20">
+            {/* Hero Section */}
+            <div className="bg-neutral-900 text-white pt-32 pb-24 relative overflow-hidden">
+                <div className="absolute inset-0 z-0 opacity-20 bg-[url('https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?q=80&w=2070&auto=format&fit=crop')] bg-cover bg-center"></div>
+                <div className="absolute inset-0 bg-gradient-to-t from-neutral-900 via-neutral-900/80 to-transparent z-10"></div>
+
+                <div className="container mx-auto px-4 max-w-7xl relative z-20 mt-8">
+                    <div className="max-w-3xl animate-in fade-in slide-in-from-bottom-8 duration-700">
+                        <span className="inline-block py-1.5 px-4 rounded-full bg-primary/20 text-primary font-bold text-xs uppercase tracking-widest mb-6 border border-primary/30 backdrop-blur-md">Gascart Marketplace</span>
+                        <h1 className="text-5xl md:text-7xl font-display font-black text-white mb-6 leading-tight tracking-tight">
+                            Industrial Assets, <br /><span className="text-primary italic">Simplified.</span>
+                        </h1>
+                        <p className="text-lg text-neutral-400 max-w-2xl mb-8 leading-relaxed font-medium">
+                            Browse verified equipment, machinery, and components from top manufacturers globally. Request quotes directly or purchase instantly.
+                        </p>
+                    </div>
+                </div>
+            </div>
+            {/* Filter Bar (Sticky) */}
+            <div className="bg-white border-b border-neutral-200 sticky top-16 z-40 shadow-sm/50 backdrop-blur-xl bg-white/80 supports-[backdrop-filter]:bg-white/80 transition-all">
+                <div className="container mx-auto px-4 max-w-7xl py-4">
+                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                        <div className="flex items-center gap-4 text-sm font-medium text-neutral-500">
+                            <span>Showing <strong className="text-neutral-900 font-bold">{products.length}</strong> verified assets</span>
                         </div>
 
-                        <div className="flex items-center gap-3">
+                        <div className="flex items-center gap-3 w-full md:w-auto overflow-x-auto pb-2 md:pb-0 custom-scrollbar">
+                            <div className="relative flex-grow md:flex-grow-0">
+                                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-400" />
+                                <input
+                                    type="text"
+                                    placeholder="Search assets..."
+                                    className="pl-9 pr-4 py-2.5 bg-neutral-100 border border-neutral-200 rounded-xl text-sm font-bold outline-none focus:ring-2 focus:ring-primary/20 focus:bg-white focus:border-primary/50 w-full md:w-64 transition-all"
+                                    value={searchParams.get('search') || ''}
+                                    onChange={(e) => {
+                                        const newParams = new URLSearchParams(searchParams);
+                                        if (e.target.value) newParams.set('search', e.target.value);
+                                        else newParams.delete('search');
+                                        setSearchParams(newParams);
+                                    }}
+                                />
+                            </div>
+                            <div className="h-8 w-px bg-neutral-200 mx-1 shrink-0"></div>
                             <button
                                 onClick={() => setViewMode('grid')}
-                                className={`p-2.5 rounded-xl transition-all ${viewMode === 'grid' ? 'bg-neutral-100 text-neutral-900' : 'text-neutral-400 hover:text-neutral-600'}`}
+                                className={`p-2.5 rounded-xl transition-all shrink-0 ${viewMode === 'grid' ? 'bg-neutral-900 text-white shadow-md shadow-neutral-900/10' : 'text-neutral-500 hover:text-neutral-900 hover:bg-neutral-100'}`}
                             >
-                                <LayoutGrid className="w-5 h-5" />
+                                <LayoutGrid className="w-4 h-4" />
                             </button>
                             <button
                                 onClick={() => setViewMode('list')}
-                                className={`p-2.5 rounded-xl transition-all ${viewMode === 'list' ? 'bg-neutral-100 text-neutral-900' : 'text-neutral-400 hover:text-neutral-600'}`}
+                                className={`p-2.5 rounded-xl transition-all shrink-0 ${viewMode === 'list' ? 'bg-neutral-900 text-white shadow-md shadow-neutral-900/10' : 'text-neutral-500 hover:text-neutral-900 hover:bg-neutral-100'}`}
                             >
-                                <List className="w-5 h-5" />
+                                <List className="w-4 h-4" />
                             </button>
-                            <div className="h-8 w-px bg-neutral-200 mx-2"></div>
+                            <div className="h-8 w-px bg-neutral-200 mx-1 shrink-0 lg:hidden"></div>
                             <button
                                 onClick={() => setFilterOpen(!filterOpen)}
-                                className="lg:hidden flex items-center gap-2 bg-neutral-900 text-white px-4 py-2.5 rounded-xl font-medium shadow-lg shadow-neutral-900/10"
+                                className="lg:hidden flex shrink-0 items-center gap-2 bg-neutral-900 text-white px-4 py-2.5 rounded-xl font-bold shadow-lg shadow-neutral-900/10 hover:bg-black transition-colors"
                             >
                                 <Filter className="w-4 h-4" /> Filters
                             </button>
+                            <div className="h-8 w-px bg-neutral-200 mx-1 shrink-0 hidden md:block"></div>
                             <Link
                                 to="/enquiry-list"
-                                className="hidden md:flex items-center gap-2 bg-primary text-white px-5 py-2.5 rounded-xl font-bold shadow-lg shadow-primary/20 hover:bg-primary-600 transition-all transform hover:-translate-y-0.5"
+                                className="hidden md:flex shrink-0 items-center gap-2 bg-primary text-white px-5 py-2.5 rounded-xl font-bold shadow-lg shadow-primary/20 hover:bg-primary-600 transition-all transform hover:-translate-y-0.5"
                             >
                                 <ClipboardList className="w-4 h-4" />
                                 Enquiry List
@@ -131,20 +164,9 @@ const ProductListing: React.FC = () => {
                     </div>
 
                     {/* Active Filters Pills */}
-                    {(activeCategory !== 'All' || activeVendor !== 'All' || searchParams.get('search')) && (
+                    {(activeCategory !== 'All' || activeVendor !== 'All') && (
                         <div className="flex flex-wrap items-center gap-2 mt-6 pt-4 border-t border-neutral-100">
-                            <span className="text-xs font-bold text-neutral-400 uppercase tracking-wider mr-2">Active Filters:</span>
-
-                            {searchParams.get('search') && (
-                                <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-neutral-100 text-neutral-700 rounded-full text-sm font-medium">
-                                    Search: "{searchParams.get('search')}"
-                                    <button onClick={() => {
-                                        const newParams = new URLSearchParams(searchParams);
-                                        newParams.delete('search');
-                                        setSearchParams(newParams);
-                                    }} className="hover:text-red-500"><X className="w-3.5 h-3.5" /></button>
-                                </span>
-                            )}
+                            <span className="text-xs font-bold text-neutral-400 uppercase tracking-wider mr-2">Filters:</span>
 
                             {activeCategory !== 'All' && (
                                 <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-primary/10 text-primary-700 rounded-full text-sm font-medium border border-primary/20">
