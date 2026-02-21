@@ -14,8 +14,6 @@ export const registerConsultant = async (req: Request, res: Response, next: Next
             location,
             user_id,
             qualification,
-            projects_completed,
-            company_name,
             profile_image
         } = req.body;
 
@@ -31,8 +29,7 @@ export const registerConsultant = async (req: Request, res: Response, next: Next
                 service_categories,
                 location,
                 user_id: user_id || null,
-                qualification,
-                projects_completed: projects_completed || 0,
+                profile_image_url: profile_image || null,
                 status: 'pending'
             }])
 
