@@ -20,6 +20,7 @@ const ProductDetail: React.FC = () => {
     const [selectedVendor, setSelectedVendor] = useState<any>(null);
     const [quantity, setQuantity] = useState(1);
     const [activeTab, setActiveTab] = useState<'desc' | 'specs' | 'docs'>('desc');
+    const [activeImage, setActiveImage] = useState<string>('');
 
     // RFQ State
     const [showRFQModal, setShowRFQModal] = useState(false);
@@ -35,6 +36,15 @@ const ProductDetail: React.FC = () => {
     useEffect(() => {
         loadProduct();
     }, [id]);
+
+    useEffect(() => {
+        if (product) {
+            const productImages = Array.isArray(product.images) && product.images.length > 0
+                ? product.images
+                : [product.image || 'https://via.placeholder.com/600'];
+            setActiveImage(productImages[0]);
+        }
+    }, [product]);
 
     const loadProduct = async () => {
         setLoading(true);
@@ -86,7 +96,7 @@ const ProductDetail: React.FC = () => {
     const images = Array.isArray(product.images) && product.images.length > 0
         ? product.images
         : [product.image || 'https://via.placeholder.com/600'];
-    const [activeImage, setActiveImage] = useState(images[0]);
+
 
     return (
         <div className="min-h-screen bg-neutral-50 pt-28 pb-20">
