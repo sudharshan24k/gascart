@@ -360,6 +360,63 @@ export const ProductModal = ({
                                     <div>
                                         <div className="flex items-center justify-between mb-4">
                                             <div>
+                                                <label className="block text-sm font-bold text-gray-900">Product Images</label>
+                                                <p className="text-xs text-gray-500 mt-1">URLs for product images</p>
+                                            </div>
+                                            <button
+                                                type="button"
+                                                onClick={() => setFormData({
+                                                    ...formData,
+                                                    images: [...(formData.images || []), '']
+                                                })}
+                                                className="px-4 py-2 bg-gray-100 text-gray-700 hover:bg-black hover:text-white rounded-lg text-sm font-bold transition-all flex items-center gap-2"
+                                            >
+                                                <Plus className="w-4 h-4" /> Add Image
+                                            </button>
+                                        </div>
+
+                                        <div className="space-y-4">
+                                            {(formData.images || []).map((imgUrl: string, idx: number) => (
+                                                <div key={idx} className="flex flex-col md:flex-row gap-4 p-5 bg-gray-50 border border-gray-200 rounded-2xl items-center">
+                                                    {imgUrl && (
+                                                        <img src={imgUrl} alt="Preview" className="w-12 h-12 rounded object-cover border border-gray-200 shrink-0" />
+                                                    )}
+                                                    <div className="relative flex-grow">
+                                                        <LinkIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                                                        <input
+                                                            placeholder="Image URL (e.g. https://example.com/image.jpg)"
+                                                            className="w-full pl-11 pr-4 py-3 bg-white border border-gray-200 rounded-lg outline-none focus:border-red-500 focus:ring-2 focus:ring-red-500/20 text-sm font-bold"
+                                                            value={imgUrl}
+                                                            onChange={(e) => {
+                                                                const newImages = [...formData.images];
+                                                                newImages[idx] = e.target.value;
+                                                                setFormData({ ...formData, images: newImages });
+                                                            }}
+                                                        />
+                                                    </div>
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => {
+                                                            const newImages = formData.images.filter((_: any, i: number) => i !== idx);
+                                                            setFormData({ ...formData, images: newImages });
+                                                        }}
+                                                        className="p-3 text-gray-400 hover:text-red-500 hover:bg-white rounded-lg transition-colors border border-transparent hover:border-red-100 shrink-0"
+                                                    >
+                                                        <Trash2 className="w-5 h-5" />
+                                                    </button>
+                                                </div>
+                                            ))}
+                                            {(!formData.images || formData.images.length === 0) && (
+                                                <div className="p-8 text-center border-2 border-dashed border-gray-200 rounded-2xl">
+                                                    <p className="text-gray-500 font-medium">No images added. Please add at least one image URL.</p>
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
+
+                                    <div>
+                                        <div className="flex items-center justify-between mb-4">
+                                            <div>
                                                 <label className="block text-sm font-bold text-gray-900">Technical Documents</label>
                                                 <p className="text-xs text-gray-500 mt-1">Manuals, Certifications, and Specifications</p>
                                             </div>
