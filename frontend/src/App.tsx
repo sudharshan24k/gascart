@@ -1,4 +1,4 @@
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import Layout from './components/layout/Layout'; // Layout wrapper
 import Home from './pages/Home';
 import About from './pages/About';
@@ -65,6 +65,7 @@ function App() {
                                     {/* Industrial Marketplace Routes */}
                                     <Route path="shop" element={<ProductListing />} />
                                     <Route path="compare" element={<Compare />} />
+                                    <Route path="product" element={<Navigate to="/shop" replace />} />
                                     <Route path="product/:id" element={<ProductDetail />} />
                                     <Route path="enquiry-list" element={<EnquiryList />} />
                                     <Route path="submit-rfq" element={<SubmitRFQ />} />
