@@ -299,7 +299,7 @@ const ProductListing: React.FC = () => {
                                                 className="bg-white p-4 rounded-3xl border border-neutral-100 hover:border-primary/30 shadow-sm hover:shadow-xl transition-all flex gap-6 items-center group"
                                             >
                                                 <div className="w-24 h-24 bg-neutral-100 rounded-2xl flex-shrink-0 overflow-hidden">
-                                                    <img src={mainImage} className="w-full h-full object-cover" alt={product.name} />
+                                                    <img src={mainImage} referrerPolicy="no-referrer" className="w-full h-full object-cover" alt={product.name} />
                                                 </div>
                                                 <div className="flex-grow">
                                                     <div className="text-xs font-bold text-primary mb-1 uppercase tracking-wider">{vendorName}</div>

@@ -124,6 +124,7 @@ const ProductDetail: React.FC = () => {
                             <img
                                 src={activeImage}
                                 alt={product.name}
+                                referrerPolicy="no-referrer"
                                 className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
                             />
                             <div className="absolute top-6 left-6 flex flex-col gap-2">
@@ -147,7 +148,7 @@ const ProductDetail: React.FC = () => {
                                         onClick={() => setActiveImage(img)}
                                         className={`w-24 h-24 rounded-2xl overflow-hidden border-2 transition-all flex-shrink-0 ${activeImage === img ? 'border-primary shadow-lg scale-105' : 'border-transparent opacity-70 hover:opacity-100'}`}
                                     >
-                                        <img src={img} alt="" className="w-full h-full object-cover" />
+                                        <img src={img} alt="" referrerPolicy="no-referrer" className="w-full h-full object-cover" />
                                     </button>
                                 ))}
                             </div>
@@ -508,7 +509,7 @@ const ProductDetail: React.FC = () => {
                                     <div className="p-8 max-h-[70vh] overflow-y-auto custom-scrollbar">
                                         <div className="flex items-center gap-4 mb-8 p-4 bg-neutral-50 rounded-2xl border border-neutral-100">
                                             <div className="w-16 h-16 bg-white rounded-xl overflow-hidden border border-neutral-200 flex-shrink-0">
-                                                <img src={activeImage} className="w-full h-full object-cover"></img>
+                                                <img src={activeImage} referrerPolicy="no-referrer" className="w-full h-full object-cover"></img>
                                             </div>
                                             <div>
                                                 <p className="font-bold text-neutral-900 line-clamp-1">{product.name}</p>

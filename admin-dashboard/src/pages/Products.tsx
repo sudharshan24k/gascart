@@ -222,6 +222,10 @@ const AdminProducts = () => {
         try {
             const payload = {
                 ...formData,
+                images: formData.images.map((url: string) => {
+                    const match = url.match(/drive\.google\.com\/(?:file\/d\/|open\?id=)([a-zA-Z0-9_-]+)/);
+                    return match ? `https://drive.google.com/uc?id=${match[1]}` : url;
+                }).filter(Boolean),
                 category_id: formData.category_id || null, // Convert empty string to null to prevent UUID casting errors
                 price: parseFloat(formData.price) || 0,
                 stock_quantity: parseInt(formData.stock_quantity) || 0,
@@ -439,7 +443,7 @@ const AdminProducts = () => {
                                         <div className="flex items-center gap-6">
                                             <div className="w-16 h-16 bg-gray-100 rounded-2xl flex items-center justify-center shrink-0 border border-gray-100 overflow-hidden group-hover:bg-white transition-colors">
                                                 {product.images?.[0] ? (
-                                                    <img src={product.images[0]} alt="" className="w-full h-full object-cover" />
+                                                    <img src={product.images[0]} alt="" referrerPolicy="no-referrer" className="w-full h-full object-cover" />
                                                 ) : (
                                                     <Package className="w-8 h-8 text-gray-300" />
                                                 )}
