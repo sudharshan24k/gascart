@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
-import { Filter, ClipboardList, Building2, ShieldCheck, GitCompare, Plus, Loader2, Search, X, ChevronDown, LayoutGrid, List } from 'lucide-react';
+import { Filter, ClipboardList, Building2, ShieldCheck, GitCompare, Plus, Loader2, Search, X, LayoutGrid, List } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useEnquiry } from '../context/EnquiryContext';
 import { api } from '../services/api';

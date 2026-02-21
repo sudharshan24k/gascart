@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowRight, Leaf, Zap, Settings, Mail, CheckCircle, TrendingUp, Shield } from 'lucide-react';
+import { ArrowRight, Leaf, Zap, CheckCircle, TrendingUp, Shield } from 'lucide-react';
 import processGraphic from '../assets/process-graphic.png';
 import { motion } from 'framer-motion';
 

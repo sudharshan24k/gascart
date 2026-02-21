@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { useSearchParams, Link } from 'react-router-dom';
-import { CheckCircle2, Download, Package, ArrowRight, Loader2, ShoppingBag } from 'lucide-react';
+import { CheckCircle2, Download, Package, ArrowRight } from 'lucide-react';
 import { motion } from 'framer-motion';
-import { api, supabase } from '../services/api';
+import { api } from '../services/api';
 
 const PaymentSuccess: React.FC = () => {
     const [searchParams] = useSearchParams();

@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { useParams, Link, useNavigate } from 'react-router-dom';
+import { useParams, Link } from 'react-router-dom';
 import {
-    ArrowLeft, ShoppingCart, Send, ShieldCheck, Truck, FileText,
-    ChevronRight, Star, Minus, Plus, GitCompare, Share2,
-    Download, CheckCircle, AlertCircle, Phone, Mail, Globe, MapPin,
+    ShoppingCart, Send, ShieldCheck, Truck, FileText,
+    ChevronRight, Minus, Plus, GitCompare, Share2,
+    Download, CheckCircle, AlertCircle,
     X, CheckCircle2, BookOpen, ArrowUpRight, Building2
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -13,7 +13,7 @@ import { useEnquiry } from '../context/EnquiryContext';
 
 const ProductDetail: React.FC = () => {
     const { id } = useParams();
-    const navigate = useNavigate();
+    // const navigate = useNavigate();
     const [product, setProduct] = useState<any>(null);
     const [loading, setLoading] = useState(true);
     const [selectedVariant, setSelectedVariant] = useState<any>(null);
@@ -233,8 +233,8 @@ const ProductDetail: React.FC = () => {
                                                     key={variant.id || i}
                                                     onClick={() => setSelectedVariant(variant)}
                                                     className={`px-4 py-3 rounded-xl text-sm font-bold border-2 transition-all ${isSelected
-                                                            ? 'border-neutral-900 bg-neutral-900 text-white shadow-lg'
-                                                            : 'border-neutral-100 text-neutral-600 hover:border-neutral-300 bg-neutral-50'
+                                                        ? 'border-neutral-900 bg-neutral-900 text-white shadow-lg'
+                                                        : 'border-neutral-100 text-neutral-600 hover:border-neutral-300 bg-neutral-50'
                                                         }`}
                                                 >
                                                     {label}
@@ -356,8 +356,8 @@ const ProductDetail: React.FC = () => {
                                         key={tab}
                                         onClick={() => setActiveTab(tab)}
                                         className={`px-6 py-4 text-sm font-bold border-b-2 transition-all whitespace-nowrap ${activeTab === tab
-                                                ? 'border-primary text-primary'
-                                                : 'border-transparent text-neutral-400 hover:text-neutral-600'
+                                            ? 'border-primary text-primary'
+                                            : 'border-transparent text-neutral-400 hover:text-neutral-600'
                                             }`}
                                     >
                                         {tab === 'desc' ? 'Description' : tab === 'specs' ? 'Specifications' : 'Documentation'}

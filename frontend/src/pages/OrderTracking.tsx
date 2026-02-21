@@ -3,7 +3,7 @@ import { useParams, Link } from 'react-router-dom';
 import { api } from '../services/api';
 import { formatDateIST } from '../utils/dateUtils';
 import { Package, ChevronLeft, MapPin, CreditCard, Clock, CheckCircle, Truck, Info, FileText, Loader2, XCircle } from 'lucide-react';
-import { motion } from 'framer-motion';
+// import { motion } from 'framer-motion';
 
 const OrderTracking: React.FC = () => {
     const { id } = useParams<{ id: string }>();
@@ -100,8 +100,8 @@ const OrderTracking: React.FC = () => {
                             </div>
                             <div className="flex flex-col items-end">
                                 <span className={`px-6 py-2 rounded-xl text-sm font-black uppercase tracking-widest mb-2 ${order.status === 'delivered' ? 'bg-green-500 text-white' :
-                                        order.status === 'cancelled' ? 'bg-red-500 text-white' :
-                                            'bg-white text-neutral-900'
+                                    order.status === 'cancelled' ? 'bg-red-500 text-white' :
+                                        'bg-white text-neutral-900'
                                     }`}>
                                     {order.status}
                                 </span>

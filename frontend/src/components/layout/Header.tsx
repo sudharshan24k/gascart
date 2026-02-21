@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Menu, X, Leaf, ClipboardList, User, GitCompare, LogOut, ShoppingCart, Search, ChevronDown } from 'lucide-react';
+import { Menu, X, Leaf, ClipboardList, GitCompare, LogOut, ShoppingCart, Search, ChevronDown } from 'lucide-react';
 import { clsx } from 'clsx';
 import { useEnquiry } from '../../context/EnquiryContext';
 import { useAuth } from '../../context/AuthContext';

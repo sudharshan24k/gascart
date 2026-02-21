@@ -5,7 +5,7 @@ import { api } from '../services/api';
 import { formatDateIST } from '../utils/dateUtils';
 import {
     User, Package, FileText, Smartphone, Mail, LogOut, Loader2, Save, MapPin,
-    Plus, Trash2, Home, Briefcase, CheckCircle, ChevronRight, Edit2, Shield, Settings
+    Plus, Trash2, Home, Briefcase, Edit2, Settings
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -212,8 +212,8 @@ const Profile: React.FC = () => {
                                         key={item.id}
                                         onClick={() => setActiveTab(item.id)}
                                         className={`w-full flex items-center gap-3 px-4 py-3.5 rounded-xl transition-all font-bold text-sm group ${activeTab === item.id
-                                                ? 'bg-neutral-900 text-white shadow-lg shadow-neutral-900/20'
-                                                : 'text-neutral-500 hover:bg-neutral-50 hover:text-neutral-900'
+                                            ? 'bg-neutral-900 text-white shadow-lg shadow-neutral-900/20'
+                                            : 'text-neutral-500 hover:bg-neutral-50 hover:text-neutral-900'
                                             }`}
                                     >
                                         <item.icon className={`w-5 h-5 ${activeTab === item.id ? 'text-primary' : 'text-neutral-400 group-hover:text-neutral-900'}`} />
@@ -360,8 +360,8 @@ const Profile: React.FC = () => {
                                                     </div>
                                                     <div>
                                                         <span className={`px-4 py-2 rounded-lg text-xs font-black uppercase tracking-widest ${order.status === 'delivered' ? 'bg-green-100 text-green-600' :
-                                                                order.status === 'cancelled' ? 'bg-red-100 text-red-600' :
-                                                                    'bg-yellow-100 text-yellow-700'
+                                                            order.status === 'cancelled' ? 'bg-red-100 text-red-600' :
+                                                                'bg-yellow-100 text-yellow-700'
                                                             }`}>
                                                             {order.status}
                                                         </span>

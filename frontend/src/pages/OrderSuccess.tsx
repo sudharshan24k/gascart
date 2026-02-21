@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useLocation, useSearchParams } from 'react-router-dom';
-import { CheckCircle2, Package, Home, Download, Loader2, Clock, ArrowRight, ShoppingBag } from 'lucide-react';
+import { CheckCircle2, Package, Download, Loader2, Clock, ShoppingBag } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { supabase } from '../services/api';
 
