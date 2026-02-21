@@ -38,13 +38,13 @@ const ProductListing: React.FC = () => {
             // Fetch unique vendors from products
             const { data: productsData } = await api.products.list({});
             if (productsData) {
-                const uniqueVendors = Array.from(
-                    new Set(
-                        productsData
-                            .map((p: any) => p.profiles?.company_name)
-                            .filter((name: any) => name)
-                    )
-                ).map((name: any) => ({ company_name: name, id: name }));
+                const uniqueVendorsMap = new Map();
+                productsData.forEach((p: any) => {
+                    if (p.vendor_id && p.profiles?.company_name) {
+                        uniqueVendorsMap.set(p.vendor_id, p.profiles.company_name);
+                    }
+                });
+                const uniqueVendors = Array.from(uniqueVendorsMap.entries()).map(([id, name]) => ({ id, company_name: name as string }));
                 setVendors(uniqueVendors);
             }
         } catch (err) {
@@ -57,13 +57,11 @@ const ProductListing: React.FC = () => {
         try {
             const params: any = {};
 
-            if (activeCategory !== 'All' && categories.length > 0) {
-                const cat = categories.find(c => c.name === activeCategory);
-                if (cat) params.category = cat.id;
+            if (activeCategory !== 'All') {
+                params.category = activeCategory;
             }
-            if (activeVendor !== 'All' && vendors.length > 0) {
-                const ven = vendors.find(v => v.company_name === activeVendor);
-                if (ven) params.vendor = ven.id;
+            if (activeVendor !== 'All') {
+                params.vendor = activeVendor;
             }
 
             const searchQuery = searchParams.get('search');
@@ -157,7 +155,7 @@ const ProductListing: React.FC = () => {
 
                             {activeVendor !== 'All' && (
                                 <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-secondary/10 text-secondary-700 rounded-full text-sm font-medium border border-secondary/20">
-                                    {activeVendor}
+                                    {vendors.find(v => v.id === activeVendor)?.company_name || activeVendor}
                                     <button onClick={() => updateFilter('vendor', 'All')} className="hover:text-red-500"><X className="w-3.5 h-3.5" /></button>
                                 </span>
                             )}
@@ -234,8 +232,8 @@ const ProductListing: React.FC = () => {
                                     {vendors.map(vendor => (
                                         <button
                                             key={vendor.id}
-                                            onClick={() => { updateFilter('vendor', vendor.company_name); setFilterOpen(false); }}
-                                            className={`w-full text-left px-3 py-2 rounded-lg text-sm font-medium transition-colors ${activeVendor === vendor.company_name ? 'bg-neutral-900 text-white shadow-md' : 'text-neutral-600 hover:bg-neutral-50'}`}
+                                            onClick={() => { updateFilter('vendor', vendor.id); setFilterOpen(false); }}
+                                            className={`w-full text-left px-3 py-2 rounded-lg text-sm font-medium transition-colors ${activeVendor === vendor.id ? 'bg-neutral-900 text-white shadow-md' : 'text-neutral-600 hover:bg-neutral-50'}`}
                                         >
                                             {vendor.company_name}
                                         </button>
