@@ -29,11 +29,14 @@ const ConsultantRegistration: React.FC = () => {
         e.preventDefault();
         setSubmitting(true);
         try {
-            await api.consultants.register({
+            const response = await api.consultants.register({
                 ...formData,
                 projects_completed: parseInt(formData.projects_completed) || 0,
                 user_id: user?.id
             });
+            if (response?.status === 'error' || response?.error) {
+                throw new Error(response.message || 'Registration failed');
+            }
             setSubmitted(true);
         } catch (err) {
             console.error('Registration failed', err);

@@ -33,8 +33,6 @@ export const registerConsultant = async (req: Request, res: Response, next: Next
                 user_id: user_id || null,
                 qualification,
                 projects_completed: projects_completed || 0,
-                company_name,
-                profile_image,
                 status: 'pending'
             }])
 
