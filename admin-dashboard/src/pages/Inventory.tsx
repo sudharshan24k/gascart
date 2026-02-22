@@ -11,7 +11,8 @@ import {
     TrendingUp,
     TrendingDown,
     Activity,
-    BellRing
+    BellRing,
+    Calendar
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { fetchAdminProducts, updateProductInventory } from '../services/admin.service';
@@ -21,6 +22,8 @@ const Inventory = () => {
     const [loading, setLoading] = useState(true);
     const [searchQuery, setSearchQuery] = useState('');
     const [filter, setFilter] = useState<'all' | 'low_stock' | 'out_of_stock'>('all');
+    const [startDate, setStartDate] = useState('');
+    const [endDate, setEndDate] = useState('');
     const [updating, setUpdating] = useState<string | null>(null);
     const [selectedProduct, setSelectedProduct] = useState<any>(null);
     const [editingQuantity, setEditingQuantity] = useState<{ id: string, value: string } | null>(null);
@@ -78,24 +81,36 @@ const Inventory = () => {
         const matchesSearch = p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
             p.id.toLowerCase().includes(searchQuery.toLowerCase());
         if (!matchesSearch) return false;
+
+        if (startDate && new Date(p.created_at) < new Date(startDate)) return false;
+        if (endDate) {
+            const end = new Date(endDate);
+            end.setDate(end.getDate() + 1);
+            if (new Date(p.created_at) >= end) return false;
+        }
+
         const stock = p.stock_quantity || 0;
         const threshold = p.low_stock_threshold || 10;
         if (filter === 'low_stock') return stock <= threshold && stock > 0;
         if (filter === 'out_of_stock') return stock === 0;
         return true;
-    });
+    }).sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
 
     const handleExportCSV = () => {
-        const headers = ['Asset ID', 'Name', 'Category', 'Stock Level', 'Threshold', 'Unit Price', 'Total Valuation'];
-        const rows = filteredProducts.map(p => [
-            p.id,
-            p.name,
-            p.categories?.name || 'Unspecified',
-            p.stock_quantity || 0,
-            p.low_stock_threshold || 10,
-            p.price || 0,
-            (p.stock_quantity || 0) * (p.price || 0)
-        ]);
+        const headers = ['Asset ID', 'Name', 'Category', 'Stock Level', 'Threshold', 'Unit Price', 'Total Valuation', 'Creation Date'];
+        const rows = filteredProducts.map(p => {
+            const dateObj = new Date(p.created_at);
+            return [
+                p.id,
+                `"${(p.name || '').replace(/"/g, '""')}"`,
+                p.categories?.name || 'Unspecified',
+                p.stock_quantity || 0,
+                p.low_stock_threshold || 10,
+                p.price || 0,
+                (p.stock_quantity || 0) * (p.price || 0),
+                dateObj.toLocaleDateString()
+            ];
+        });
 
         const csvContent = [headers, ...rows].map(e => e.join(',')).join('\n');
         const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
@@ -161,34 +176,54 @@ const Inventory = () => {
             </div>
 
             {/* Governance Toolbar */}
-            <div className="bg-white p-8 rounded-[40px] shadow-sm border border-gray-100 mb-12 flex flex-col md:flex-row gap-8 items-center bg-gray-50/30">
+            <div className="bg-white p-6 md:p-8 rounded-[40px] shadow-sm border border-gray-100 mb-12 flex flex-col xl:flex-row gap-6 xl:gap-8 items-center bg-gray-50/30">
                 <div className="relative flex-grow w-full">
                     <Search className="absolute left-6 top-1/2 -translate-y-1/2 text-gray-400 w-6 h-6" />
                     <input
                         type="text"
                         placeholder="Scan for specific technical assets..."
-                        className="w-full pl-16 pr-8 py-5 bg-white border-2 border-transparent focus:border-primary/10 rounded-[28px] outline-none focus:ring-8 focus:ring-primary/5 transition-all font-bold text-lg shadow-inner"
+                        className="w-full pl-16 pr-8 py-4 sm:py-5 bg-white border-none rounded-[28px] outline-none focus:ring-8 focus:ring-primary/5 transition-all font-bold text-base sm:text-lg shadow-inner"
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
                     />
                 </div>
-                <div className="flex bg-gray-100 p-1.5 rounded-[24px] shadow-inner shrink-0 scale-95 md:scale-100">
-                    {[
-                        { id: 'all', label: 'All Units' },
-                        { id: 'low_stock', label: 'Critical' },
-                        { id: 'out_of_stock', label: 'Depleted' }
-                    ].map((btn) => (
-                        <button
-                            key={btn.id}
-                            onClick={() => setFilter(btn.id as any)}
-                            className={`px-8 py-4 rounded-[18px] text-[10px] font-black uppercase tracking-widest transition-all ${filter === btn.id
-                                ? 'bg-white text-gray-900 shadow-xl shadow-gray-200/50 scale-105'
-                                : 'text-gray-400 hover:text-gray-700'
-                                }`}
-                        >
-                            {btn.label}
-                        </button>
-                    ))}
+
+                <div className="flex flex-col sm:flex-row items-center gap-4 sm:gap-6 w-full xl:w-auto overflow-x-auto pb-2 xl:pb-0 scrollbar-hide">
+                    <div className="flex items-center gap-2 bg-white px-4 py-3 rounded-[24px] border border-gray-100 shadow-inner w-full sm:w-auto shrink-0 justify-between sm:justify-start">
+                        <Calendar className="w-5 h-5 text-gray-400 shrink-0" />
+                        <input
+                            type="date"
+                            className="bg-transparent border-none text-xs sm:text-sm font-bold outline-none text-gray-700 w-28 sm:w-32 uppercase tracking-wide"
+                            value={startDate}
+                            onChange={(e) => setStartDate(e.target.value)}
+                        />
+                        <span className="text-gray-300 text-xs font-black uppercase tracking-widest px-1">—</span>
+                        <input
+                            type="date"
+                            className="bg-transparent border-none text-xs sm:text-sm font-bold outline-none text-gray-700 w-28 sm:w-32 uppercase tracking-wide"
+                            value={endDate}
+                            onChange={(e) => setEndDate(e.target.value)}
+                        />
+                    </div>
+
+                    <div className="flex bg-gray-100 p-1.5 rounded-[24px] shadow-inner shrink-0 w-full sm:w-auto">
+                        {[
+                            { id: 'all', label: 'All Units' },
+                            { id: 'low_stock', label: 'Critical' },
+                            { id: 'out_of_stock', label: 'Depleted' }
+                        ].map((btn) => (
+                            <button
+                                key={btn.id}
+                                onClick={() => setFilter(btn.id as any)}
+                                className={`flex-1 sm:flex-none px-6 py-3 sm:py-4 rounded-[18px] text-[10px] font-black uppercase tracking-widest transition-all ${filter === btn.id
+                                    ? 'bg-white text-gray-900 shadow-xl shadow-gray-200/50 scale-105'
+                                    : 'text-gray-400 hover:text-gray-700'
+                                    }`}
+                            >
+                                {btn.label}
+                            </button>
+                        ))}
+                    </div>
                 </div>
             </div>
 

@@ -434,7 +434,7 @@ const Checkout: React.FC = () => {
                                 {items.map((item) => (
                                     <div key={item.id} className="flex gap-4 p-3 bg-neutral-50 rounded-2xl border border-transparent hover:border-neutral-200 transition-colors">
                                         <div className="w-16 h-16 bg-white rounded-xl overflow-hidden flex-shrink-0 border border-neutral-100">
-                                            <img src={item.product?.image_url || 'https://via.placeholder.com/150'} className="w-full h-full object-cover" alt={item.product?.name} />
+                                            <img src={item.product?.image_url || 'https://placehold.co/150x150?text=No+Image'} className="w-full h-full object-cover" alt={item.product?.name} />
                                         </div>
                                         <div className="flex-grow min-w-0">
                                             <h4 className="font-bold text-sm text-neutral-900 line-clamp-2 leading-tight mb-1">{item.product?.name}</h4>

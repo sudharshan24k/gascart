@@ -100,7 +100,7 @@ export const getAllRFQs = async (req: Request, res: Response, next: NextFunction
         const userIds = [...new Set(rfqs.map((r: any) => r.user_id))];
         const { data: profiles, error: profileError } = await supabase
             .from('profiles')
-            .select('id, email, full_name')
+            .select('id, email, full_name, phone, company_name')
             .in('id', userIds);
 
         if (profileError) throw profileError;
@@ -109,7 +109,7 @@ export const getAllRFQs = async (req: Request, res: Response, next: NextFunction
         const profileMap = new Map(profiles.map((p: any) => [p.id, p]));
         const data = rfqs.map((r: any) => ({
             ...r,
-            profiles: profileMap.get(r.user_id) || { email: 'Unknown', full_name: 'Unknown' }
+            profiles: profileMap.get(r.user_id) || { email: 'Unknown', full_name: 'Unknown', phone: 'N/A', company_name: 'N/A' }
         }));
 
         res.json({ status: 'success', data });
@@ -153,7 +153,7 @@ export const exportRFQs = async (req: Request, res: Response, next: NextFunction
         const userIds = [...new Set(rfqs.map((r: any) => r.user_id))];
         const { data: profiles, error: profileError } = await supabase
             .from('profiles')
-            .select('id, email')
+            .select('id, email, full_name, phone, company_name')
             .in('id', userIds);
 
         if (profileError) throw profileError;
@@ -169,7 +169,9 @@ export const exportRFQs = async (req: Request, res: Response, next: NextFunction
             header: [
                 { id: 'id', title: 'RFQ ID' },
                 { id: 'created_at', title: 'Submitted At' },
+                { id: 'full_name', title: 'User Name' },
                 { id: 'email', title: 'User Email' },
+                { id: 'phone', title: 'User Phone' },
                 { id: 'product', title: 'Product Name' },
                 { id: 'status', title: 'Status' },
                 { id: 'specs', title: 'Technical Specifications' }
@@ -181,7 +183,9 @@ export const exportRFQs = async (req: Request, res: Response, next: NextFunction
             return {
                 id: r.id,
                 created_at: r.created_at,
+                full_name: profile?.full_name || 'N/A',
                 email: profile?.email || 'N/A',
+                phone: profile?.phone || 'N/A',
                 product: r.products?.name,
                 status: r.status,
                 specs: JSON.stringify(r.submitted_fields).replace(/"/g, "'")

@@ -41,7 +41,7 @@ const ProductDetail: React.FC = () => {
         if (product) {
             const productImages = Array.isArray(product.images) && product.images.length > 0
                 ? product.images
-                : [product.image || 'https://via.placeholder.com/600'];
+                : [product.image || 'https://placehold.co/600x600?text=No+Image'];
             setActiveImage(productImages[0]);
         }
     }, [product]);
@@ -93,9 +93,16 @@ const ProductDetail: React.FC = () => {
     const isInComparison = enquiryState.comparisonItems.some(i => i.id === product.id);
 
     // Handling Images
-    const images = Array.isArray(product.images) && product.images.length > 0
+    const rawImages = Array.isArray(product.images) && product.images.length > 0
         ? product.images
-        : [product.image || 'https://via.placeholder.com/600'];
+        : [product.image || 'https://placehold.co/600x600?text=No+Image'];
+
+    const getImageUrl = (url: string) => {
+        if (!url) return 'https://placehold.co/600x600?text=No+Image';
+        const driveMatch = url.match(/drive\.google\.com\/(?:file\/d\/|open\?id=)([a-zA-Z0-9_-]+)/);
+        return driveMatch ? `https://drive.google.com/uc?id=${driveMatch[1]}` : url;
+    };
+    const images = rawImages.map(getImageUrl);
 
 
     return (
@@ -122,7 +129,7 @@ const ProductDetail: React.FC = () => {
                     >
                         <div className="bg-white rounded-[40px] overflow-hidden shadow-sm border border-neutral-100 aspect-[4/3] relative group">
                             <img
-                                src={activeImage}
+                                src={getImageUrl(activeImage)}
                                 alt={product.name}
                                 referrerPolicy="no-referrer"
                                 className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
@@ -411,7 +418,7 @@ const ProductDetail: React.FC = () => {
                                                 </div>
                                             ))}
                                             {/* Fallback Static Specs if none */}
-                                            {(!product.attributes || Object.keys(product.attributes).length === 0) && (
+                                            {Object.keys({ ...product.attributes, ...(selectedVariant?.attributes || {}) }).length === 0 && (
                                                 <div className="bg-yellow-50 p-4 rounded-xl text-yellow-700 text-sm font-medium flex items-center gap-2">
                                                     <AlertCircle className="w-5 h-5" /> Detailed technical specifications are available in the datasheet.
                                                 </div>

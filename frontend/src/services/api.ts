@@ -397,9 +397,10 @@ export const api = {
         }
     },
     documents: {
-        list: async () => {
+        list: async (params?: Record<string, string>) => {
+            const query = new URLSearchParams(params as Record<string, string>).toString();
             const apiUrl = getBaseUrl();
-            const res = await fetch(`${apiUrl}/documents`);
+            const res = await fetch(`${apiUrl}/documents?${query}`);
             return res.json();
         }
     },

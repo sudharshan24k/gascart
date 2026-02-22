@@ -1,13 +1,16 @@
 import React, { useState, useEffect } from 'react'; // Refresh
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import { BookOpen, Search, Video, Lock, Lightbulb, Zap, FileText } from 'lucide-react';
+import { BookOpen, Search, Video, Lock, Lightbulb, Zap, FileText, Download, File, FileCode, CheckCircle2 } from 'lucide-react';
 import { api } from '../services/api';
 
 const Learn: React.FC = () => {
     const [articles, setArticles] = useState<any[]>([]);
+    const [documents, setDocuments] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
+    const [docsLoading, setDocsLoading] = useState(true);
     const [activeLevel, setActiveLevel] = useState('All');
+    const [docCategory, setDocCategory] = useState('All');
     const navigate = useNavigate();
 
     useEffect(() => {
@@ -23,7 +26,37 @@ const Learn: React.FC = () => {
         fetchArticles();
     }, [activeLevel]);
 
+    useEffect(() => {
+        const fetchDocuments = async () => {
+            setDocsLoading(true);
+            const params: any = {};
+            if (docCategory !== 'All') params.category = docCategory;
+            try {
+                const res = await api.documents.list(params);
+                if (res.status === 'success') {
+                    setDocuments(res.data);
+                }
+            } catch (error) {
+                console.error("Failed to fetch documents", error);
+            }
+            setDocsLoading(false);
+        };
+        fetchDocuments();
+    }, [docCategory]);
+
     const levels = ['All', 'Beginner', 'Intermediate', 'Advanced'];
+    const docCategories = ['All', 'Legal', 'Policy', 'Privacy', 'Technical', 'Agreement', 'Other'];
+
+    const getDocIcon = (category: string) => {
+        switch (category) {
+            case 'Technical': return <FileCode className="w-5 h-5" />;
+            case 'Legal':
+            case 'Agreement': return <FileText className="w-5 h-5" />;
+            case 'Policy':
+            case 'Privacy': return <CheckCircle2 className="w-5 h-5" />;
+            default: return <File className="w-5 h-5" />;
+        }
+    };
 
     return (
         <div className="pt-32 pb-24 min-h-screen bg-gray-50">
@@ -143,6 +176,96 @@ const Learn: React.FC = () => {
                             </div>
                         </div>
                     ))}
+                </div>
+
+                {/* Document Center Section */}
+                <div className="mt-40 mb-20">
+                    <div className="text-center mb-16">
+                        <h2 className="text-4xl font-extrabold text-gray-900 mb-4 tracking-tight">
+                            Platform <span className="text-primary italic">Documents</span>
+                        </h2>
+                        <p className="text-xl text-gray-500 max-w-2xl mx-auto">
+                            Access legal agreements, technical APIs, and compliance policies in our centralized document repository.
+                        </p>
+                    </div>
+
+                    {/* Document Category Tabs */}
+                    <div className="flex gap-4 mb-10 overflow-x-auto pb-4 justify-center no-scrollbar">
+                        {docCategories.map(cat => (
+                            <button
+                                key={cat}
+                                onClick={() => setDocCategory(cat)}
+                                className={`px-6 py-2 rounded-full font-bold transition-all border shrink-0 text-sm ${docCategory === cat
+                                    ? 'bg-gray-900 text-white border-gray-900'
+                                    : 'bg-white text-gray-600 border-gray-200 hover:border-gray-900 hover:text-gray-900'
+                                    }`}
+                            >
+                                {cat}
+                            </button>
+                        ))}
+                    </div>
+
+                    {/* Documents List */}
+                    <div className="bg-white rounded-3xl border border-gray-200 shadow-sm overflow-hidden">
+                        {docsLoading ? (
+                            <div className="text-center py-20 text-gray-400 font-bold flex justify-center items-center gap-3">
+                                <div className="w-5 h-5 border-2 border-primary border-t-transparent rounded-full animate-spin"></div>
+                                Loading documents...
+                            </div>
+                        ) : documents.length === 0 ? (
+                            <div className="text-center py-20 bg-gray-50 border-t border-gray-100 flex flex-col items-center">
+                                <FileText className="w-12 h-12 text-gray-300 mb-4" />
+                                <p className="text-gray-500 font-medium font-sans">No public documents found in this category.</p>
+                            </div>
+                        ) : (
+                            <div className="divide-y divide-gray-100">
+                                {documents.map((doc, idx) => (
+                                    <motion.div
+                                        key={doc.id}
+                                        initial={{ opacity: 0, x: -10 }}
+                                        animate={{ opacity: 1, x: 0 }}
+                                        transition={{ delay: idx * 0.05 }}
+                                        className="p-6 hover:bg-gray-50 flex flex-col sm:flex-row sm:items-center justify-between gap-4 transition-colors group"
+                                    >
+                                        <div className="flex items-start gap-4">
+                                            <div className="w-12 h-12 rounded-xl bg-gray-100 text-gray-500 flex items-center justify-center shrink-0 group-hover:bg-primary/10 group-hover:text-primary transition-colors">
+                                                {getDocIcon(doc.category)}
+                                            </div>
+                                            <div>
+                                                <h4 className="text-lg font-bold text-gray-900 mb-1 flex items-center gap-2">
+                                                    {doc.title}
+                                                    <span className="px-2 py-0.5 rounded-md text-[10px] uppercase font-bold bg-gray-100 text-gray-500 tracking-wider">
+                                                        v{doc.version}
+                                                    </span>
+                                                </h4>
+                                                <div className="flex items-center gap-3 text-sm text-gray-500 font-medium">
+                                                    <span className={`px-2 py-0.5 rounded text-[10px] uppercase font-bold tracking-wider ${doc.category === 'Legal' || doc.category === 'Agreement' ? 'bg-indigo-50 text-indigo-600' :
+                                                        doc.category === 'Technical' ? 'bg-cyan-50 text-cyan-600' :
+                                                            'bg-gray-100 text-gray-600'
+                                                        }`}>
+                                                        {doc.category}
+                                                    </span>
+                                                    <span>•</span>
+                                                    <span>{doc.file_size || 'PDF Document'}</span>
+                                                    <span>•</span>
+                                                    <span>{new Date(doc.created_at).toLocaleDateString()}</span>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <a
+                                            href={doc.file_url}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="px-5 py-2.5 bg-white border border-gray-200 text-gray-700 font-bold rounded-xl text-sm flex items-center gap-2 hover:bg-gray-50 hover:border-gray-300 transition-colors shrink-0"
+                                        >
+                                            <Download className="w-4 h-4" /> Download
+                                        </a>
+                                    </motion.div>
+                                ))}
+                            </div>
+                        )}
+                    </div>
                 </div>
             </div>
         </div>

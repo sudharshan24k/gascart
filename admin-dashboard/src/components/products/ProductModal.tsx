@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Package, ClipboardList, ShieldCheck, FileText, Filter, Link as LinkIcon, X, CheckCircle, Plus, Trash2, ArrowLeftRight, Edit2 } from 'lucide-react';
-
+import { Package, ClipboardList, ShieldCheck, FileText, Filter, Link as LinkIcon, X, CheckCircle, Plus, Trash2, ArrowLeftRight, Edit2, UploadCloud } from 'lucide-react';
 export const ProductModal = ({
     isOpen,
     onClose,
@@ -268,6 +267,46 @@ export const ProductModal = ({
 
                             {activeTab === 'technical' && (
                                 <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-300 max-w-4xl">
+                                    {/* Global Specifications Section */}
+                                    <div>
+                                        <div className="flex items-center justify-between mb-4">
+                                            <div>
+                                                <label className="block text-sm font-bold text-gray-900">Global Technical Specifications</label>
+                                                <p className="text-xs text-gray-500 mt-1">These specifications apply broadly to the asset.</p>
+                                            </div>
+                                        </div>
+                                        <div className="flex flex-wrap gap-2">
+                                            {Object.entries(formData.attributes || {}).map(([key, val]: [string, any]) => (
+                                                <span key={key} className="px-4 py-2 bg-gray-50 text-gray-900 rounded-xl text-sm font-bold flex items-center gap-3 border border-gray-200">
+                                                    <span className="text-gray-500 font-medium">{key}:</span> {val}
+                                                    <button type="button" onClick={() => {
+                                                        const newAttrs = { ...formData.attributes };
+                                                        delete newAttrs[key];
+                                                        setFormData({ ...formData, attributes: newAttrs });
+                                                    }} className="text-gray-400 hover:text-red-500 hover:bg-white border border-transparent hover:border-red-100 rounded-lg p-1 transition-colors"><X className="w-3 h-3" /></button>
+                                                </span>
+                                            ))}
+                                            <button
+                                                type="button"
+                                                onClick={() => {
+                                                    const k = prompt('Specification Name (e.g. Operating Pressure)?');
+                                                    if (!k) return;
+                                                    const v_attr = prompt(`Value for ${k} (e.g. 150 bar)?`);
+                                                    if (k && v_attr) {
+                                                        setFormData({
+                                                            ...formData,
+                                                            attributes: { ...(formData.attributes || {}), [k]: v_attr }
+                                                        });
+                                                    }
+                                                }}
+                                                className="px-4 py-2 border-2 border-dashed border-gray-300 rounded-xl text-sm font-bold text-gray-500 hover:border-black hover:text-black transition-all flex items-center gap-2"
+                                            >
+                                                <Plus className="w-4 h-4" /> Add Specification
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    <div className="h-px bg-gray-100 w-full my-4"></div>
                                     {(formData.purchase_model === 'rfq' || formData.purchase_model === 'both') ? (
                                         <div>
                                             <div className="flex items-center justify-between mb-4">
@@ -363,16 +402,66 @@ export const ProductModal = ({
                                                 <label className="block text-sm font-bold text-gray-900">Product Images</label>
                                                 <p className="text-xs text-gray-500 mt-1">URLs for product images</p>
                                             </div>
-                                            <button
-                                                type="button"
-                                                onClick={() => setFormData({
-                                                    ...formData,
-                                                    images: [...(formData.images || []), '']
-                                                })}
-                                                className="px-4 py-2 bg-gray-100 text-gray-700 hover:bg-black hover:text-white rounded-lg text-sm font-bold transition-all flex items-center gap-2"
-                                            >
-                                                <Plus className="w-4 h-4" /> Add Image
-                                            </button>
+                                            <div className="flex items-center gap-3">
+                                                <button
+                                                    type="button"
+                                                    onClick={() => setFormData({
+                                                        ...formData,
+                                                        images: [...(formData.images || []), '']
+                                                    })}
+                                                    className="px-4 py-2 bg-gray-100 text-gray-700 hover:bg-black hover:text-white rounded-lg text-sm font-bold transition-all flex items-center gap-2"
+                                                >
+                                                    <Plus className="w-4 h-4" /> Add Image URL
+                                                </button>
+
+                                                <label className="px-4 py-2 bg-black hover:bg-gray-800 text-white cursor-pointer rounded-lg text-sm font-bold transition-all flex items-center gap-2 shadow-sm">
+                                                    <UploadCloud className="w-4 h-4" /> Upload Image
+                                                    <input
+                                                        type="file"
+                                                        accept="image/*"
+                                                        className="hidden"
+                                                        onChange={async (e) => {
+                                                            const file = e.target.files?.[0];
+                                                            if (!file) return;
+
+                                                            const btnLabel = e.target.parentElement;
+                                                            const originalText = btnLabel?.innerHTML || '';
+                                                            if (btnLabel) btnLabel.innerHTML = 'Uploading...';
+
+                                                            const formDataReq = new FormData();
+                                                            formDataReq.append('image', file);
+
+                                                            const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3000/api/v1';
+
+                                                            try {
+                                                                const res = await fetch(`${apiUrl}/products/upload`, {
+                                                                    method: 'POST',
+                                                                    body: formDataReq
+                                                                });
+
+                                                                if (!res.ok) {
+                                                                    const errorText = await res.text();
+                                                                    throw new Error(errorText || 'Upload failed');
+                                                                }
+
+                                                                const data = await res.json();
+                                                                if (data.status === 'success' && data.data?.url) {
+                                                                    setFormData({
+                                                                        ...formData,
+                                                                        images: [...(formData.images || []), data.data.url]
+                                                                    });
+                                                                } else {
+                                                                    throw new Error(data.message || 'Upload failed');
+                                                                }
+                                                            } catch (err: any) {
+                                                                alert('Upload failed: ' + err.message);
+                                                            } finally {
+                                                                if (btnLabel) btnLabel.innerHTML = originalText;
+                                                            }
+                                                        }}
+                                                    />
+                                                </label>
+                                            </div>
                                         </div>
 
                                         <div className="space-y-4">

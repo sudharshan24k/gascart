@@ -37,10 +37,16 @@ const Footer: React.FC = () => {
                     <div className="lg:col-span-2">
                         <h4 className="text-lg font-bold mb-6 text-white font-display">Company</h4>
                         <ul className="space-y-4">
-                            {['About Us', 'Careers', 'Blog', 'Contact'].map((item) => (
-                                <li key={item}>
-                                    <Link to={`/${item.toLowerCase().replace(' ', '-')}`} className="text-gray-400 hover:text-primary transition-colors flex items-center group">
-                                        <span className="group-hover:translate-x-1 transition-transform">{item}</span>
+                            {[
+                                { name: 'About Us', path: '/about-us' },
+                                { name: 'Careers', path: '/careers' },
+                                { name: 'Knowledge Hub', path: '/learn' },
+                                { name: 'Platform Documents', path: '/learn' },
+                                { name: 'Contact', path: '/contact' }
+                            ].map((item) => (
+                                <li key={item.name}>
+                                    <Link to={item.path} className="text-gray-400 hover:text-primary transition-colors flex items-center group">
+                                        <span className="group-hover:translate-x-1 transition-transform">{item.name}</span>
                                     </Link>
                                 </li>
                             ))}

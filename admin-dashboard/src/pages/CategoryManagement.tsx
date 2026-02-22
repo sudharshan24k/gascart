@@ -15,6 +15,7 @@ const CategoryManagement = () => {
     const [categories, setCategories] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
+    const [imageFilter, setImageFilter] = useState('all');
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingCategory, setEditingCategory] = useState<any>(null);
 
@@ -101,9 +102,18 @@ const CategoryManagement = () => {
         }
     };
 
-    const filteredCategories = categories.filter(c =>
-        c.name.toLowerCase().includes(searchTerm.toLowerCase())
-    );
+    const filteredCategories = categories.filter(c => {
+        const query = searchTerm.toLowerCase();
+        const matchesSearch = c.name.toLowerCase().includes(query) ||
+            (c.slug && c.slug.toLowerCase().includes(query)) ||
+            (c.description && c.description.toLowerCase().includes(query));
+
+        const matchesImage = imageFilter === 'all' ||
+            (imageFilter === 'with_image' && c.image_url) ||
+            (imageFilter === 'without_image' && !c.image_url);
+
+        return matchesSearch && matchesImage;
+    });
 
     return (
         <div className="max-w-7xl mx-auto">
@@ -142,15 +152,26 @@ const CategoryManagement = () => {
 
                 {/* Right: Grid of Categories */}
                 <div className="lg:col-span-2">
-                    <div className="relative mb-8">
-                        <Search className="absolute left-5 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
-                        <input
-                            type="text"
-                            placeholder="Filter domains..."
-                            className="w-full pl-14 pr-6 py-5 bg-white border border-gray-100 rounded-[20px] shadow-sm outline-none focus:ring-4 focus:ring-primary/5 transition-all font-bold"
-                            value={searchTerm}
-                            onChange={(e) => setSearchTerm(e.target.value)}
-                        />
+                    <div className="flex flex-col sm:flex-row gap-4 mb-8">
+                        <div className="relative flex-grow">
+                            <Search className="absolute left-5 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
+                            <input
+                                type="text"
+                                placeholder="Filter domains by name, slug, or description..."
+                                className="w-full pl-14 pr-6 py-5 bg-white border border-gray-100 rounded-[20px] shadow-sm outline-none focus:ring-4 focus:ring-primary/5 transition-all font-bold"
+                                value={searchTerm}
+                                onChange={(e) => setSearchTerm(e.target.value)}
+                            />
+                        </div>
+                        <select
+                            value={imageFilter}
+                            onChange={(e) => setImageFilter(e.target.value)}
+                            className="px-6 py-5 bg-white border border-gray-100 rounded-[20px] shadow-sm outline-none font-bold text-gray-700 min-w-[200px]"
+                        >
+                            <option value="all">All Assets</option>
+                            <option value="with_image">With Image</option>
+                            <option value="without_image">Needs Image</option>
+                        </select>
                     </div>
 
                     <div className="grid sm:grid-cols-2 gap-4">

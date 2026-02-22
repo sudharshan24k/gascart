@@ -11,6 +11,7 @@ import KnowledgeHubManagement from './pages/KnowledgeHubManagement';
 import CategoryManagement from './pages/CategoryManagement';
 import VendorManagement from './pages/VendorManagement';
 import DocumentCenter from './pages/DocumentCenter';
+import ConsultantInquiries from './pages/ConsultantInquiries';
 import RFQConfigurator from './pages/RFQConfigurator';
 import Inventory from './pages/Inventory';
 import UserManagement from './pages/UserManagement';
@@ -100,6 +101,7 @@ function App() {
                         <Route path="vendors" element={<VendorManagement />} />
                         <Route path="documents" element={<DocumentCenter />} />
                         <Route path="consultants" element={<ConsultantManagement />} />
+                        <Route path="consultant-inquiries" element={<ConsultantInquiries />} />
                         <Route path="inventory" element={<Inventory />} />
                         <Route path="orders" element={<Orders />} />
                         <Route path="users" element={<UserManagement />} />

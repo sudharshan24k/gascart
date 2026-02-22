@@ -127,6 +127,41 @@ export const getProducts = async (req: Request, res: Response, next: NextFunctio
     }
 };
 
+export const uploadProductImage = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        if (!req.file) {
+            return res.status(400).json({ status: 'error', message: 'No file uploaded' });
+        }
+
+        const file = req.file;
+        const fileExt = file.originalname.split('.').pop() || 'png';
+        const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
+        const filePath = `product-images/${fileName}`;
+
+        // Upload to Supabase Storage
+        const { error: uploadError } = await supabase.storage
+            .from('products')
+            .upload(filePath, file.buffer, {
+                contentType: file.mimetype,
+                upsert: false
+            });
+
+        if (uploadError) {
+            console.error('[Product Image Upload] Storage error:', uploadError);
+            throw new Error(`Failed to upload image: ${uploadError.message}`);
+        }
+
+        // Get public URL
+        const { data: { publicUrl } } = supabase.storage
+            .from('products')
+            .getPublicUrl(filePath);
+
+        res.status(200).json({ status: 'success', data: { url: publicUrl } });
+    } catch (err) {
+        next(err);
+    }
+};
+
 export const getProduct = async (req: Request, res: Response, next: NextFunction) => {
     try {
         const { id } = req.params;

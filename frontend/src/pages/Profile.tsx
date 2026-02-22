@@ -372,7 +372,7 @@ const Profile: React.FC = () => {
                                                     {order.order_items?.map((item: any) => (
                                                         <div key={item.id} className="flex items-center gap-4 p-4 bg-neutral-50 rounded-2xl border border-neutral-100">
                                                             <div className="w-16 h-16 bg-white rounded-xl overflow-hidden border border-neutral-200 flex-shrink-0">
-                                                                <img src={item.product?.image_url || 'https://via.placeholder.com/150'} className="w-full h-full object-cover" alt="" />
+                                                                <img src={item.product?.image_url || 'https://placehold.co/150x150?text=No+Image'} className="w-full h-full object-cover" alt="" />
                                                             </div>
                                                             <div className="flex-grow">
                                                                 <p className="font-bold text-neutral-900 mb-1">{item.product?.name}</p>

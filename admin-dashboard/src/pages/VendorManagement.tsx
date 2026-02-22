@@ -18,7 +18,9 @@ import {
     Phone,
     Briefcase,
     Award,
-    DownloadCloud
+    DownloadCloud,
+    Calendar,
+    Download
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
@@ -40,6 +42,8 @@ const VendorManagement = () => {
     const [showEnquiries, setShowEnquiries] = useState(false);
     const [selectedVendor, setSelectedVendor] = useState<any>(null);
     const [activeTab, setActiveTab] = useState<'all' | 'active' | 'pending'>('all');
+    const [startDate, setStartDate] = useState('');
+    const [endDate, setEndDate] = useState('');
     const [formData, setFormData] = useState({
         email: '',
         full_name: '',
@@ -128,16 +132,56 @@ const VendorManagement = () => {
         }
     };
 
-    const filteredVendors = vendors.filter(v => {
-        const matchesSearch = v.company_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            v.email?.toLowerCase().includes(searchTerm.toLowerCase());
-        if (!matchesSearch) return false;
+    const filteredVendors = vendors
+        .filter(v => {
+            const matchesSearch = v.company_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                v.email?.toLowerCase().includes(searchTerm.toLowerCase());
+            if (!matchesSearch) return false;
 
-        if (activeTab === 'active') return v.visibility_status === 'active';
-        return true;
-    });
+            if (activeTab === 'active') return v.visibility_status === 'active';
+
+            if (startDate && new Date(v.created_at) < new Date(startDate)) return false;
+            if (endDate) {
+                const end = new Date(endDate);
+                end.setDate(end.getDate() + 1); // include the whole end day
+                if (new Date(v.created_at) >= end) return false;
+            }
+
+            return true;
+        })
+        .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
 
     const pendingEnquiries = enquiries.filter(e => e.status === 'pending');
+
+    const handleExportExcel = () => {
+        const headers = ['ID', 'Partner Entity', 'Contact Full Name', 'Contact Email', 'Contact Phone', 'Visibility Status', 'Joined Date'];
+
+        const csvRows = [headers.join(',')];
+
+        filteredVendors.forEach(v => {
+            const dateObj = new Date(v.created_at);
+            const row = [
+                v.id,
+                `"${(v.company_name || '').replace(/"/g, '""')}"`,
+                `"${(v.full_name || '').replace(/"/g, '""')}"`,
+                v.email || '',
+                v.phone || '',
+                v.visibility_status || 'inactive',
+                dateObj.toLocaleDateString()
+            ];
+            csvRows.push(row.join(','));
+        });
+
+        const csvString = csvRows.join('\n');
+        const blob = new Blob([csvString], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.setAttribute('href', url);
+        link.setAttribute('download', `partner_ecosystem_data_${new Date().toISOString().split('T')[0]}.csv`);
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    };
 
     return (
         <div className="max-w-7xl mx-auto pb-20">
@@ -204,33 +248,60 @@ const VendorManagement = () => {
             </div>
 
             {/* Governance Toolbar */}
-            <div className="bg-white p-10 rounded-[48px] shadow-sm border border-gray-100 flex flex-col md:flex-row gap-10 items-center bg-gray-50/20 mb-16">
+            <div className="bg-white p-6 md:p-10 rounded-[48px] shadow-sm border border-gray-100 flex flex-col xl:flex-row gap-6 xl:gap-10 items-center bg-gray-50/20 mb-16">
                 <div className="relative flex-grow w-full">
                     <Search className="absolute left-6 top-1/2 -translate-y-1/2 text-gray-400 w-6 h-6" />
                     <input
                         type="text"
                         placeholder="Scan aggregate for entities, emails or IDs..."
-                        className="w-full pl-16 pr-8 py-5 bg-white border-none rounded-[28px] outline-none focus:ring-8 focus:ring-primary/5 transition-all font-bold text-lg shadow-inner"
+                        className="w-full pl-16 pr-8 py-4 sm:py-5 bg-white border-none rounded-[28px] outline-none focus:ring-8 focus:ring-primary/5 transition-all font-bold text-base sm:text-lg shadow-inner"
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
                     />
                 </div>
-                <div className="flex bg-gray-100 p-1.5 rounded-[24px] shadow-inner shrink-0 scale-95 md:scale-100">
-                    {[
-                        { id: 'all', label: 'Ecosystem All' },
-                        { id: 'active', label: 'Live Active' }
-                    ].map((btn) => (
-                        <button
-                            key={btn.id}
-                            onClick={() => setActiveTab(btn.id as any)}
-                            className={`px-10 py-4 rounded-[18px] text-[10px] font-black uppercase tracking-widest transition-all ${activeTab === btn.id
-                                ? 'bg-white text-gray-900 shadow-xl shadow-gray-200/50 scale-105'
-                                : 'text-gray-400 hover:text-gray-700'
-                                }`}
-                        >
-                            {btn.label}
-                        </button>
-                    ))}
+
+                <div className="flex flex-col sm:flex-row items-center gap-4 sm:gap-6 w-full xl:w-auto overflow-x-auto pb-2 xl:pb-0 scrollbar-hide">
+                    <div className="flex items-center gap-2 bg-white px-4 py-3 rounded-[24px] border border-gray-100 shadow-inner w-full sm:w-auto shrink-0 justify-between sm:justify-start">
+                        <Calendar className="w-5 h-5 text-gray-400 shrink-0" />
+                        <input
+                            type="date"
+                            className="bg-transparent border-none text-xs sm:text-sm font-bold outline-none text-gray-700 w-28 sm:w-32 uppercase tracking-wide"
+                            value={startDate}
+                            onChange={(e) => setStartDate(e.target.value)}
+                        />
+                        <span className="text-gray-300 text-xs font-black uppercase tracking-widest px-1">—</span>
+                        <input
+                            type="date"
+                            className="bg-transparent border-none text-xs sm:text-sm font-bold outline-none text-gray-700 w-28 sm:w-32 uppercase tracking-wide"
+                            value={endDate}
+                            onChange={(e) => setEndDate(e.target.value)}
+                        />
+                    </div>
+
+                    <div className="flex bg-gray-100 p-1.5 rounded-[24px] shadow-inner shrink-0 w-full sm:w-auto">
+                        {[
+                            { id: 'all', label: 'Ecosystem All' },
+                            { id: 'active', label: 'Live Active' }
+                        ].map((btn) => (
+                            <button
+                                key={btn.id}
+                                onClick={() => setActiveTab(btn.id as any)}
+                                className={`flex-1 sm:flex-none px-6 sm:px-10 py-3 sm:py-4 rounded-[18px] text-[10px] font-black uppercase tracking-widest transition-all ${activeTab === btn.id
+                                    ? 'bg-white text-gray-900 shadow-xl shadow-gray-200/50 scale-105'
+                                    : 'text-gray-400 hover:text-gray-700'
+                                    }`}
+                            >
+                                {btn.label}
+                            </button>
+                        ))}
+                    </div>
+
+                    <button
+                        onClick={handleExportExcel}
+                        className="bg-emerald-50 text-emerald-600 border border-emerald-100 px-6 sm:px-8 py-3 sm:py-4 rounded-[24px] flex items-center justify-center gap-2 font-black text-[10px] uppercase tracking-widest shadow-sm hover:bg-emerald-100 transition-all shrink-0 w-full sm:w-auto"
+                    >
+                        <Download className="w-4 h-4" /> Export Data
+                    </button>
                 </div>
             </div>
 

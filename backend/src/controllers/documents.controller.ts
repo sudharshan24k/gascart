@@ -80,7 +80,7 @@ export const createDocument = async (req: Request, res: Response, next: NextFunc
                 version: version || '1.0',
                 is_public: is_public !== undefined ? is_public : true,
                 status: status || 'active',
-                uploaded_by: admin_id
+                uploaded_by: admin_id === '00000000-0000-0000-0000-000000000000' ? null : admin_id
             }])
             .select()
             .single();

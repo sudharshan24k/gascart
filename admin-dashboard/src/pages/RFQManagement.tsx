@@ -55,7 +55,9 @@ const RFQManagement: React.FC = () => {
     const filteredRFQs = rfqs.filter(r => {
         const matchesSearch =
             r.products?.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            r.profiles?.email.toLowerCase().includes(searchTerm.toLowerCase());
+            r.profiles?.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            r.profiles?.full_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            r.profiles?.phone?.toLowerCase().includes(searchTerm.toLowerCase());
         const matchesStatus = statusFilter === 'all' || r.status === statusFilter;
         return matchesSearch && matchesStatus;
     });
@@ -96,7 +98,9 @@ const RFQManagement: React.FC = () => {
                         <option value="all">Global Visibility</option>
                         <option value="new">New Lead</option>
                         <option value="processing">In Progress</option>
-                        <option value="closed">Closed</option>
+                        <option value="completed">Completed</option>
+                        <option value="rejected">Rejected</option>
+                        <option value="closed">Closed (Legacy)</option>
                     </select>
                 </div>
 
@@ -117,8 +121,12 @@ const RFQManagement: React.FC = () => {
                                     <td className="px-10 py-8">
                                         <div className="flex flex-col">
                                             <span className="font-black text-gray-900 text-lg group-hover:text-primary transition-colors">{rfq.products?.name}</span>
-                                            <span className="text-xs text-gray-400 font-bold mt-1 flex items-center gap-1">
-                                                <Mail className="w-3 h-3 text-primary/40" /> {rfq.profiles?.email}
+                                            <span className="text-xs text-gray-600 font-bold mt-2 flex items-center gap-1">
+                                                {rfq.profiles?.full_name || 'Unknown User'}
+                                            </span>
+                                            <span className="text-xs text-gray-400 font-bold mt-1 flex flex-col gap-1">
+                                                <span className="flex items-center gap-1"><Mail className="w-3 h-3 text-primary/40" /> {rfq.profiles?.email}</span>
+                                                {rfq.profiles?.phone && rfq.profiles.phone !== 'N/A' && <span className="flex items-center gap-1">📞 {rfq.profiles.phone}</span>}
                                             </span>
                                         </div>
                                     </td>
@@ -126,8 +134,9 @@ const RFQManagement: React.FC = () => {
                                         <div className="flex justify-center">
                                             <span className={`px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-[0.1em] border ${rfq.status === 'new' ? 'bg-amber-50 text-amber-600 border-amber-100' :
                                                 rfq.status === 'processing' ? 'bg-blue-50 text-blue-600 border-blue-100' :
-                                                    rfq.status === 'closed' ? 'bg-gray-50 text-gray-400 border-gray-100' :
-                                                        'bg-green-50 text-green-600 border-green-100'
+                                                    rfq.status === 'completed' ? 'bg-green-50 text-green-600 border-green-100' :
+                                                        rfq.status === 'rejected' ? 'bg-red-50 text-red-600 border-red-100' :
+                                                            'bg-gray-50 text-gray-400 border-gray-100'
                                                 }`}>
                                                 {rfq.status}
                                             </span>
@@ -152,7 +161,9 @@ const RFQManagement: React.FC = () => {
                                         >
                                             <option value="new">New</option>
                                             <option value="processing">In Progress</option>
-                                            <option value="closed">Closed</option>
+                                            <option value="completed">Completed</option>
+                                            <option value="rejected">Rejected</option>
+                                            <option value="closed">Closed (Legacy)</option>
                                         </select>
                                     </td>
                                 </tr>
@@ -176,10 +187,19 @@ const RFQManagement: React.FC = () => {
                         <div className="p-10 border-b border-gray-50 flex justify-between items-center bg-gray-50/30">
                             <div>
                                 <h3 className="text-3xl font-black text-gray-900 leading-tight">Technical Spec Report</h3>
-                                <p className="text-gray-500 font-bold uppercase text-[10px] tracking-widest mt-2">{selectedRFQ.products?.name}</p>
+                                <p className="text-gray-500 font-bold uppercase text-[10px] tracking-widest mt-2">Asset: {selectedRFQ.products?.name}</p>
                             </div>
                         </div>
-                        <div className="p-12 overflow-y-auto max-h-[70vh]">
+                        <div className="p-6 bg-blue-50/50 border-b border-gray-100">
+                            <h4 className="text-sm font-black text-blue-900 mb-3 uppercase tracking-widest">Submitter Contact Details</h4>
+                            <div className="grid grid-cols-2 md:grid-cols-3 gap-6">
+                                <div><span className="block text-[10px] uppercase text-blue-400 mb-1 font-bold">Name</span><span className="font-bold text-blue-900">{selectedRFQ.profiles?.full_name}</span></div>
+                                <div><span className="block text-[10px] uppercase text-blue-400 mb-1 font-bold">Email</span><span className="font-bold text-blue-900">{selectedRFQ.profiles?.email}</span></div>
+                                <div><span className="block text-[10px] uppercase text-blue-400 mb-1 font-bold">Phone</span><span className="font-bold text-blue-900">{selectedRFQ.profiles?.phone || 'Not Provided'}</span></div>
+                                <div><span className="block text-[10px] uppercase text-blue-400 mb-1 font-bold">Company</span><span className="font-bold text-blue-900">{selectedRFQ.profiles?.company_name || 'Not Provided'}</span></div>
+                            </div>
+                        </div>
+                        <div className="p-12 overflow-y-auto max-h-[60vh]">
                             <div className="grid grid-cols-2 gap-8">
                                 {Object.entries(selectedRFQ.submitted_fields || {}).map(([key, value]: [string, any]) => (
                                     <div key={key} className="space-y-1">

@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { supabase } from '../services/api';
-import { Search, ShoppingBag, ChevronRight, FileText, X } from 'lucide-react';
+import { Search, ShoppingBag, ChevronRight, FileText, X, Download } from 'lucide-react';
 import { formatDateIST } from '../utils/dateUtils';
 import {
     fetchAllUsers,
@@ -151,7 +151,37 @@ const UserManagement: React.FC = () => {
     const filteredUsers = users.filter(user =>
         user.full_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
         user.email?.toLowerCase().includes(searchTerm.toLowerCase())
-    );
+    ).sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+
+    const handleExportFilteredUsers = () => {
+        const headers = ['ID', 'User', 'Email', 'Role', 'Status', 'Joined Date', 'Time'];
+
+        const csvRows = [headers.join(',')];
+
+        filteredUsers.forEach(u => {
+            const dateObj = new Date(u.created_at);
+            const row = [
+                u.id,
+                `"${(u.full_name || 'No Name').replace(/"/g, '""')}"`,
+                u.email || '',
+                u.role || 'customer',
+                u.account_status || 'active',
+                dateObj.toLocaleDateString(),
+                dateObj.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+            ];
+            csvRows.push(row.join(','));
+        });
+
+        const csvString = csvRows.join('\n');
+        const blob = new Blob([csvString], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.setAttribute('href', url);
+        link.setAttribute('download', `user_management_data_${new Date().toISOString().split('T')[0]}.csv`);
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    };
 
     if (loading) {
         return <div className="flex items-center justify-center min-h-screen">Loading Users...</div>;
@@ -184,6 +214,15 @@ const UserManagement: React.FC = () => {
                             onChange={(e) => setSearchTerm(e.target.value)}
                         />
                     </div>
+                    {selectedUserIds.size === 0 && (
+                        <button
+                            onClick={handleExportFilteredUsers}
+                            className="bg-emerald-50 text-emerald-600 border border-emerald-100 hover:bg-emerald-100 px-4 py-2 rounded-xl text-sm font-bold flex items-center gap-2 transition-all shadow-sm shrink-0"
+                        >
+                            <Download className="h-4 w-4" />
+                            Export Data
+                        </button>
+                    )}
                 </div>
             </div>
 

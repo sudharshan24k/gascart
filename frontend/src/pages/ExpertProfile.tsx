@@ -19,8 +19,33 @@ const ExpertProfile: React.FC = () => {
     const [expert, setExpert] = useState<any>(null);
     const [loading, setLoading] = useState(true);
     const [enquirySent, setEnquirySent] = useState(false);
+    const [submitting, setSubmitting] = useState(false);
+    const [isAuthenticated, setIsAuthenticated] = useState(false);
+    const [requesterProfile, setRequesterProfile] = useState<any>(null);
+    const [formData, setFormData] = useState({
+        service_required: 'Pre-feasibility Study',
+        timeline_preference: 'Next 14 Days',
+        project_description: ''
+    });
 
     useEffect(() => {
+        const checkAuth = async () => {
+            const sessionData = await api.supabase.auth.getSession();
+            const userToken = sessionData.data.session?.access_token;
+            const user = sessionData.data.session?.user;
+
+            if (userToken || localStorage.getItem('user_logged_in') === 'true' || localStorage.getItem('admin_logged_in') === 'true') {
+                setIsAuthenticated(true);
+                if (user) {
+                    const { data } = await api.supabase.from('profiles').select('*').eq('id', user.id).single();
+                    if (data) setRequesterProfile(data);
+                } else if (localStorage.getItem('admin_logged_in') === 'true') {
+                    setRequesterProfile({ full_name: 'Admin User', email: 'admin@gascart.com', phone: '+1 234 567 890' });
+                }
+            }
+        };
+        checkAuth();
+
         if (id) {
             loadExpert(id);
         }
@@ -37,6 +62,47 @@ const ExpertProfile: React.FC = () => {
             console.error('Failed to load expert profile', err);
         } finally {
             setLoading(false);
+        }
+    };
+
+    const handleSubmitInquiry = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setSubmitting(true);
+        try {
+            let token = (await import('../services/api').then(m => m.supabase.auth.getSession())).data.session?.access_token || '';
+            if (!token && localStorage.getItem('user_logged_in') === 'true') {
+                // Or whatever fallback they use for frontend dev token
+                token = 'development-token';
+            }
+            if (!token && localStorage.getItem('admin_logged_in') === 'true') {
+                token = 'development-token';
+            }
+
+            const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3000/api/v1';
+
+            // Build headers, adding auth if available (since the API allows optional auth)
+            const headers: Record<string, string> = {
+                'Content-Type': 'application/json'
+            };
+            if (token) headers['Authorization'] = `Bearer ${token}`;
+
+            const res = await fetch(`${apiUrl}/consultants/inquiries`, {
+                method: 'POST',
+                headers,
+                body: JSON.stringify({
+                    consultant_id: expert.id,
+                    ...formData
+                })
+            });
+
+            if (!res.ok) throw new Error('Failed to send inquiry');
+
+            setEnquirySent(true);
+        } catch (err: any) {
+            console.error(err);
+            alert('Encountered an error sending the consultation. Please log in or try again later.');
+        } finally {
+            setSubmitting(false);
         }
     };
 
@@ -180,11 +246,36 @@ const ExpertProfile: React.FC = () => {
                                     <p className="text-gray-500">The consultant will review your project details and contact you via the platform hub.</p>
                                 </div>
                             ) : (
-                                <form onSubmit={(e) => { e.preventDefault(); setEnquirySent(true); }} className="space-y-8">
+                                <form onSubmit={handleSubmitInquiry} className="space-y-8">
+                                    {isAuthenticated && requesterProfile && (
+                                        <div className="bg-gray-50 border border-neutral-100 p-6 rounded-2xl">
+                                            <h4 className="text-xs font-black text-gray-400 uppercase tracking-wider mb-4">Requester Contact Details</h4>
+                                            <div className="grid md:grid-cols-3 gap-6">
+                                                <div>
+                                                    <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Full Name</p>
+                                                    <p className="font-bold text-gray-900">{requesterProfile.full_name}</p>
+                                                </div>
+                                                <div>
+                                                    <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Email Address</p>
+                                                    <p className="font-bold text-gray-900">{requesterProfile.email}</p>
+                                                </div>
+                                                <div>
+                                                    <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Phone Number</p>
+                                                    <p className="font-bold text-gray-900">{requesterProfile.phone || 'N/A'}</p>
+                                                </div>
+                                            </div>
+                                            <p className="text-xs text-neutral-400 mt-4 italic">* These details will be shared with the consultant.</p>
+                                        </div>
+                                    )}
+
                                     <div className="grid md:grid-cols-2 gap-8">
                                         <div>
                                             <label className="block text-xs font-black text-gray-400 uppercase mb-3">Service Required</label>
-                                            <select className="w-full bg-gray-50 border-none p-5 rounded-2xl font-bold outline-none focus:ring-2 focus:ring-primary/20">
+                                            <select
+                                                className="w-full bg-gray-50 border-none p-5 rounded-2xl font-bold outline-none focus:ring-2 focus:ring-primary/20"
+                                                value={formData.service_required}
+                                                onChange={(e) => setFormData({ ...formData, service_required: e.target.value })}
+                                            >
                                                 <option>Pre-feasibility Study</option>
                                                 <option>Detailed Design Audit</option>
                                                 <option>Regulatory Compliance</option>
@@ -193,10 +284,16 @@ const ExpertProfile: React.FC = () => {
                                         </div>
                                         <div>
                                             <label className="block text-xs font-black text-gray-400 uppercase mb-3">Timeline Preference</label>
-                                            <div className="flex items-center gap-4 bg-gray-50 p-5 rounded-2xl">
-                                                <Calendar className="w-5 h-5 text-gray-400" />
-                                                <span className="font-bold text-gray-700">Next 14 Days</span>
-                                            </div>
+                                            <select
+                                                className="w-full bg-gray-50 border-none p-5 rounded-2xl font-bold outline-none focus:ring-2 focus:ring-primary/20 appearance-none"
+                                                value={formData.timeline_preference}
+                                                onChange={(e) => setFormData({ ...formData, timeline_preference: e.target.value })}
+                                            >
+                                                <option>Next 14 Days</option>
+                                                <option>Next 30 Days</option>
+                                                <option>Next Quarter</option>
+                                                <option>Flexible</option>
+                                            </select>
                                         </div>
                                     </div>
                                     <div>
@@ -204,11 +301,28 @@ const ExpertProfile: React.FC = () => {
                                         <textarea
                                             className="w-full bg-gray-50 border-none p-5 rounded-2xl h-40 font-medium outline-none focus:ring-2 focus:ring-primary/20"
                                             placeholder="Tell us briefly about your project goals and location..."
+                                            value={formData.project_description}
+                                            onChange={(e) => setFormData({ ...formData, project_description: e.target.value })}
+                                            required
                                         />
                                     </div>
-                                    <button type="submit" className="bg-primary text-white font-black px-12 py-5 rounded-[20px] shadow-2xl shadow-primary/30 hover:-translate-y-1 transition-all flex items-center gap-3">
-                                        <MessageSquare className="w-6 h-6" /> Start Consultation Enquiry
-                                    </button>
+                                    {isAuthenticated ? (
+                                        <button
+                                            type="submit"
+                                            disabled={submitting}
+                                            className="bg-primary text-white font-black px-12 py-5 rounded-[20px] shadow-2xl shadow-primary/30 hover:-translate-y-1 transition-all flex items-center gap-3 disabled:opacity-50 disabled:hover:translate-y-0"
+                                        >
+                                            {submitting ? <Loader2 className="w-6 h-6 animate-spin" /> : <MessageSquare className="w-6 h-6" />}
+                                            {submitting ? 'Sending Request...' : 'Start Consultation Enquiry'}
+                                        </button>
+                                    ) : (
+                                        <Link
+                                            to="/login"
+                                            className="bg-secondary-900 text-white font-black px-12 py-5 rounded-[20px] inline-flex shadow-2xl shadow-secondary-900/30 hover:-translate-y-1 transition-all items-center gap-3"
+                                        >
+                                            <User className="w-6 h-6" /> Login to Request Consultation
+                                        </Link>
+                                    )}
                                 </form>
                             )}
                         </section>

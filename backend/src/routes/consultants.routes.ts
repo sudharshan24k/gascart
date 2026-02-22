@@ -5,7 +5,10 @@ import {
     getConsultant,
     updateConsultant,
     deleteConsultant,
-    getMyConsultantProfile
+    getMyConsultantProfile,
+    submitConsultationInquiry,
+    getConsultationInquiries,
+    updateConsultationInquiryStatus
 } from '../controllers/consultants.controller';
 import { requireAuth, requireAdmin } from '../middlewares/auth.middleware';
 
@@ -13,6 +16,11 @@ const router = Router();
 
 // Public route for registration
 router.post('/register', registerConsultant);
+
+// Consultation Inquiry Routes
+router.post('/inquiries', requireAuth, submitConsultationInquiry); // Require auth to submit requests
+router.get('/inquiries', requireAuth, getConsultationInquiries);
+router.patch('/inquiries/:id/status', requireAuth, requireAdmin, updateConsultationInquiryStatus);
 
 // Public routes
 router.get('/', getConsultants);
@@ -24,6 +32,5 @@ router.get('/my-profile', requireAuth, getMyConsultantProfile);
 // Protected routes (Admin only)
 router.patch('/:id', requireAuth, requireAdmin, updateConsultant);
 router.delete('/:id', requireAuth, requireAdmin, deleteConsultant);
-
 
 export default router;

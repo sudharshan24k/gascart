@@ -11,7 +11,10 @@ import {
     Briefcase,
     ChevronRight,
     X,
-    ShieldCheck
+    ShieldCheck,
+    Search,
+    Calendar,
+    Download
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { fetchConsultants, updateConsultantStatus } from '../services/admin.service';
@@ -22,6 +25,9 @@ const ConsultantManagement = () => {
     const [loading, setLoading] = useState(true);
     const [activeTab, setActiveTab] = useState<'pending' | 'approved' | 'all'>('pending');
     const [selectedConsultant, setSelectedConsultant] = useState<any>(null);
+    const [searchQuery, setSearchQuery] = useState('');
+    const [startDate, setStartDate] = useState('');
+    const [endDate, setEndDate] = useState('');
 
     useEffect(() => {
         loadConsultants();
@@ -67,6 +73,56 @@ const ConsultantManagement = () => {
         }
     };
 
+    const filteredConsultants = consultants.filter(c => {
+        const matchesSearch = (c.first_name || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+            (c.last_name || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+            (c.email || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+            (c.location || '').toLowerCase().includes(searchQuery.toLowerCase());
+
+        if (!matchesSearch) return false;
+
+        if (startDate && new Date(c.created_at) < new Date(startDate)) return false;
+        if (endDate) {
+            const end = new Date(endDate);
+            end.setDate(end.getDate() + 1);
+            if (new Date(c.created_at) >= end) return false;
+        }
+
+        return true;
+    }).sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+
+    const handleExportCSV = () => {
+        const headers = ['ID', 'First Name', 'Last Name', 'Email', 'Phone', 'Location', 'Experience Years', 'Status', 'Joined Date'];
+
+        const csvRows = [headers.join(',')];
+
+        filteredConsultants.forEach(c => {
+            const dateObj = new Date(c.created_at);
+            const row = [
+                c.id,
+                `"${(c.first_name || '').replace(/"/g, '""')}"`,
+                `"${(c.last_name || '').replace(/"/g, '""')}"`,
+                c.email || '',
+                c.phone || '',
+                `"${(c.location || '').replace(/"/g, '""')}"`,
+                c.experience_years || 0,
+                c.status || 'pending',
+                dateObj.toLocaleDateString()
+            ];
+            csvRows.push(row.join(','));
+        });
+
+        const csvString = csvRows.join('\n');
+        const blob = new Blob([csvString], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.setAttribute('href', url);
+        link.setAttribute('download', `executive_advisory_data_${new Date().toISOString().split('T')[0]}.csv`);
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    };
+
     return (
         <div className="max-w-7xl mx-auto pb-20">
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-12">
@@ -95,6 +151,46 @@ const ConsultantManagement = () => {
                 </div>
             </div>
 
+            {/* Governance Toolbar */}
+            <div className="bg-white p-6 md:p-10 rounded-[48px] shadow-sm border border-gray-100 flex flex-col xl:flex-row gap-6 xl:gap-10 items-center bg-gray-50/20 mb-12">
+                <div className="relative flex-grow w-full">
+                    <Search className="absolute left-6 top-1/2 -translate-y-1/2 text-gray-400 w-6 h-6" />
+                    <input
+                        type="text"
+                        placeholder="Scan aggregate for names, emails or locations..."
+                        className="w-full pl-16 pr-8 py-4 sm:py-5 bg-white border-none rounded-[28px] outline-none focus:ring-8 focus:ring-primary/5 transition-all font-bold text-base sm:text-lg shadow-inner"
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                    />
+                </div>
+
+                <div className="flex flex-col sm:flex-row items-center gap-4 sm:gap-6 w-full xl:w-auto overflow-x-auto pb-2 xl:pb-0 scrollbar-hide">
+                    <div className="flex items-center gap-2 bg-white px-4 py-3 rounded-[24px] border border-gray-100 shadow-inner w-full sm:w-auto shrink-0 justify-between sm:justify-start">
+                        <Calendar className="w-5 h-5 text-gray-400 shrink-0" />
+                        <input
+                            type="date"
+                            className="bg-transparent border-none text-xs sm:text-sm font-bold outline-none text-gray-700 w-28 sm:w-32 uppercase tracking-wide"
+                            value={startDate}
+                            onChange={(e) => setStartDate(e.target.value)}
+                        />
+                        <span className="text-gray-300 text-xs font-black uppercase tracking-widest px-1">—</span>
+                        <input
+                            type="date"
+                            className="bg-transparent border-none text-xs sm:text-sm font-bold outline-none text-gray-700 w-28 sm:w-32 uppercase tracking-wide"
+                            value={endDate}
+                            onChange={(e) => setEndDate(e.target.value)}
+                        />
+                    </div>
+
+                    <button
+                        onClick={handleExportCSV}
+                        className="bg-emerald-50 text-emerald-600 border border-emerald-100 px-6 sm:px-8 py-3 sm:py-4 rounded-[24px] flex items-center justify-center gap-2 font-black text-[10px] uppercase tracking-widest shadow-sm hover:bg-emerald-100 transition-all shrink-0 w-full sm:w-auto"
+                    >
+                        <Download className="w-4 h-4" /> Export Data
+                    </button>
+                </div>
+            </div>
+
             {/* Consultant Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                 {loading ? (
@@ -110,7 +206,7 @@ const ConsultantManagement = () => {
                         <p className="text-gray-400 mt-2 font-bold italic">No {activeTab} consultants match current filter protocol.</p>
                     </div>
                 ) : (
-                    consultants.map((c) => (
+                    filteredConsultants.map((c) => (
                         <motion.div
                             layout
                             key={c.id}

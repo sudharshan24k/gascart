@@ -49,5 +49,42 @@ export const api = {
             });
             return res.json();
         }
+    },
+    consultants: {
+        getInquiries: async (params?: Record<string, string>) => {
+            let token = (await supabase.auth.getSession()).data.session?.access_token;
+            if (!token && localStorage.getItem('admin_logged_in') === 'true') {
+                token = 'development-token'; // Use the bypass token for local dev
+            }
+            if (!token) throw new Error('Not authenticated');
+
+            const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3000/api/v1';
+            const query = new URLSearchParams(params as Record<string, string>).toString();
+            // Prefix '?status=xyz'
+            const queryString = query ? `?${query}` : '';
+
+            const res = await fetch(`${apiUrl}/consultants/inquiries${queryString}`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            return res.json();
+        },
+        updateInquiryStatus: async (id: string, status: string) => {
+            let token = (await supabase.auth.getSession()).data.session?.access_token;
+            if (!token && localStorage.getItem('admin_logged_in') === 'true') {
+                token = 'development-token';
+            }
+            if (!token) throw new Error('Not authenticated');
+
+            const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3000/api/v1';
+            const res = await fetch(`${apiUrl}/consultants/inquiries/${id}/status`, {
+                method: 'PATCH',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({ status })
+            });
+            return res.json();
+        }
     }
 };

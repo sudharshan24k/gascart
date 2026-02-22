@@ -19,6 +19,7 @@ const AdminLayout = () => {
         { name: 'Legal Vault', path: '/documents', icon: ShieldCheck },
         { name: 'Users', path: '/users', icon: Users },
         { name: 'Consultants', icon: Users, path: '/consultants' },
+        { name: 'Consultant Inquiries', path: '/consultant-inquiries', icon: ClipboardCheck },
         { name: 'Inventory', path: '/inventory', icon: Package },
         { name: 'Orders', path: '/orders', icon: ShoppingCart },
         { name: 'Settings', path: '/settings', icon: Settings },
