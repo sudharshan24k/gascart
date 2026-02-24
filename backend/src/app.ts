@@ -41,7 +41,17 @@ app.get('/health', (req, res) => {
 });
 
 app.get('/api/v1/health', (req, res) => {
-    res.status(200).json({ status: 'success', message: 'Backend is running', commit: 'rzp-string-commit' });
+    res.status(200).json({
+        status: 'success',
+        message: 'Backend is running',
+        commit: 'rzp-string-commit',
+        debug: {
+            urlBaseLength: config.supabase.url?.length || 0,
+            anonKeyLength: config.supabase.key?.length || 0,
+            serviceKeyLength: config.supabase.serviceKey?.length || 0,
+            NODE_ENV: config.env
+        }
+    });
 });
 
 
