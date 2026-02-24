@@ -2,10 +2,10 @@ import Razorpay from 'razorpay';
 import crypto from 'crypto';
 import { config } from '../config/env';
 
-// Initialize Razorpay instance
+// Initialize Razorpay instance safely (prevents Vercel startup crash if env vars are missing)
 export const razorpayInstance = new Razorpay({
-    key_id: config.razorpay.keyId,
-    key_secret: config.razorpay.keySecret,
+    key_id: config.razorpay.keyId || 'rzp_test_dummy_key',
+    key_secret: config.razorpay.keySecret || 'dummy_secret',
 });
 
 /**

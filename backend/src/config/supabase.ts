@@ -13,6 +13,6 @@ if (!config.supabase.url || !config.supabase.key) {
 }
 
 export const supabase = createClient(
-    config.supabase.url,
-    config.supabase.serviceKey || config.supabase.key
+    config.supabase.url || 'https://dummy.supabase.co',
+    config.supabase.serviceKey || config.supabase.key || 'dummy-key'
 );
