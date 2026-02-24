@@ -68,7 +68,7 @@ const ExpertProfile: React.FC = () => {
         e.preventDefault();
         setSubmitting(true);
         try {
-            let token = (await import('../services/api').then(m => m.supabase.auth.getSession())).data.session?.access_token || '';
+            let token = (await supabase.auth.getSession()).data.session?.access_token || '';
             if (!token && localStorage.getItem('user_logged_in') === 'true') {
                 // Or whatever fallback they use for frontend dev token
                 token = 'development-token';
