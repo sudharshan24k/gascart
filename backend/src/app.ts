@@ -45,18 +45,22 @@ app.get('/api/v1/health', (req, res) => {
 });
 
 
-app.use('/api/v1/products', productRoutes);
-app.use('/api/v1/cart', cartRoutes); // Auth handled in controller for guest support
-app.use('/api/v1/orders', orderRoutes);
-app.use('/api/v1/consultants', consultantRoutes);
-app.use('/api/v1/admin', adminRoutes);
-app.use('/api/v1/articles', articleRoutes);
-app.use('/api/v1/rfqs', rfqRoutes);
-app.use('/api/v1/categories', categoryRoutes);
-app.use('/api/v1/vendors', vendorRoutes);
-app.use('/api/v1/documents', documentRoutes);
-app.use('/api/v1/users', userRoutes);
-app.use('/api/v1/payments', paymentRoutes);
+try {
+    app.use('/api/v1/products', productRoutes);
+    app.use('/api/v1/cart', cartRoutes); // Auth handled in controller for guest support
+    app.use('/api/v1/orders', orderRoutes);
+    app.use('/api/v1/consultants', consultantRoutes);
+    app.use('/api/v1/admin', adminRoutes);
+    app.use('/api/v1/articles', articleRoutes);
+    app.use('/api/v1/rfqs', rfqRoutes);
+    app.use('/api/v1/categories', categoryRoutes);
+    app.use('/api/v1/vendors', vendorRoutes);
+    app.use('/api/v1/documents', documentRoutes);
+    app.use('/api/v1/users', userRoutes);
+    app.use('/api/v1/payments', paymentRoutes);
+} catch (routeError) {
+    console.error('[App] Failed to initialize routes:', routeError);
+}
 
 // Error Handling Middleware
 app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
