@@ -33,15 +33,15 @@ app.use(express.json());
 
 // Routes
 app.get('/', (req, res) => {
-    res.json({ message: 'Bespoke E-commerce API is running 🚀', version: '1.0.0' });
+    res.json({ message: 'Bespoke E-commerce API is running 🚀', version: '1.0.0', commit: 'rzp-string-commit' });
 });
 
 app.get('/health', (req, res) => {
-    res.json({ status: 'ok', version: '1.0.0' });
+    res.json({ status: 'ok', version: '1.0.0', commit: 'rzp-string-commit' });
 });
 
 app.get('/api/v1/health', (req, res) => {
-    res.status(200).json({ status: 'success', message: 'Backend is running' });
+    res.status(200).json({ status: 'success', message: 'Backend is running', commit: 'rzp-string-commit' });
 });
 
 

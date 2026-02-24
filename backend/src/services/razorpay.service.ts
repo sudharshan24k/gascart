@@ -3,9 +3,14 @@ import crypto from 'crypto';
 import { config } from '../config/env';
 
 // Initialize Razorpay instance safely (prevents Vercel startup crash if env vars are missing)
+const RZP_KEY = config.razorpay.keyId || 'rzp_test_dummy_key';
+const RZP_SECRET = config.razorpay.keySecret || 'dummy_secret';
+
+console.log('[RazorpayService] Initializing Razorpay with key:', RZP_KEY ? 'Present' : 'Missing');
+
 export const razorpayInstance = new Razorpay({
-    key_id: config.razorpay.keyId || 'rzp_test_dummy_key',
-    key_secret: config.razorpay.keySecret || 'dummy_secret',
+    key_id: String(RZP_KEY),
+    key_secret: String(RZP_SECRET),
 });
 
 /**
