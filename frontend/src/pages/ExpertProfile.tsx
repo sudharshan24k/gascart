@@ -7,12 +7,11 @@ import {
     Star,
     ChevronLeft,
     Building2,
-    Calendar,
     CheckCircle2,
     Loader2,
     User
 } from 'lucide-react';
-import { api } from '../services/api';
+import { api, supabase } from '../services/api';
 
 const ExpertProfile: React.FC = () => {
     const { id } = useParams<{ id: string }>();
@@ -30,14 +29,14 @@ const ExpertProfile: React.FC = () => {
 
     useEffect(() => {
         const checkAuth = async () => {
-            const sessionData = await api.supabase.auth.getSession();
+            const sessionData = await supabase.auth.getSession();
             const userToken = sessionData.data.session?.access_token;
             const user = sessionData.data.session?.user;
 
             if (userToken || localStorage.getItem('user_logged_in') === 'true' || localStorage.getItem('admin_logged_in') === 'true') {
                 setIsAuthenticated(true);
                 if (user) {
-                    const { data } = await api.supabase.from('profiles').select('*').eq('id', user.id).single();
+                    const { data } = await supabase.from('profiles').select('*').eq('id', user.id).single();
                     if (data) setRequesterProfile(data);
                 } else if (localStorage.getItem('admin_logged_in') === 'true') {
                     setRequesterProfile({ full_name: 'Admin User', email: 'admin@gascart.com', phone: '+1 234 567 890' });
