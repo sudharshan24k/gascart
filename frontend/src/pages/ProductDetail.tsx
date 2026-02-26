@@ -596,6 +596,36 @@ const ProductDetail: React.FC = () => {
                                                         )}
                                                     </div>
                                                 ))}
+
+                                                {/* Preferred Vendor Selection */}
+                                                {product.vendors?.length > 0 && (
+                                                    <div className="col-span-full">
+                                                        <label className="block text-[10px] font-black text-neutral-400 uppercase tracking-widest mb-2">
+                                                            Preferred Vendor
+                                                        </label>
+                                                        <div className="relative">
+                                                            <select
+                                                                className="w-full bg-neutral-50 border border-neutral-200 rounded-xl p-4 font-bold outline-none focus:ring-2 focus:ring-primary/20 appearance-none"
+                                                                onChange={(e) => {
+                                                                    const vId = e.target.value;
+                                                                    const vendor = product.vendors.find((v: any) => v.vendor_id === vId);
+                                                                    setSelectedVendor(vendor || null);
+                                                                }}
+                                                                value={selectedVendor?.vendor_id || ""}
+                                                            >
+                                                                <option value="">Any / Preferred Vendor</option>
+                                                                {product.vendors.map((v: any) => (
+                                                                    <option key={v.vendor_id} value={v.vendor_id}>
+                                                                        {v.profiles?.company_name || 'Vendor'} (₹{v.vendor_price?.toLocaleString()})
+                                                                    </option>
+                                                                ))}
+                                                            </select>
+                                                            <ChevronRight className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-400 rotate-90 pointer-events-none" />
+                                                        </div>
+                                                        <p className="text-[10px] text-neutral-400 mt-2 italic">Leave as "Any Vendor" to let our procurement team find the best match for you.</p>
+                                                    </div>
+                                                )}
+
                                                 <div className="col-span-full">
                                                     <label className="block text-[10px] font-black text-neutral-400 uppercase tracking-widest mb-2">Technical Remarks</label>
                                                     <textarea

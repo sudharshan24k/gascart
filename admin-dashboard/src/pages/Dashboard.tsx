@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Package, ClipboardCheck, Clock, Plus, LayoutGrid } from 'lucide-react';
+import { Package, ClipboardCheck, Clock, Plus, ArrowUpRight, TrendingUp, Users, Activity, ShoppingCart } from 'lucide-react';
 import { getDashboardStats } from '../services/admin.service';
 import { Link } from 'react-router-dom';
 
@@ -8,17 +8,28 @@ interface StatCardProps {
     value: string | number;
     icon: React.ElementType;
     color: string;
+    trend?: string;
 }
 
-const StatCard = ({ title, value, icon: Icon, color }: StatCardProps) => (
-    <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
-        <div className="flex justify-between items-start mb-4">
-            <div className={`p-3 rounded-xl ${color}`}>
+const StatCard = ({ title, value, icon: Icon, color, trend }: StatCardProps) => (
+    <div className="admin-card-interactive group">
+        <div className="flex justify-between items-start mb-6">
+            <div className={`p-4 rounded-2xl ${color} shadow-sm group-hover:scale-110 transition-transform duration-300`}>
                 <Icon className="w-6 h-6" />
             </div>
+            {trend && (
+                <div className="flex items-center gap-1 px-2.5 py-1 bg-emerald-50 text-emerald-600 rounded-lg text-xs font-black tracking-tight">
+                    <TrendingUp className="w-3.5 h-3.5" />
+                    <span>{trend}</span>
+                </div>
+            )}
         </div>
-        <h3 className="text-gray-500 text-sm font-medium mb-1">{title}</h3>
-        <h4 className="text-2xl font-bold text-gray-900">{value}</h4>
+        <div>
+            <h3 className="text-slate-500 text-xs font-black uppercase tracking-widest mb-1">{title}</h3>
+            <div className="flex items-baseline gap-2">
+                <h4 className="text-3xl font-black text-slate-900 tracking-tight">{value}</h4>
+            </div>
+        </div>
     </div>
 );
 
@@ -41,84 +52,140 @@ const AdminDashboard = () => {
     }, []);
 
     if (loading) {
-        return <div className="animate-pulse space-y-8">
-            <div className="h-8 bg-gray-200 rounded w-1/4"></div>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                {[1, 2, 3, 4].map(i => <div key={i} className="h-32 bg-gray-200 rounded-2xl"></div>)}
+        return (
+            <div className="space-y-8 animate-pulse">
+                <div className="h-10 bg-slate-200 rounded-xl w-1/4"></div>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                    {[1, 2, 3, 4].map(i => <div key={i} className="h-40 bg-slate-200 rounded-[24px]"></div>)}
+                </div>
             </div>
-        </div>;
+        );
     }
 
     return (
-        <div className="max-w-7xl mx-auto">
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
+        <div className="space-y-10">
+            {/* Page Header */}
+            <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
                 <div>
-                    <h2 className="text-3xl font-bold text-gray-900">Dashboard Overview</h2>
-                    <p className="text-gray-500 mt-1">Status as of {stats?.lastUpdate ? new Date(stats.lastUpdate).toLocaleString() : 'Just now'}</p>
+                    <h2 className="text-4xl font-black text-slate-900 tracking-tight">System Intelligence</h2>
+                    <p className="text-slate-500 font-medium mt-1 uppercase text-xs tracking-[0.2em]">
+                        Live operational status as of {stats?.lastUpdate ? new Date(stats.lastUpdate).toLocaleTimeString() : 'Just now'}
+                    </p>
+                </div>
+                <div className="flex gap-3">
+                    <button className="px-5 py-2.5 bg-white border border-slate-200 rounded-xl font-bold text-sm text-slate-700 hover:bg-slate-50 transition-all shadow-sm">
+                        Export Report
+                    </button>
+                    <Link to="/products" className="admin-btn-primary gap-2">
+                        <Plus className="w-4 h-4" />
+                        <span>Add Asset</span>
+                    </Link>
                 </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
+            {/* Stats Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                 <StatCard
-                    title="Total Revenue"
+                    title="Gross Revenue"
                     value={`₹${(stats?.totalRevenue || 0).toLocaleString()}`}
-                    icon={LayoutGrid}
-                    color="bg-emerald-50 text-emerald-600"
+                    icon={Activity}
+                    color="bg-indigo-50 text-indigo-600"
                 />
                 <StatCard
-                    title="Total Orders"
+                    title="Active Orders"
                     value={stats?.totalOrders || 0}
-                    icon={Package}
+                    icon={ShoppingCart}
                     color="bg-blue-50 text-blue-600"
                 />
                 <StatCard
-                    title="Pending Orders"
+                    title="Action Required"
                     value={stats?.pendingOrders || 0}
                     icon={Clock}
-                    color="bg-amber-50 text-amber-600"
+                    color="bg-rose-50 text-rose-600"
                 />
                 <StatCard
-                    title="Total Products"
+                    title="Inventory Pool"
                     value={stats?.totalProducts || 0}
                     icon={Package}
-                    color="bg-purple-50 text-purple-600"
+                    color="bg-amber-50 text-amber-600"
                 />
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                {/* Quick Actions */}
-                <div className="lg:col-span-1 space-y-6">
-                    <h3 className="font-bold text-xl text-gray-900">Quick Actions</h3>
-                    <div className="grid gap-4">
-                        <Link to="/products" className="flex items-center gap-4 p-4 bg-white rounded-2xl border border-gray-100 hover:border-primary/50 hover:shadow-md transition-all group">
-                            <div className="p-3 bg-primary/10 rounded-xl text-primary group-hover:bg-primary group-hover:text-white transition-colors">
-                                <Plus className="w-5 h-5" />
+                {/* Main Action Hub */}
+                <div className="lg:col-span-2 space-y-6">
+                    <div className="flex items-center justify-between">
+                        <h3 className="font-black text-xl text-slate-900 tracking-tight">Operational Hub</h3>
+                        <Link to="/rfqs" className="text-indigo-600 font-bold text-sm hover:underline">View All Actions</Link>
+                    </div>
+                    <div className="grid md:grid-cols-2 gap-4">
+                        <Link to="/rfqs" className="admin-card-interactive flex items-center gap-4 p-5">
+                            <div className="w-12 h-12 bg-slate-900 rounded-xl flex items-center justify-center text-white shrink-0">
+                                <ClipboardCheck className="w-6 h-6" />
                             </div>
-                            <span className="font-bold text-gray-700">Add Product</span>
-                        </Link>
-                        <Link to="/consultants" className="flex items-center gap-4 p-4 bg-white rounded-2xl border border-gray-100 hover:border-primary/50 hover:shadow-md transition-all group">
-                            <div className="p-3 bg-primary/10 rounded-xl text-primary group-hover:bg-primary group-hover:text-white transition-colors">
-                                <ClipboardCheck className="w-5 h-5" />
+                            <div>
+                                <span className="block font-black text-slate-900">RFQ Pipeline</span>
+                                <span className="text-xs text-slate-500 font-medium">Manage technical quotes</span>
                             </div>
-                            <span className="font-bold text-gray-700">Review Consultants</span>
+                            <ArrowUpRight className="ml-auto w-5 h-5 text-slate-300 group-hover:text-indigo-600 transition-colors" />
                         </Link>
+
+                        <Link to="/consultants" className="admin-card-interactive flex items-center gap-4 p-5">
+                            <div className="w-12 h-12 bg-indigo-600 rounded-xl flex items-center justify-center text-white shrink-0">
+                                <Users className="w-6 h-6" />
+                            </div>
+                            <div>
+                                <span className="block font-black text-slate-900">Expert Network</span>
+                                <span className="text-xs text-slate-500 font-medium">Review consultant profiles</span>
+                            </div>
+                            <ArrowUpRight className="ml-auto w-5 h-5 text-slate-300 group-hover:text-indigo-600 transition-colors" />
+                        </Link>
+                    </div>
+
+                    <div className="admin-card bg-slate-900 border-none relative overflow-hidden min-h-[200px] flex flex-col justify-center">
+                        <div className="relative z-10 max-w-md">
+                            <h3 className="text-2xl font-black text-white mb-2 tracking-tight">Market Intelligence</h3>
+                            <p className="text-slate-400 text-sm font-medium mb-6 leading-relaxed">
+                                Use the Operational Hub to manage RFQs, track orders, and oversee your consultant network with real-time analytics.
+                            </p>
+                            <Link to="/orders" className="inline-block px-6 py-3 bg-white text-slate-900 rounded-xl font-bold text-sm hover:bg-slate-100 transition-all">
+                                Manage Orders
+                            </Link>
+                        </div>
+                        {/* Abstract Background Decoration */}
+                        <div className="absolute top-0 right-0 w-1/2 h-full bg-indigo-600/20 blur-[100px] -mr-20 -mt-20"></div>
+                        <div className="absolute -bottom-10 -right-10 w-40 h-40 bg-indigo-500/10 rounded-full blur-3xl"></div>
+                        <Activity className="absolute right-12 bottom-12 w-32 h-32 text-white/5 opacity-20 rotate-12" />
                     </div>
                 </div>
 
-                {/* System Update Info (Placeholder for now) */}
-                <div className="lg:col-span-2 bg-gradient-to-br from-secondary-900 to-secondary-800 p-8 rounded-3xl text-white shadow-xl relative overflow-hidden">
-                    <div className="relative z-10">
-                        <h3 className="text-2xl font-bold mb-4">Marketplace Management</h3>
-                        <p className="text-secondary-300 mb-8 max-w-md">
-                            Manage your vendors, products, and consultants all in one place. Keep track of approvals and system updates efficiently.
-                        </p>
-                        <button className="bg-primary hover:bg-primary-dark text-white px-6 py-3 rounded-xl font-bold transition-all">
-                            View Activity Log
-                        </button>
+                {/* Sidebar Context */}
+                <div className="space-y-6">
+                    <h3 className="font-black text-xl text-slate-900 tracking-tight">Recent Activity</h3>
+                    <div className="admin-card p-0 overflow-hidden">
+                        <div className="p-6 space-y-6">
+                            {stats?.recentOrders && stats.recentOrders.length > 0 ? (
+                                stats.recentOrders.map((order: any) => (
+                                    <div key={order.id} className="flex gap-4 items-start group">
+                                        <div className="w-2 h-2 rounded-full bg-indigo-600 mt-2 shrink-0 group-hover:scale-150 transition-transform"></div>
+                                        <div>
+                                            <p className="text-sm font-bold text-slate-900">
+                                                Order #{order.id.slice(0, 8)} from {order.customer_name}
+                                            </p>
+                                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-1">
+                                                {new Date(order.created_at).toLocaleString()}
+                                            </p>
+                                        </div>
+                                    </div>
+                                ))
+                            ) : (
+                                <p className="text-sm text-slate-500 font-medium text-center py-4">No recent activity detected.</p>
+                            )}
+                        </div>
+                        <Link to="/orders" className="block w-full py-4 bg-slate-50 border-t border-slate-100 text-xs font-black text-slate-500 text-center uppercase tracking-widest hover:bg-slate-100 hover:text-slate-900 transition-all">
+                            View All Orders
+                        </Link>
                     </div>
-                    {/* Decorative elements */}
-                    <div className="absolute top-0 right-0 w-64 h-64 bg-primary/10 rounded-full blur-3xl -mr-32 -mt-32"></div>
-                    <div className="absolute bottom-0 left-0 w-32 h-32 bg-primary/5 rounded-full blur-2xl -ml-16 -mb-16"></div>
                 </div>
             </div>
         </div>

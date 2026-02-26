@@ -32,6 +32,8 @@ const UserManagement: React.FC = () => {
     const [users, setUsers] = useState<User[]>([]);
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
+    const [roleFilter, setRoleFilter] = useState('');
+    const [statusFilter, setStatusFilter] = useState('');
     const [selectedUser, setSelectedUser] = useState<User | null>(null);
     const [userOrders, setUserOrders] = useState<Order[]>([]);
     const [loadingOrders, setLoadingOrders] = useState(false);
@@ -39,11 +41,14 @@ const UserManagement: React.FC = () => {
 
     useEffect(() => {
         loadUsers();
-    }, []);
+    }, [roleFilter, statusFilter]);
 
     const loadUsers = async () => {
         try {
-            const data = await fetchAllUsers();
+            const data = await fetchAllUsers({
+                role: roleFilter || undefined,
+                account_status: statusFilter || undefined
+            });
             setUsers(data);
         } catch (error) {
             console.error('Failed to fetch users:', error);
@@ -204,7 +209,31 @@ const UserManagement: React.FC = () => {
                             Export CSV ({selectedUserIds.size})
                         </button>
                     )}
-                    <div className="relative w-full md:w-80">
+                    <div className="flex items-center gap-2">
+                        <select
+                            value={roleFilter}
+                            onChange={(e) => setRoleFilter(e.target.value)}
+                            className="bg-white border border-gray-200 rounded-xl px-4 py-2 text-sm font-medium focus:ring-2 focus:ring-primary-500 outline-none transition-all cursor-pointer"
+                        >
+                            <option value="">All Roles</option>
+                            <option value="customer">Customer</option>
+                            <option value="vendor">Vendor</option>
+                            <option value="admin">Admin</option>
+                        </select>
+
+                        <select
+                            value={statusFilter}
+                            onChange={(e) => setStatusFilter(e.target.value)}
+                            className="bg-white border border-gray-200 rounded-xl px-4 py-2 text-sm font-medium focus:ring-2 focus:ring-primary-500 outline-none transition-all cursor-pointer"
+                        >
+                            <option value="">All Status</option>
+                            <option value="active">Active</option>
+                            <option value="deactivated">Deactivated</option>
+                            <option value="banned">Banned</option>
+                        </select>
+                    </div>
+
+                    <div className="relative w-full md:w-64">
                         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
                         <input
                             type="text"

@@ -7,24 +7,46 @@ import { api } from '../services/api';
 const Learn: React.FC = () => {
     const [articles, setArticles] = useState<any[]>([]);
     const [documents, setDocuments] = useState<any[]>([]);
+    const [categories, setCategories] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [docsLoading, setDocsLoading] = useState(true);
     const [activeLevel, setActiveLevel] = useState('All');
     const [docCategory, setDocCategory] = useState('All');
+    const [searchQuery, setSearchQuery] = useState('');
+    const [activeCategory, setActiveCategory] = useState('All');
     const navigate = useNavigate();
 
     useEffect(() => {
         const fetchArticles = async () => {
+            setLoading(true);
             const params: any = {};
             if (activeLevel !== 'All') params.level = activeLevel.toLowerCase();
+            if (activeCategory !== 'All') params.category = activeCategory;
+            if (searchQuery) params.search = searchQuery;
+
             const res = await api.articles.list(params);
             if (res.status === 'success') {
                 setArticles(res.data);
             }
             setLoading(false);
         };
-        fetchArticles();
-    }, [activeLevel]);
+
+        const timer = setTimeout(() => {
+            fetchArticles();
+        }, 300);
+
+        return () => clearTimeout(timer);
+    }, [activeLevel, activeCategory, searchQuery]);
+
+    useEffect(() => {
+        const fetchCats = async () => {
+            const res = await api.categories.list();
+            if (res.status === 'success') {
+                setCategories(res.data);
+            }
+        };
+        fetchCats();
+    }, []);
 
     useEffect(() => {
         const fetchDocuments = async () => {
@@ -84,6 +106,8 @@ const Learn: React.FC = () => {
                                 <input
                                     type="text"
                                     placeholder="Search resources..."
+                                    value={searchQuery}
+                                    onChange={(e) => setSearchQuery(e.target.value)}
                                     className="w-full pl-12 pr-4 py-4 bg-white border border-gray-100 rounded-2xl shadow-sm outline-none focus:ring-2 focus:ring-primary/10 transition-all font-medium"
                                 />
                             </div>
@@ -92,7 +116,7 @@ const Learn: React.FC = () => {
                 </motion.div>
 
                 {/* Level Tabs */}
-                <div className="flex gap-4 mb-12 overflow-x-auto pb-4 no-scrollbar">
+                <div className="flex gap-4 mb-2 overflow-x-auto pb-4 no-scrollbar">
                     {levels.map(level => (
                         <button
                             key={level}
@@ -103,6 +127,31 @@ const Learn: React.FC = () => {
                                 }`}
                         >
                             {level}
+                        </button>
+                    ))}
+                </div>
+
+                {/* Category Tags */}
+                <div className="flex gap-3 mb-12 overflow-x-auto pb-4 no-scrollbar">
+                    <button
+                        onClick={() => setActiveCategory('All')}
+                        className={`px-5 py-2 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${activeCategory === 'All'
+                            ? 'bg-neutral-900 text-white'
+                            : 'bg-neutral-100 text-neutral-500 hover:bg-neutral-200'
+                            }`}
+                    >
+                        All Domains
+                    </button>
+                    {categories.map(cat => (
+                        <button
+                            key={cat.id}
+                            onClick={() => setActiveCategory(cat.id)}
+                            className={`px-5 py-2 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${activeCategory === cat.id
+                                ? 'bg-neutral-900 text-white'
+                                : 'bg-neutral-100 text-neutral-500 hover:bg-neutral-200'
+                                }`}
+                        >
+                            {cat.name}
                         </button>
                     ))}
                 </div>
@@ -122,8 +171,14 @@ const Learn: React.FC = () => {
                                 className="bg-white rounded-[40px] p-8 shadow-sm border border-gray-100 hover:shadow-2xl hover:-translate-y-2 transition-all group cursor-pointer relative overflow-hidden"
                             >
                                 <div className="flex items-center justify-between mb-8">
-                                    <div className="w-14 h-14 bg-primary/10 rounded-2xl flex items-center justify-center group-hover:bg-primary group-hover:text-white transition-all">
-                                        {article.video_url ? <Video className="w-6 h-6" /> : <BookOpen className="w-6 h-6" />}
+                                    <div className="w-20 h-20 bg-gray-50 rounded-2xl flex items-center justify-center shrink-0 group-hover:bg-white transition-colors overflow-hidden">
+                                        {article.image_url ? (
+                                            <img src={article.image_url} alt={article.title} className="w-full h-full object-cover" />
+                                        ) : article.video_url ? (
+                                            <Video className="w-10 h-10 text-primary" />
+                                        ) : (
+                                            <BookOpen className="w-10 h-10 text-blue-500" />
+                                        )}
                                     </div>
                                     <div className="flex gap-2">
                                         {article.is_gated && (
@@ -160,23 +215,25 @@ const Learn: React.FC = () => {
                 )}
 
                 {/* Categories Overview */}
-                <div className="mt-32 grid md:grid-cols-3 gap-8">
-                    {[
-                        { title: "Plant Design", icon: Zap, count: 12 },
-                        { title: "Policy & Funding", icon: FileText, count: 8 },
-                        { title: "Feedstock Guide", icon: Lightbulb, count: 15 }
-                    ].map((cat, i) => (
-                        <div key={i} className="flex items-center gap-6 p-8 bg-white rounded-3xl border border-gray-100 cursor-pointer hover:border-primary/30 transition-all group">
-                            <div className="w-16 h-16 bg-gray-50 rounded-2xl flex items-center justify-center group-hover:bg-primary/5">
-                                <cat.icon className="w-8 h-8 text-gray-400 group-hover:text-primary transition-colors" />
+                {categories.length > 0 && (
+                    <div className="mt-32 grid md:grid-cols-3 gap-8">
+                        {categories.slice(0, 3).map((cat, i) => (
+                            <div
+                                key={cat.id}
+                                onClick={() => setActiveCategory(cat.id)}
+                                className="flex items-center gap-6 p-8 bg-white rounded-3xl border border-gray-100 cursor-pointer hover:border-primary/30 transition-all group"
+                            >
+                                <div className="w-16 h-16 bg-gray-50 rounded-2xl flex items-center justify-center group-hover:bg-primary/5">
+                                    <Lightbulb className="w-8 h-8 text-gray-400 group-hover:text-primary transition-colors" />
+                                </div>
+                                <div>
+                                    <h4 className="font-bold text-gray-900">{cat.name}</h4>
+                                    <p className="text-sm text-gray-400">Available Resources</p>
+                                </div>
                             </div>
-                            <div>
-                                <h4 className="font-bold text-gray-900">{cat.title}</h4>
-                                <p className="text-sm text-gray-400">{cat.count} Resources</p>
-                            </div>
-                        </div>
-                    ))}
-                </div>
+                        ))}
+                    </div>
+                )}
 
                 {/* Document Center Section */}
                 <div className="mt-40 mb-20">

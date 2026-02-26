@@ -8,7 +8,7 @@ import path from 'path';
 
 export const submitRFQ = async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const { product_id, submitted_fields } = req.body;
+        const { product_id, vendor_id, submitted_fields } = req.body;
         const user = (req as any).user;
         const user_id = user.id;
 
@@ -40,6 +40,7 @@ export const submitRFQ = async (req: Request, res: Response, next: NextFunction)
             .insert([{
                 user_id,
                 product_id,
+                vendor_id: vendor_id || null,
                 submitted_fields,
                 status: 'new' // Normalizing to 'new' as per requirements
             }])
@@ -76,7 +77,11 @@ export const getMyRFQs = async (req: Request, res: Response, next: NextFunction)
         const user_id = (req as any).user.id;
         const { data, error } = await supabase
             .from('rfqs')
-            .select('*, products(name, slug)')
+            .select(`
+                *, 
+                products(name, slug),
+                vendor:vendor_id(id, company_name)
+            `)
             .eq('user_id', user_id);
 
         if (error) throw error;
@@ -91,7 +96,11 @@ export const getAllRFQs = async (req: Request, res: Response, next: NextFunction
         // Fetch RFQs without joining profiles
         const { data: rfqs, error } = await supabase
             .from('rfqs')
-            .select('*, products(name, slug)')
+            .select(`
+                *, 
+                products(name, slug),
+                vendor:vendor_id(id, company_name)
+            `)
             .order('created_at', { ascending: false });
 
         if (error) throw error;
@@ -141,10 +150,10 @@ export const exportRFQs = async (req: Request, res: Response, next: NextFunction
     try {
         const { format } = req.query; // csv or excel (csv for now)
 
-        // Fetch RFQs without profiles join
+        // Fetch RFQs with vendor information
         const { data: rfqs, error } = await supabase
             .from('rfqs')
-            .select('*, products(name)')
+            .select('*, products(name), vendor:vendor_id(company_name)')
             .order('created_at', { ascending: false });
 
         if (error) throw error;
@@ -173,6 +182,7 @@ export const exportRFQs = async (req: Request, res: Response, next: NextFunction
                 { id: 'email', title: 'User Email' },
                 { id: 'phone', title: 'User Phone' },
                 { id: 'product', title: 'Product Name' },
+                { id: 'vendor', title: 'Preferred Vendor' },
                 { id: 'status', title: 'Status' },
                 { id: 'specs', title: 'Technical Specifications' }
             ]
@@ -187,6 +197,7 @@ export const exportRFQs = async (req: Request, res: Response, next: NextFunction
                 email: profile?.email || 'N/A',
                 phone: profile?.phone || 'N/A',
                 product: r.products?.name,
+                vendor: r.vendor?.company_name || 'Any Vendor',
                 status: r.status,
                 specs: JSON.stringify(r.submitted_fields).replace(/"/g, "'")
             };

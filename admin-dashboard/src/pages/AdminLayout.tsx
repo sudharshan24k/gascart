@@ -1,114 +1,234 @@
-import { useState } from 'react';
-import { Link, Outlet, useLocation } from 'react-router-dom';
-import { LayoutDashboard, Package, ShoppingCart, Users, Settings, LogOut, ClipboardCheck, BookOpen, FolderTree, Building2, ShieldCheck, Settings2, Menu, X } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom';
+import {
+    LayoutDashboard, Package, ShoppingCart, Users, Settings, LogOut,
+    ClipboardCheck, BookOpen, FolderTree, Building2, ShieldCheck,
+    Settings2, Menu, X, Search, Bell, ChevronRight, User,
+    Database, Receipt, MessageSquare
+} from 'lucide-react';
 import { authService } from '../services/auth.service';
+import { supabase } from '../services/api';
 
 const AdminLayout = () => {
     const location = useLocation();
+    const navigate = useNavigate();
     const [sidebarOpen, setSidebarOpen] = useState(false);
-    const isActive = (path: string) => location.pathname.includes(path);
+    const [scrolled, setScrolled] = useState(false);
+    const [userProfile, setUserProfile] = useState<any>(null);
 
-    const navItems = [
-        { name: 'Dashboard', path: '/', icon: LayoutDashboard },
-        { name: 'Products', path: '/products', icon: Package },
-        { name: 'RFQs', path: '/rfqs', icon: ClipboardCheck },
-        { name: 'RFQ Engine Config', path: '/rfq-config', icon: Settings2 },
-        { name: 'Knowledge Hub', path: '/learn', icon: BookOpen },
-        { name: 'Taxonomy', path: '/taxonomy', icon: FolderTree },
-        { name: 'Vendors', path: '/vendors', icon: Building2 },
-        { name: 'Legal Vault', path: '/documents', icon: ShieldCheck },
-        { name: 'Users', path: '/users', icon: Users },
-        { name: 'Consultants', icon: Users, path: '/consultants' },
-        { name: 'Consultant Inquiries', path: '/consultant-inquiries', icon: ClipboardCheck },
-        { name: 'Inventory', path: '/inventory', icon: Package },
-        { name: 'Orders', path: '/orders', icon: ShoppingCart },
-        { name: 'Settings', path: '/settings', icon: Settings },
+    useEffect(() => {
+        const handleScroll = () => setScrolled(window.scrollY > 10);
+        window.addEventListener('scroll', handleScroll);
+
+        const fetchProfile = async () => {
+            const { data: { session } } = await supabase.auth.getSession();
+            if (session) {
+                const { data } = await supabase
+                    .from('profiles')
+                    .select('*')
+                    .eq('id', session.user.id)
+                    .single();
+                setUserProfile(data);
+            }
+        };
+        fetchProfile();
+
+        return () => window.removeEventListener('scroll', handleScroll);
+    }, []);
+
+    const isActive = (path: string) => {
+        if (path === '/' && location.pathname === '/') return true;
+        if (path !== '/' && location.pathname.startsWith(path)) return true;
+        return false;
+    };
+
+    const navigationGroups = [
+        {
+            title: 'Core Operations',
+            items: [
+                { name: 'Insights', path: '/', icon: LayoutDashboard },
+                { name: 'Assets', path: '/products', icon: Package },
+                { name: 'Inventory', path: '/inventory', icon: Database },
+                { name: 'Orders', path: '/orders', icon: ShoppingCart },
+            ]
+        },
+        {
+            title: 'Marketplace Engine',
+            items: [
+                { name: 'RFQ Manager', path: '/rfqs', icon: ClipboardCheck },
+                { name: 'RFQ Configurator', path: '/rfq-config', icon: Settings2 },
+                { name: 'Vendor Ecosystem', path: '/vendors', icon: Building2 },
+            ]
+        },
+        {
+            title: 'Content & Knowledge',
+            items: [
+                { name: 'Knowledge Hub', path: '/learn', icon: BookOpen },
+                { name: 'Taxonomy', path: '/taxonomy', icon: FolderTree },
+                { name: 'Legal Vault', path: '/documents', icon: ShieldCheck },
+            ]
+        },
+        {
+            title: 'Users & Experts',
+            items: [
+                { name: 'User Management', path: '/users', icon: Users },
+                { name: 'Expert Network', path: '/consultants', icon: User },
+                { name: 'Expert Inquiries', path: '/consultant-inquiries', icon: MessageSquare },
+            ]
+        }
     ];
 
     const handleLogout = async () => {
         localStorage.removeItem('admin_logged_in');
         await authService.signOut();
-        window.location.href = '/login';
+        navigate('/login');
     };
 
     return (
-        <div className="min-h-screen bg-gray-100 flex font-sans">
-            {/* Mobile Header */}
-            <div className="lg:hidden fixed top-0 left-0 right-0 bg-white border-b border-gray-200 h-16 flex items-center justify-between px-4 z-50">
-                <h1 className="text-xl font-display font-bold text-gray-900">Admin Dashboard</h1>
-                <button
-                    onClick={() => setSidebarOpen(!sidebarOpen)}
-                    className="p-2 rounded-lg hover:bg-gray-100 transition-colors touch-target"
-                    aria-label={sidebarOpen ? "Close menu" : "Open menu"}
-                >
-                    {sidebarOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
-                </button>
-            </div>
-
-            {/* Overlay for mobile */}
-            {sidebarOpen && (
-                <div
-                    className="lg:hidden fixed inset-0 bg-black/50 z-40 transition-opacity"
-                    onClick={() => setSidebarOpen(false)}
-                    aria-hidden="true"
-                />
-            )}
-
+        <div className="min-h-screen bg-slate-50 flex font-sans text-slate-900">
             {/* Sidebar */}
             <aside
                 className={`
-                    fixed lg:static inset-y-0 left-0 z-50
-                    w-64 bg-secondary-900 text-white flex flex-col
-                    transition-transform duration-300 ease-in-out
+                    fixed inset-y-0 left-0 z-[60]
+                    w-[280px] bg-[#0F172A] text-slate-300 flex flex-col
+                    transition-all duration-300 ease-in-out border-r border-slate-800
                     ${sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
                 `}
             >
-                <div className="p-6 border-b border-gray-800 flex items-center justify-between">
-                    <h1 className="text-2xl font-display font-bold">Admin</h1>
-                    {/* Close button for mobile */}
-                    <button
-                        onClick={() => setSidebarOpen(false)}
-                        className="lg:hidden p-2 hover:bg-gray-800 rounded-lg transition-colors"
-                        aria-label="Close sidebar"
-                    >
-                        <X className="w-5 h-5" />
-                    </button>
+                <div className="p-8 flex items-center gap-3">
+                    <div className="w-10 h-10 bg-indigo-600 rounded-xl flex items-center justify-center shadow-lg shadow-indigo-600/20">
+                        <ShieldCheck className="w-6 h-6 text-white" />
+                    </div>
+                    <div>
+                        <h1 className="text-xl font-black text-white tracking-tight">GASCART</h1>
+                        <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Admin Control</p>
+                    </div>
                 </div>
 
-                <nav className="flex-grow p-4 space-y-2 overflow-y-auto custom-scrollbar">
-                    {navItems.map((item) => (
-                        <Link
-                            key={item.path}
-                            to={item.path}
-                            onClick={() => setSidebarOpen(false)}
-                            className={`flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors ${isActive(item.path) && item.path !== '/admin' || (item.path === '/admin' && location.pathname === '/admin')
-                                ? 'bg-primary-600 text-white'
-                                : 'text-gray-400 hover:bg-gray-800 hover:text-white'
-                                }`}
-                        >
-                            <item.icon className="w-5 h-5 flex-shrink-0" />
-                            <span className="font-medium truncate">{item.name}</span>
-                        </Link>
+                <nav className="flex-grow p-4 space-y-8 overflow-y-auto custom-scrollbar">
+                    {navigationGroups.map((group) => (
+                        <div key={group.title}>
+                            <h3 className="px-4 text-[10px] font-black uppercase tracking-[0.2em] text-slate-500 mb-4">
+                                {group.title}
+                            </h3>
+                            <div className="space-y-1">
+                                {group.items.map((item) => (
+                                    <Link
+                                        key={item.path}
+                                        to={item.path}
+                                        onClick={() => setSidebarOpen(false)}
+                                        className={`
+                                            flex items-center justify-between px-4 py-3 rounded-xl transition-all duration-200 group
+                                            ${isActive(item.path)
+                                                ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/20'
+                                                : 'text-slate-400 hover:bg-slate-800/50 hover:text-slate-100'
+                                            }
+                                        `}
+                                    >
+                                        <div className="flex items-center gap-3">
+                                            <item.icon className={`w-5 h-5 transition-colors ${isActive(item.path) ? 'text-white' : 'text-slate-500 group-hover:text-slate-300'}`} />
+                                            <span className="text-sm font-bold">{item.name}</span>
+                                        </div>
+                                        {isActive(item.path) && <ChevronRight className="w-4 h-4 text-white/50" />}
+                                    </Link>
+                                ))}
+                            </div>
+                        </div>
                     ))}
                 </nav>
 
-                <div className="p-4 border-t border-gray-800">
+                <div className="p-4 border-t border-slate-800/50">
                     <button
                         onClick={handleLogout}
-                        className="flex items-center space-x-3 px-4 py-3 text-red-400 hover:bg-gray-800 w-full rounded-lg transition-colors"
+                        className="flex items-center gap-3 px-4 py-3 text-slate-400 hover:text-red-400 hover:bg-red-400/5 w-full rounded-xl transition-all font-bold text-sm"
                     >
                         <LogOut className="w-5 h-5" />
-                        <span className="font-medium">Logout</span>
+                        <span>Logout System</span>
                     </button>
                 </div>
             </aside>
 
-            {/* Main Content */}
-            <main className="flex-grow overflow-y-auto min-h-screen p-4 sm:p-6 lg:p-8 pt-20 lg:pt-8">
-                <div className="max-w-7xl mx-auto">
+            {/* Main Content Area */}
+            <div className="flex-grow flex flex-col min-h-screen lg:pl-[280px]">
+                {/* Top Header */}
+                <header
+                    className={`
+                        sticky top-0 z-50 h-[72px] flex items-center justify-between px-8 transition-all duration-300
+                        ${scrolled ? 'bg-white/80 backdrop-blur-xl shadow-sm' : 'bg-transparent'}
+                    `}
+                >
+                    <div className="flex items-center gap-4">
+                        <button
+                            onClick={() => setSidebarOpen(true)}
+                            className="lg:hidden p-2 text-slate-600 hover:bg-slate-100 rounded-xl transition-colors"
+                        >
+                            <Menu className="w-6 h-6" />
+                        </button>
+
+                        <div className="hidden md:flex items-center gap-2 text-sm font-medium text-slate-400">
+                            <span className="hover:text-slate-600 cursor-pointer">Admin</span>
+                            <ChevronRight className="w-4 h-4" />
+                            <span className="text-slate-900 font-bold capitalize">
+                                {location.pathname === '/' ? 'Dashboard' : location.pathname.substring(1).replace('-', ' ')}
+                            </span>
+                        </div>
+                    </div>
+
+                    <div className="flex items-center gap-6">
+                        {/* Search Bar */}
+                        <div className="hidden lg:flex items-center relative group">
+                            <Search className="absolute left-4 w-4 h-4 text-slate-400 group-focus-within:text-indigo-500 transition-colors" />
+                            <input
+                                type="text"
+                                placeholder="Command + K to search..."
+                                className="pl-11 pr-4 py-2.5 bg-slate-100 border-transparent border focus:bg-white focus:border-indigo-500/30 rounded-xl text-sm font-medium outline-none transition-all w-64"
+                            />
+                        </div>
+
+                        {/* Notifications */}
+                        <button className="relative p-2.5 text-slate-400 hover:text-slate-900 hover:bg-white rounded-xl transition-all shadow-sm border border-transparent hover:border-slate-200">
+                            <Bell className="w-5 h-5" />
+                            <span className="absolute top-2 right-2 w-2 h-2 bg-indigo-600 rounded-full border-2 border-white"></span>
+                        </button>
+
+                        <div className="h-8 w-px bg-slate-200 mx-2"></div>
+
+                        {/* User Profile */}
+                        <div className="flex items-center gap-3 pl-2">
+                            <div className="text-right hidden sm:block">
+                                <p className="text-sm font-bold text-slate-900 truncate max-w-[120px]">
+                                    {userProfile?.full_name || 'System Admin'}
+                                </p>
+                                <p className="text-[10px] font-black text-indigo-600 uppercase tracking-widest">
+                                    {userProfile?.role || 'Administrator'}
+                                </p>
+                            </div>
+                            <div className="w-10 h-10 rounded-xl bg-slate-100 border border-slate-200 flex items-center justify-center overflow-hidden shadow-inner">
+                                {userProfile?.avatar_url ? (
+                                    <img src={userProfile.avatar_url} alt="Profile" className="w-full h-full object-cover" />
+                                ) : (
+                                    <User className="w-5 h-5 text-slate-400" />
+                                )}
+                            </div>
+                        </div>
+                    </div>
+                </header>
+
+                {/* Page Content */}
+                <main className="flex-grow p-8 animate-in fade-in duration-500">
                     <Outlet />
-                </div>
-            </main>
+                </main>
+
+                {/* Floating Mobile Sidebar Close Button */}
+                {sidebarOpen && (
+                    <button
+                        onClick={() => setSidebarOpen(false)}
+                        className="fixed top-6 right-6 z-[70] p-3 bg-white shadow-2xl rounded-2xl lg:hidden animate-in fade-in zoom-in duration-200"
+                    >
+                        <X className="w-6 h-6 text-slate-900" />
+                    </button>
+                )}
+            </div>
         </div>
     );
 };

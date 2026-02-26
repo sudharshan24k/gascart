@@ -61,7 +61,9 @@ const AdminProducts = () => {
         attributes: {} as any,
         min_rfq_fields: [] as any[],
         variants: [] as any[],
-        documents: [] as { name: string, url: string }[]
+        documents: [] as { name: string, url: string }[],
+        low_stock_threshold: '10',
+        warehouse_location: ''
     });
 
     const [vendorFormData, setVendorFormData] = useState({
@@ -192,7 +194,9 @@ const AdminProducts = () => {
                 attributes: product.attributes || {},
                 min_rfq_fields: product.min_rfq_fields || [],
                 variants: product.variants || [],
-                documents: product.documents || []
+                documents: product.documents || [],
+                low_stock_threshold: (product.low_stock_threshold || 10).toString(),
+                warehouse_location: product.warehouse_location || ''
             });
             loadProductVendors(product.id);
         } else {
@@ -211,7 +215,9 @@ const AdminProducts = () => {
                 attributes: {},
                 min_rfq_fields: [],
                 variants: [],
-                documents: []
+                documents: [],
+                low_stock_threshold: '10',
+                warehouse_location: ''
             });
         }
         setIsModalOpen(true);
@@ -229,6 +235,8 @@ const AdminProducts = () => {
                 category_id: formData.category_id || null, // Convert empty string to null to prevent UUID casting errors
                 price: parseFloat(formData.price) || 0,
                 stock_quantity: parseInt(formData.stock_quantity) || 0,
+                low_stock_threshold: parseInt(formData.low_stock_threshold) || 10,
+                warehouse_location: formData.warehouse_location,
                 order_index: parseInt(formData.order_index) || 0,
                 slug: formData.name.toLowerCase().trim().replace(/[-\s]+/g, '-')
             };
@@ -291,15 +299,15 @@ const AdminProducts = () => {
     };
 
     return (
-        <div className="max-w-7xl mx-auto">
-            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-12">
+        <div className="space-y-10">
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6">
                 <div>
-                    <h2 className="text-3xl font-bold text-gray-900 leading-tight">Industrial Inventory</h2>
-                    <p className="text-gray-500 mt-1 font-medium">Control marketplace visibility, technical specs, and purchase models</p>
+                    <h2 className="text-4xl font-black text-slate-900 tracking-tight">Asset Inventory</h2>
+                    <p className="text-slate-500 font-medium mt-1 uppercase text-xs tracking-[0.2em]">Control marketplace visibility, technical specs, and purchase models</p>
                 </div>
                 <button
                     onClick={() => handleOpenModal()}
-                    className="bg-primary hover:bg-primary-dark text-white px-8 py-4 rounded-2xl flex items-center gap-3 font-black shadow-xl shadow-primary/20 transition-all transform hover:-translate-y-1"
+                    className="admin-btn-primary gap-3 shadow-indigo-600/20"
                 >
                     <Plus className="w-5 h-5" />
                     <span>Onboard Asset</span>
@@ -307,33 +315,33 @@ const AdminProducts = () => {
             </div>
 
             {/* Advanced Filters Bar */}
-            <div className="space-y-4 mb-10">
-                <div className="bg-white p-6 rounded-[32px] shadow-sm border border-gray-100 flex flex-col md:flex-row gap-6">
-                    <div className="relative flex-grow">
-                        <Search className="absolute left-5 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
+            <div className="space-y-4">
+                <div className="admin-card border-none bg-white p-4 flex flex-col md:flex-row gap-4 items-center">
+                    <div className="relative flex-grow w-full">
+                        <Search className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5" />
                         <input
                             type="text"
                             placeholder="Search assets by name or ID..."
-                            className="w-full pl-14 pr-6 py-4 bg-gray-50 border-none rounded-2xl focus:ring-4 focus:ring-primary/5 outline-none transition-all font-bold"
+                            className="w-full pl-14 pr-6 py-4 bg-slate-50 border-none rounded-2xl focus:ring-4 focus:ring-indigo-500/5 outline-none transition-all font-bold text-slate-900"
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
                         />
                     </div>
-                    <div className="flex gap-4">
+                    <div className="flex gap-3 w-full md:w-auto">
                         <button
                             onClick={() => setShowFilters(!showFilters)}
-                            className={`px-8 py-4 rounded-2xl font-bold transition-all flex items-center gap-3 ${showFilters ? 'bg-primary text-white shadow-lg shadow-primary/20' : 'bg-gray-50 hover:bg-gray-100 text-gray-700'}`}
+                            className={`px-6 py-4 rounded-2xl font-bold transition-all flex items-center gap-3 whitespace-nowrap ${showFilters ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/20' : 'bg-slate-50 hover:bg-slate-100 text-slate-700'}`}
                         >
                             <Filter className="w-5 h-5" />
                             <span>Filters</span>
                             {Object.values(filters).some(v => v !== '') && (
-                                <span className="w-2 h-2 bg-red-500 rounded-full animate-pulse" />
+                                <span className="w-2 h-2 bg-rose-500 rounded-full animate-pulse" />
                             )}
                         </button>
                         {(searchQuery || Object.values(filters).some(v => v !== '')) && (
                             <button
                                 onClick={clearFilters}
-                                className="px-6 py-4 bg-gray-50 hover:bg-red-50 text-red-600 rounded-2xl font-bold transition-all flex items-center gap-2"
+                                className="px-5 py-4 bg-slate-50 hover:bg-rose-50 text-rose-600 rounded-2xl font-bold transition-all flex items-center justify-center gap-2"
                                 title="Reset all"
                             >
                                 <RotateCcw className="w-4 h-4" />
@@ -343,86 +351,95 @@ const AdminProducts = () => {
                 </div>
 
                 {/* Expanded Filters Panel */}
-                {showFilters && (
-                    <div className="bg-white p-8 rounded-[32px] shadow-sm border border-gray-100 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 animate-in fade-in slide-in-from-top-4 duration-300">
-                        <div>
-                            <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-3">Structural Category</label>
-                            <select
-                                className="w-full px-4 py-3 bg-gray-50 border-none rounded-xl outline-none focus:ring-2 focus:ring-primary/5 transition-all font-bold text-sm"
-                                value={filters.category}
-                                onChange={(e) => setFilters({ ...filters, category: e.target.value })}
-                            >
-                                <option value="">All Categories</option>
-                                {categories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
-                            </select>
-                        </div>
-                        <div>
-                            <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-3">Purchase Model</label>
-                            <select
-                                className="w-full px-4 py-3 bg-gray-50 border-none rounded-xl outline-none focus:ring-2 focus:ring-primary/5 transition-all font-bold text-sm"
-                                value={filters.purchaseModel}
-                                onChange={(e) => setFilters({ ...filters, purchaseModel: e.target.value })}
-                            >
-                                <option value="">All Models</option>
-                                <option value="rfq">Technical RFQ Only</option>
-                                <option value="direct">Direct Buy Ready</option>
-                                <option value="both">Direct + RFQ (Hybrid)</option>
-                            </select>
-                        </div>
-                        <div>
-                            <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-3">Visibility</label>
-                            <select
-                                className="w-full px-4 py-3 bg-gray-50 border-none rounded-xl outline-none focus:ring-2 focus:ring-primary/5 transition-all font-bold text-sm"
-                                value={filters.visibility}
-                                onChange={(e) => setFilters({ ...filters, visibility: e.target.value })}
-                            >
-                                <option value="">All Visibility States</option>
-                                <option value="published">Public (Live)</option>
-                                <option value="hidden">Hidden (Archived)</option>
-                                <option value="draft">Draft (Internal)</option>
-                            </select>
-                        </div>
-                        <div>
-                            <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-3">Inventory Status</label>
-                            <select
-                                className="w-full px-4 py-3 bg-gray-50 border-none rounded-xl outline-none focus:ring-2 focus:ring-primary/5 transition-all font-bold text-sm"
-                                value={filters.stockStatus}
-                                onChange={(e) => setFilters({ ...filters, stockStatus: e.target.value })}
-                            >
-                                <option value="">All Stock Levels</option>
-                                <option value="low">Low Stock (&lt; 10)</option>
-                                <option value="out_of_stock">Out of Stock</option>
-                            </select>
-                        </div>
-                        <div className="lg:col-span-2">
-                            <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-3">Price Range (₹)</label>
-                            <div className="flex gap-4">
-                                <input
-                                    type="number"
-                                    placeholder="Min Price"
-                                    className="w-full px-4 py-3 bg-gray-50 border-none rounded-xl outline-none focus:ring-2 focus:ring-primary/5 transition-all font-bold text-sm"
-                                    value={filters.minPrice}
-                                    onChange={(e) => setFilters({ ...filters, minPrice: e.target.value })}
-                                />
-                                <input
-                                    type="number"
-                                    placeholder="Max Price"
-                                    className="w-full px-4 py-3 bg-gray-50 border-none rounded-xl outline-none focus:ring-2 focus:ring-primary/5 transition-all font-bold text-sm"
-                                    value={filters.maxPrice}
-                                    onChange={(e) => setFilters({ ...filters, maxPrice: e.target.value })}
-                                />
+                <AnimatePresence>
+                    {showFilters && (
+                        <motion.div
+                            initial={{ height: 0, opacity: 0 }}
+                            animate={{ height: 'auto', opacity: 1 }}
+                            exit={{ height: 0, opacity: 0 }}
+                            className="overflow-hidden"
+                        >
+                            <div className="admin-card grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+                                <div>
+                                    <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">Structural Category</label>
+                                    <select
+                                        className="admin-input py-2.5 text-sm"
+                                        value={filters.category}
+                                        onChange={(e) => setFilters({ ...filters, category: e.target.value })}
+                                    >
+                                        <option value="">All Categories</option>
+                                        {categories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+                                    </select>
+                                </div>
+                                <div>
+                                    <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">Purchase Model</label>
+                                    <select
+                                        className="admin-input py-2.5 text-sm"
+                                        value={filters.purchaseModel}
+                                        onChange={(e) => setFilters({ ...filters, purchaseModel: e.target.value })}
+                                    >
+                                        <option value="">All Models</option>
+                                        <option value="rfq">Technical RFQ Only</option>
+                                        <option value="direct">Direct Buy Ready</option>
+                                        <option value="both">Direct + RFQ (Hybrid)</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">Visibility</label>
+                                    <select
+                                        className="admin-input py-2.5 text-sm"
+                                        value={filters.visibility}
+                                        onChange={(e) => setFilters({ ...filters, visibility: e.target.value })}
+                                    >
+                                        <option value="">All Visibility States</option>
+                                        <option value="published">Public (Live)</option>
+                                        <option value="hidden">Hidden (Archived)</option>
+                                        <option value="draft">Draft (Internal)</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">Inventory Status</label>
+                                    <select
+                                        className="admin-input py-2.5 text-sm"
+                                        value={filters.stockStatus}
+                                        onChange={(e) => setFilters({ ...filters, stockStatus: e.target.value })}
+                                    >
+                                        <option value="">All Stock Levels</option>
+                                        <option value="low">Low Stock (&lt; 10)</option>
+                                        <option value="out_of_stock">Out of Stock</option>
+                                    </select>
+                                </div>
+                                <div className="lg:col-span-2">
+                                    <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">Price Range (₹)</label>
+                                    <div className="flex gap-4">
+                                        <input
+                                            type="number"
+                                            placeholder="Min Price"
+                                            className="admin-input py-2.5 text-sm"
+                                            value={filters.minPrice}
+                                            onChange={(e) => setFilters({ ...filters, minPrice: e.target.value })}
+                                        />
+                                        <input
+                                            type="number"
+                                            placeholder="Max Price"
+                                            className="admin-input py-2.5 text-sm"
+                                            value={filters.maxPrice}
+                                            onChange={(e) => setFilters({ ...filters, maxPrice: e.target.value })}
+                                        />
+                                    </div>
+                                </div>
                             </div>
-                        </div>
-                    </div>
-                )}
+                        </motion.div>
+                    )}
+                </AnimatePresence>
             </div>
 
             {/* Product Table */}
-            <div className="bg-white rounded-[40px] shadow-sm border border-gray-100 overflow-hidden">
+            <div className="admin-card p-0 overflow-hidden border-none shadow-xl shadow-slate-200/50">
                 <div className="overflow-x-auto">
                     <table className="w-full text-left border-collapse">
                         <thead>
-                            <tr className="bg-gray-50/50 text-gray-400 text-[10px] font-black uppercase tracking-widest border-b border-gray-100">
+                            <tr className="bg-slate-900 text-slate-400 text-[10px] font-black uppercase tracking-widest">
                                 <th className="py-6 px-10">Asset Details</th>
                                 <th className="py-6 px-10">Purchase Model</th>
                                 <th className="py-6 px-10">Financials</th>
@@ -430,85 +447,93 @@ const AdminProducts = () => {
                                 <th className="py-6 px-10 text-right">Operations</th>
                             </tr>
                         </thead>
-                        <tbody className="divide-y divide-gray-50">
+                        <tbody className="divide-y divide-slate-100">
                             {loading ? (
-                                [1, 2, 3].map(i => (
+                                [1, 2, 3, 4].map(i => (
                                     <tr key={i} className="animate-pulse">
-                                        <td colSpan={5} className="py-10 px-10"><div className="h-6 bg-gray-100 rounded-xl w-full"></div></td>
+                                        <td colSpan={5} className="py-12 px-10">
+                                            <div className="flex gap-6 items-center">
+                                                <div className="w-16 h-16 bg-slate-100 rounded-2xl"></div>
+                                                <div className="space-y-2 flex-grow">
+                                                    <div className="h-4 bg-slate-100 rounded w-1/3"></div>
+                                                    <div className="h-3 bg-slate-100 rounded w-1/4"></div>
+                                                </div>
+                                            </div>
+                                        </td>
                                     </tr>
                                 ))
                             ) : filteredProducts.map((product) => (
-                                <tr key={product.id} className="hover:bg-gray-50/30 transition-colors group">
+                                <tr key={product.id} className="hover:bg-slate-50/50 transition-colors group">
                                     <td className="py-8 px-10">
                                         <div className="flex items-center gap-6">
-                                            <div className="w-16 h-16 bg-gray-100 rounded-2xl flex items-center justify-center shrink-0 border border-gray-100 overflow-hidden group-hover:bg-white transition-colors">
+                                            <div className="w-16 h-16 bg-white rounded-2xl flex items-center justify-center shrink-0 border border-slate-100 overflow-hidden group-hover:scale-105 transition-transform shadow-sm">
                                                 {product.images?.[0] ? (
                                                     <img src={product.images[0]} alt="" referrerPolicy="no-referrer" className="w-full h-full object-cover" />
                                                 ) : (
-                                                    <Package className="w-8 h-8 text-gray-300" />
+                                                    <Package className="w-8 h-8 text-slate-300" />
                                                 )}
                                             </div>
                                             <div>
-                                                <div className="font-bold text-gray-900 text-lg mb-1">{product.name}</div>
+                                                <div className="font-bold text-slate-900 text-lg mb-1">{product.name}</div>
                                                 <div className="flex items-center gap-3">
-                                                    <span className="text-[10px] font-black bg-gray-100 text-gray-500 px-2 py-0.5 rounded uppercase tracking-tighter">
+                                                    <span className="text-[10px] font-black bg-slate-100 text-slate-500 px-2 py-0.5 rounded-lg uppercase tracking-tighter">
                                                         {product.categories?.name || 'Uncategorized'}
                                                     </span>
-                                                    <span className="text-[10px] font-medium text-gray-400">Order: {product.order_index}</span>
+                                                    <span className="text-[10px] font-bold text-slate-400">Order: {product.order_index}</span>
                                                 </div>
                                             </div>
                                         </div>
                                     </td>
                                     <td className="py-8 px-10">
                                         {product.purchase_model === 'rfq' ? (
-                                            <span className="flex items-center gap-2 text-sm font-bold text-gray-700">
-                                                <ClipboardList className="w-4 h-4 text-primary" /> Technical RFQ Only
+                                            <span className="flex items-center gap-2 text-sm font-bold text-slate-600">
+                                                <div className="w-2 h-2 rounded-full bg-amber-500"></div> Technical RFQ
                                             </span>
                                         ) : product.purchase_model === 'both' ? (
-                                            <span className="flex items-center gap-2 text-sm font-bold text-blue-600">
-                                                <ArrowLeftRight className="w-4 h-4" /> Direct + RFQ
+                                            <span className="flex items-center gap-2 text-sm font-bold text-indigo-600">
+                                                <div className="w-2 h-2 rounded-full bg-indigo-500 animate-pulse"></div> Hybrid Model
                                             </span>
                                         ) : (
-                                            <span className="flex items-center gap-2 text-sm font-bold text-gray-900">
-                                                <CheckCircle className="w-4 h-4 text-green-500" /> Direct Buy Ready
+                                            <span className="flex items-center gap-2 text-sm font-bold text-emerald-600">
+                                                <div className="w-2 h-2 rounded-full bg-emerald-500"></div> Direct Buy
                                             </span>
                                         )}
                                     </td>
                                     <td className="py-8 px-10">
                                         <div className="flex flex-col">
-                                            {product.price_min && product.price_max && product.price_min !== product.price_max ? (
+                                            {(product.price_min && product.price_max && product.price_min !== product.price_max) ? (
                                                 <>
-                                                    <span className="text-lg font-bold text-gray-900">₹{parseFloat(product.price_min).toLocaleString()} - ₹{parseFloat(product.price_max).toLocaleString()}</span>
-                                                    <span className="text-[10px] text-blue-600 font-bold uppercase tracking-tight">{product.vendor_count || 0} vendors</span>
+                                                    <span className="text-lg font-black text-slate-900 tracking-tight">₹{parseFloat(product.price_min).toLocaleString()} - ₹{parseFloat(product.price_max).toLocaleString()}</span>
+                                                    <span className="text-[10px] text-indigo-600 font-black uppercase tracking-widest mt-1">{product.vendor_count || 0} providers</span>
                                                 </>
                                             ) : (
                                                 <>
-                                                    <span className="text-lg font-bold text-gray-900">₹{parseFloat(product.price).toLocaleString()}</span>
+                                                    <span className="text-lg font-black text-slate-900 tracking-tight">₹{parseFloat(product.price).toLocaleString()}</span>
                                                     {product.vendor_count > 0 && (
-                                                        <span className="text-[10px] text-gray-400 font-bold uppercase tracking-tight">{product.vendor_count} vendor{product.vendor_count > 1 ? 's' : ''}</span>
+                                                        <span className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-1">{product.vendor_count} provider{product.vendor_count > 1 ? 's' : ''}</span>
                                                     )}
                                                 </>
                                             )}
                                         </div>
                                     </td>
                                     <td className="py-8 px-10">
-                                        <span className={`px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-tight ${product.visibility_status === 'published' ? 'bg-green-50 text-green-600' :
-                                            product.visibility_status === 'draft' ? 'bg-amber-50 text-amber-600' : 'bg-gray-100 text-gray-500'
+                                        <span className={`px-4 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest ${product.visibility_status === 'published' ? 'bg-emerald-50 text-emerald-600' :
+                                            product.visibility_status === 'draft' ? 'bg-amber-50 text-amber-600' : 'bg-slate-100 text-slate-500'
                                             }`}>
                                             {product.visibility_status || (product.is_active ? 'published' : 'hidden')}
                                         </span>
                                     </td>
                                     <td className="py-8 px-10 text-right">
-                                        <div className="flex justify-end gap-3 opacity-0 group-hover:opacity-100 transition-opacity">
+                                        <div className="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-all transform translate-x-4 group-hover:translate-x-0">
                                             <button
                                                 onClick={() => handleOpenModal(product)}
-                                                className="p-3 text-gray-400 hover:text-primary hover:bg-white rounded-xl shadow-sm transition-all"
+                                                className="p-3 text-slate-400 hover:text-indigo-600 hover:bg-white rounded-xl shadow-sm border border-transparent hover:border-slate-100 transition-all"
                                             >
                                                 <Edit2 className="w-5 h-5" />
                                             </button>
                                             <button
                                                 onClick={() => handleDelete(product.id)}
-                                                className="p-3 text-gray-400 hover:text-red-500 hover:bg-white rounded-xl shadow-sm transition-all"
+                                                className="p-3 text-slate-400 hover:text-rose-500 hover:bg-white rounded-xl shadow-sm border border-transparent hover:border-slate-100 transition-all"
                                             >
                                                 <Trash2 className="w-5 h-5" />
                                             </button>

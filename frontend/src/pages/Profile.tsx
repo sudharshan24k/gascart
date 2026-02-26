@@ -430,8 +430,14 @@ const Profile: React.FC = () => {
                                                         <FileText className="w-8 h-8" />
                                                     </div>
                                                     <div>
-                                                        <h4 className="font-bold text-neutral-900 text-lg mb-1">{rfq.product?.name || 'Custom Request'}</h4>
-                                                        <p className="text-xs font-bold text-neutral-400 uppercase tracking-widest">{formatDateIST(rfq.created_at)}</p>
+                                                        <h4 className="font-bold text-neutral-900 text-lg mb-1">{rfq.products?.name || 'Custom Request'}</h4>
+                                                        <div className="flex items-center gap-3">
+                                                            <p className="text-xs font-bold text-neutral-400 uppercase tracking-widest">{formatDateIST(rfq.created_at)}</p>
+                                                            <span className="w-1 h-1 bg-neutral-300 rounded-full"></span>
+                                                            <p className="text-xs font-bold text-primary uppercase tracking-widest">
+                                                                {rfq.vendor?.company_name || 'Any Vendor'}
+                                                            </p>
+                                                        </div>
                                                     </div>
                                                 </div>
                                                 <span className="px-4 py-2 bg-blue-50 text-blue-600 rounded-lg font-bold text-xs uppercase tracking-widest">

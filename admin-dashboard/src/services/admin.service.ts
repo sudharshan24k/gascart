@@ -272,8 +272,8 @@ export const downloadOrders = async () => {
     return response.data;
 };
 // User Management
-export const fetchAllUsers = async () => {
-    const response = await adminApi.get('/admin/users');
+export const fetchAllUsers = async (params?: { role?: string; account_status?: string }) => {
+    const response = await adminApi.get('/admin/users', { params });
     return response.data.data;
 };
 
@@ -299,5 +299,16 @@ export const exportInvoicesZIP = async (orderIds: string[]) => {
         responseType: 'blob'
     });
     return response.data;
+};
+
+export const uploadFile = async (bucket: string, file: File) => {
+    const formData = new FormData();
+    formData.append('file', file);
+    const response = await adminApi.post(`/upload/${bucket}`, formData, {
+        headers: {
+            'Content-Type': 'multipart/form-data'
+        }
+    });
+    return response.data.data;
 };
 

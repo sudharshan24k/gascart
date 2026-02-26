@@ -14,7 +14,8 @@ export const getDashboardStats = async (req: Request, res: Response, next: NextF
             { count: totalUsers },
             { count: totalOrders },
             { count: pendingOrders },
-            { data: revenueData } // For revenue sum
+            { data: revenueData }, // For revenue sum
+            { data: recentOrdersData } // Recently received orders
         ] = await Promise.all([
             supabase.from('products').select('*', { count: 'exact', head: true }),
             supabase.from('products').select('*', { count: 'exact', head: true }).eq('is_active', true),
@@ -23,10 +24,24 @@ export const getDashboardStats = async (req: Request, res: Response, next: NextF
             supabase.from('profiles').select('*', { count: 'exact', head: true }),
             supabase.from('orders').select('*', { count: 'exact', head: true }),
             supabase.from('orders').select('*', { count: 'exact', head: true }).eq('status', 'pending'),
-            supabase.from('orders').select('total_amount').eq('payment_status', 'paid')
+            supabase.from('orders').select('total_amount').eq('payment_status', 'paid'),
+            supabase.from('orders').select('id, created_at, total_amount, status, user_id').order('created_at', { ascending: false }).limit(5)
         ]);
 
         const totalRevenue = revenueData?.reduce((sum, order) => sum + (order.total_amount || 0), 0) || 0;
+
+        // Fetch profiles for recent orders to get customer names
+        const userIds = [...new Set(recentOrdersData?.map((o: any) => o.user_id) || [])];
+        let profileMap = new Map();
+        if (userIds.length > 0) {
+            const { data: profiles } = await supabase.from('profiles').select('id, full_name').in('id', userIds);
+            profileMap = new Map(profiles?.map((p: any) => [p.id, p]) || []);
+        }
+
+        const recentOrders = recentOrdersData?.map((o: any) => ({
+            ...o,
+            customer_name: profileMap.get(o.user_id)?.full_name || 'Customer'
+        })) || [];
 
         res.json({
             status: 'success',
@@ -39,6 +54,7 @@ export const getDashboardStats = async (req: Request, res: Response, next: NextF
                 totalOrders: totalOrders || 0,
                 pendingOrders: pendingOrders || 0,
                 totalRevenue,
+                recentOrders,
                 lastUpdate: new Date().toISOString()
             }
         });
@@ -49,10 +65,17 @@ export const getDashboardStats = async (req: Request, res: Response, next: NextF
 
 export const getAllUsers = async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const { data: users, error } = await supabase
-            .from('profiles')
-            .select('*')
-            .order('created_at', { ascending: false });
+        const { role, account_status } = req.query;
+        let query = supabase.from('profiles').select('*');
+
+        if (role) {
+            query = query.eq('role', role);
+        }
+        if (account_status) {
+            query = query.eq('account_status', account_status);
+        }
+
+        const { data: users, error } = await query.order('created_at', { ascending: false });
 
         if (error) throw error;
 

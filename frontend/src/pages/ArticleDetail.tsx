@@ -2,9 +2,11 @@ import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { BookOpen, Video, Lock, ChevronLeft, Calendar, Tag } from 'lucide-react';
 import { api } from '../services/api';
+import { useAuth } from '../context/AuthContext';
 
 const ArticleDetail: React.FC = () => {
     const { slug } = useParams();
+    const { user } = useAuth();
     const [article, setArticle] = useState<any>(null);
     const [loading, setLoading] = useState(true);
 
@@ -62,24 +64,30 @@ const ArticleDetail: React.FC = () => {
                     </div>
                 </header>
 
-                {/* Video Section */}
-                {article.video_url && (
-                    <div className="mb-12 rounded-[40px] overflow-hidden shadow-2xl bg-gray-900 aspect-video flex items-center justify-center relative group">
-                        <Video className="w-20 h-20 text-white/20 absolute" />
-                        <iframe
-                            className="w-full h-full relative z-10"
-                            src={article.video_url.replace('watch?v=', 'embed/')}
-                            title="Video Content"
-                            frameBorder="0"
-                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                            allowFullScreen
-                        ></iframe>
-                    </div>
-                )}
+                {/* Hero Image / Video Section */}
+                <div className="mb-12">
+                    {article.video_url ? (
+                        <div className="rounded-[40px] overflow-hidden shadow-2xl bg-gray-900 aspect-video flex items-center justify-center relative group">
+                            <Video className="w-20 h-20 text-white/20 absolute" />
+                            <iframe
+                                className="w-full h-full relative z-10"
+                                src={article.video_url.replace('watch?v=', 'embed/')}
+                                title="Video Content"
+                                frameBorder="0"
+                                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                allowFullScreen
+                            ></iframe>
+                        </div>
+                    ) : article.image_url ? (
+                        <div className="rounded-[40px] overflow-hidden shadow-xl aspect-[21/9]">
+                            <img src={article.image_url} alt={article.title} className="w-full h-full object-cover" />
+                        </div>
+                    ) : null}
+                </div>
 
                 {/* Content */}
                 <article className="prose prose-lg max-w-none text-gray-600 leading-relaxed mb-16">
-                    {article.is_gated ? (
+                    {article.is_gated && !user ? (
                         <div className="bg-gray-50 p-12 rounded-[40px] border-2 border-dashed border-gray-200 text-center">
                             <Lock className="w-12 h-12 text-gray-300 mx-auto mb-6" />
                             <h3 className="text-2xl font-bold text-gray-900 mb-4">Deep Technical Content Locked</h3>

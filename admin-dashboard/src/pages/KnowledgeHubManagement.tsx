@@ -9,15 +9,21 @@ import {
     Lock,
     Unlock,
     Tag,
-    Search as SearchIcon
+    Search as SearchIcon,
+    Upload,
+    Image as ImageIcon
 } from 'lucide-react';
-import { fetchAdminArticles, addArticle, updateArticle, deleteArticle, fetchCategories } from '../services/admin.service';
+import { fetchAdminArticles, addArticle, updateArticle, deleteArticle, fetchCategories, uploadFile } from '../services/admin.service';
 
 const KnowledgeHubManagement = () => {
     const [articles, setArticles] = useState<any[]>([]);
     const [categories, setCategories] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
+    const [uploading, setUploading] = useState(false);
     const [searchQuery, setSearchQuery] = useState('');
+    const [levelFilter, setLevelFilter] = useState('all');
+    const [categoryFilter, setCategoryFilter] = useState('all');
+    const [visibilityFilter, setVisibilityFilter] = useState('all');
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingArticle, setEditingArticle] = useState<any>(null);
 
@@ -26,6 +32,7 @@ const KnowledgeHubManagement = () => {
         slug: '',
         content: '',
         video_url: '',
+        image_url: '',
         level: 'beginner',
         is_gated: false,
         category_id: '',
@@ -60,6 +67,7 @@ const KnowledgeHubManagement = () => {
                 slug: article.slug,
                 content: article.content || '',
                 video_url: article.video_url || '',
+                image_url: article.image_url || '',
                 level: article.level || 'beginner',
                 is_gated: article.is_gated || false,
                 category_id: article.category_id || '',
@@ -73,6 +81,7 @@ const KnowledgeHubManagement = () => {
                 slug: '',
                 content: '',
                 video_url: '',
+                image_url: '',
                 level: 'beginner',
                 is_gated: false,
                 category_id: '',
@@ -114,9 +123,14 @@ const KnowledgeHubManagement = () => {
         }
     };
 
-    const filteredArticles = articles.filter(a =>
-        a.title.toLowerCase().includes(searchQuery.toLowerCase())
-    );
+    const filteredArticles = articles.filter(a => {
+        const matchesSearch = a.title.toLowerCase().includes(searchQuery.toLowerCase());
+        const matchesLevel = levelFilter === 'all' || a.level === levelFilter;
+        const matchesCategory = categoryFilter === 'all' || a.category_id === categoryFilter;
+        const matchesVisibility = visibilityFilter === 'all' ||
+            (visibilityFilter === 'gated' ? a.is_gated : !a.is_gated);
+        return matchesSearch && matchesLevel && matchesCategory && matchesVisibility;
+    });
 
     return (
         <div className="max-w-7xl mx-auto">
@@ -134,16 +148,50 @@ const KnowledgeHubManagement = () => {
                 </button>
             </div>
 
-            {/* Search */}
-            <div className="relative mb-10">
-                <SearchIcon className="absolute left-6 top-1/2 -translate-y-1/2 text-gray-400 w-6 h-6" />
-                <input
-                    type="text"
-                    placeholder="Search by title..."
-                    className="w-full pl-16 pr-8 py-5 bg-white border-none rounded-[24px] shadow-sm focus:ring-4 focus:ring-primary/5 outline-none transition-all font-medium text-lg"
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                />
+            {/* Search & Filters */}
+            <div className="flex flex-col lg:flex-row gap-6 mb-10">
+                <div className="flex-grow relative">
+                    <SearchIcon className="absolute left-6 top-1/2 -translate-y-1/2 text-gray-400 w-6 h-6" />
+                    <input
+                        type="text"
+                        placeholder="Search by title..."
+                        className="w-full pl-16 pr-8 py-5 bg-white border-none rounded-[24px] shadow-sm focus:ring-4 focus:ring-primary/5 outline-none transition-all font-medium text-lg"
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                    />
+                </div>
+
+                <div className="flex flex-wrap gap-4">
+                    <select
+                        value={categoryFilter}
+                        onChange={(e) => setCategoryFilter(e.target.value)}
+                        className="px-6 py-5 bg-white rounded-[24px] border-none outline-none font-bold text-gray-700 shadow-sm min-w-[200px]"
+                    >
+                        <option value="all">All Domains</option>
+                        {categories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+                    </select>
+
+                    <select
+                        value={levelFilter}
+                        onChange={(e) => setLevelFilter(e.target.value)}
+                        className="px-6 py-5 bg-white rounded-[24px] border-none outline-none font-bold text-gray-700 shadow-sm min-w-[160px]"
+                    >
+                        <option value="all">All Levels</option>
+                        <option value="beginner">Beginner</option>
+                        <option value="intermediate">Intermediate</option>
+                        <option value="advanced">Advanced</option>
+                    </select>
+
+                    <select
+                        value={visibilityFilter}
+                        onChange={(e) => setVisibilityFilter(e.target.value)}
+                        className="px-6 py-5 bg-white rounded-[24px] border-none outline-none font-bold text-gray-700 shadow-sm min-w-[160px]"
+                    >
+                        <option value="all">All Visibility</option>
+                        <option value="free">Free Access</option>
+                        <option value="gated">Gated Lead</option>
+                    </select>
+                </div>
             </div>
 
             {/* Content Table */}
@@ -293,6 +341,52 @@ const KnowledgeHubManagement = () => {
                                         <option value="">Select Domain Category</option>
                                         {categories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
                                     </select>
+                                </div>
+
+                                <div>
+                                    <label className="block text-xs font-black text-gray-400 uppercase tracking-widest mb-3">Technical Illustration/Thumbnail</label>
+                                    <div className="space-y-4">
+                                        <div className="flex items-center gap-4">
+                                            {formData.image_url && (
+                                                <div className="w-16 h-16 rounded-2xl overflow-hidden bg-gray-50 border border-gray-100 flex-shrink-0">
+                                                    <img src={formData.image_url} alt="Preview" className="w-full h-full object-cover" />
+                                                </div>
+                                            )}
+                                            <label className={`flex-grow flex items-center justify-center gap-3 px-6 py-4 bg-gray-50 border-2 border-dashed border-gray-200 rounded-2xl cursor-pointer hover:border-primary/30 transition-all ${uploading ? 'opacity-50 pointer-events-none' : ''}`}>
+                                                <Upload className={`w-5 h-5 ${uploading ? 'animate-bounce' : 'text-gray-400'}`} />
+                                                <span className="text-sm font-bold text-gray-500">{uploading ? 'Uploading...' : 'Upload Image'}</span>
+                                                <input
+                                                    type="file"
+                                                    className="hidden"
+                                                    accept="image/*"
+                                                    onChange={async (e) => {
+                                                        const file = e.target.files?.[0];
+                                                        if (file) {
+                                                            try {
+                                                                setUploading(true);
+                                                                const data = await uploadFile('articles', file);
+                                                                setFormData({ ...formData, image_url: data.url });
+                                                            } catch (err) {
+                                                                alert('Failed to upload image');
+                                                            } finally {
+                                                                setUploading(false);
+                                                            }
+                                                        }
+                                                    }}
+                                                />
+                                            </label>
+                                        </div>
+                                        <div className="relative">
+                                            <ImageIcon className="absolute left-6 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
+                                            <input
+                                                type="text"
+                                                className="w-full pl-16 pr-6 py-5 bg-gray-50 border-none rounded-2xl outline-none focus:ring-4 focus:ring-primary/5 transition-all font-medium"
+                                                value={formData.image_url}
+                                                onChange={(e) => setFormData({ ...formData, image_url: e.target.value })}
+                                                placeholder="Or paste image URL..."
+                                            />
+                                        </div>
+                                    </div>
                                 </div>
 
                                 <div>

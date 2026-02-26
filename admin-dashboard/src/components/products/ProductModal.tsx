@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Package, ClipboardList, ShieldCheck, FileText, Filter, Link as LinkIcon, X, CheckCircle, Plus, Trash2, ArrowLeftRight, Edit2, UploadCloud } from 'lucide-react';
+import { uploadFile } from '../../services/admin.service';
 export const ProductModal = ({
     isOpen,
     onClose,
@@ -14,6 +15,7 @@ export const ProductModal = ({
     onRemoveVendor
 }: any) => {
     const [activeTab, setActiveTab] = useState('basic');
+    const [uploading, setUploading] = useState(false);
 
     if (!isOpen) return null;
 
@@ -146,18 +148,53 @@ export const ProductModal = ({
 
                             {activeTab === 'pricing' && (
                                 <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-300 max-w-4xl">
-                                    <div>
-                                        <label className="block text-sm font-bold text-gray-900 mb-2">Base Price (INR) *</label>
-                                        <div className="relative">
-                                            <span className="absolute left-5 top-1/2 -translate-y-1/2 font-bold text-gray-400">₹</span>
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                                        <div>
+                                            <label className="block text-sm font-bold text-gray-900 mb-2">Base Price (INR) *</label>
+                                            <div className="relative">
+                                                <span className="absolute left-5 top-1/2 -translate-y-1/2 font-bold text-gray-400">₹</span>
+                                                <input
+                                                    required
+                                                    type="number"
+                                                    step="0.01"
+                                                    placeholder="0.00"
+                                                    className="w-full pl-10 pr-5 py-4 bg-gray-50 border border-gray-200 rounded-xl outline-none focus:ring-4 focus:ring-red-500/10 focus:border-red-500 transition-all text-gray-900 font-medium"
+                                                    value={formData.price}
+                                                    onChange={(e) => setFormData({ ...formData, price: e.target.value })}
+                                                />
+                                            </div>
+                                        </div>
+
+                                        <div>
+                                            <label className="block text-sm font-bold text-gray-900 mb-2">Initial Stock Quantity</label>
                                             <input
-                                                required
                                                 type="number"
-                                                step="0.01"
-                                                placeholder="0.00"
-                                                className="w-full pl-10 pr-5 py-4 bg-gray-50 border border-gray-200 rounded-xl outline-none focus:ring-4 focus:ring-red-500/10 focus:border-red-500 transition-all text-gray-900 font-medium"
-                                                value={formData.price}
-                                                onChange={(e) => setFormData({ ...formData, price: e.target.value })}
+                                                placeholder="0"
+                                                className="w-full px-5 py-4 bg-gray-50 border border-gray-200 rounded-xl outline-none focus:ring-4 focus:ring-red-500/10 focus:border-red-500 transition-all text-gray-900 font-medium"
+                                                value={formData.stock_quantity}
+                                                onChange={(e) => setFormData({ ...formData, stock_quantity: e.target.value })}
+                                            />
+                                        </div>
+
+                                        <div>
+                                            <label className="block text-sm font-bold text-gray-900 mb-2">Low Stock Threshold</label>
+                                            <input
+                                                type="number"
+                                                placeholder="10"
+                                                className="w-full px-5 py-4 bg-gray-50 border border-gray-200 rounded-xl outline-none focus:ring-4 focus:ring-red-500/10 focus:border-red-500 transition-all text-gray-900 font-medium"
+                                                value={formData.low_stock_threshold}
+                                                onChange={(e) => setFormData({ ...formData, low_stock_threshold: e.target.value })}
+                                            />
+                                        </div>
+
+                                        <div>
+                                            <label className="block text-sm font-bold text-gray-900 mb-2">Warehouse Location</label>
+                                            <input
+                                                type="text"
+                                                placeholder="e.g. Bay 4, Shelf A"
+                                                className="w-full px-5 py-4 bg-gray-50 border border-gray-200 rounded-xl outline-none focus:ring-4 focus:ring-red-500/10 focus:border-red-500 transition-all text-gray-900 font-medium"
+                                                value={formData.warehouse_location}
+                                                onChange={(e) => setFormData({ ...formData, warehouse_location: e.target.value })}
                                             />
                                         </div>
                                     </div>
@@ -424,39 +461,17 @@ export const ProductModal = ({
                                                             const file = e.target.files?.[0];
                                                             if (!file) return;
 
-                                                            const btnLabel = e.target.parentElement;
-                                                            const originalText = btnLabel?.innerHTML || '';
-                                                            if (btnLabel) btnLabel.innerHTML = 'Uploading...';
-
-                                                            const formDataReq = new FormData();
-                                                            formDataReq.append('image', file);
-
-                                                            const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3000/api/v1';
-
                                                             try {
-                                                                const res = await fetch(`${apiUrl}/products/upload`, {
-                                                                    method: 'POST',
-                                                                    body: formDataReq
+                                                                setUploading(true);
+                                                                const data = await uploadFile('products', file);
+                                                                setFormData({
+                                                                    ...formData,
+                                                                    images: [...(formData.images || []), data.url]
                                                                 });
-
-                                                                if (!res.ok) {
-                                                                    const errorText = await res.text();
-                                                                    throw new Error(errorText || 'Upload failed');
-                                                                }
-
-                                                                const data = await res.json();
-                                                                if (data.status === 'success' && data.data?.url) {
-                                                                    setFormData({
-                                                                        ...formData,
-                                                                        images: [...(formData.images || []), data.data.url]
-                                                                    });
-                                                                } else {
-                                                                    throw new Error(data.message || 'Upload failed');
-                                                                }
                                                             } catch (err: any) {
                                                                 alert('Upload failed: ' + err.message);
                                                             } finally {
-                                                                if (btnLabel) btnLabel.innerHTML = originalText;
+                                                                setUploading(false);
                                                             }
                                                         }}
                                                     />

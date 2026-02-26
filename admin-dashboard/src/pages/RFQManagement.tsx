@@ -110,6 +110,7 @@ const RFQManagement: React.FC = () => {
                             <tr className="bg-white text-gray-400 text-[10px] font-black uppercase tracking-[0.2em] border-b border-gray-50">
                                 <th className="px-10 py-6">Requisition Asset</th>
                                 <th className="px-10 py-6 text-center">Protocol Status</th>
+                                <th className="px-10 py-6">Preferred Vendor</th>
                                 <th className="px-10 py-6">Technical Payload</th>
                                 <th className="px-10 py-6">Timestamp</th>
                                 <th className="px-10 py-6 text-right">Operations</th>
@@ -139,6 +140,13 @@ const RFQManagement: React.FC = () => {
                                                             'bg-gray-50 text-gray-400 border-gray-100'
                                                 }`}>
                                                 {rfq.status}
+                                            </span>
+                                        </div>
+                                    </td>
+                                    <td className="px-10 py-8">
+                                        <div className="flex items-center gap-2">
+                                            <span className="text-sm font-bold text-gray-700">
+                                                {rfq.vendor?.company_name || 'Any Vendor'}
                                             </span>
                                         </div>
                                     </td>
@@ -197,6 +205,7 @@ const RFQManagement: React.FC = () => {
                                 <div><span className="block text-[10px] uppercase text-blue-400 mb-1 font-bold">Email</span><span className="font-bold text-blue-900">{selectedRFQ.profiles?.email}</span></div>
                                 <div><span className="block text-[10px] uppercase text-blue-400 mb-1 font-bold">Phone</span><span className="font-bold text-blue-900">{selectedRFQ.profiles?.phone || 'Not Provided'}</span></div>
                                 <div><span className="block text-[10px] uppercase text-blue-400 mb-1 font-bold">Company</span><span className="font-bold text-blue-900">{selectedRFQ.profiles?.company_name || 'Not Provided'}</span></div>
+                                <div><span className="block text-[10px] uppercase text-blue-400 mb-1 font-bold">Preferred Vendor</span><span className="font-bold text-blue-900">{selectedRFQ.vendor?.company_name || 'Any Vendor'}</span></div>
                             </div>
                         </div>
                         <div className="p-12 overflow-y-auto max-h-[60vh]">

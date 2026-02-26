@@ -17,8 +17,10 @@ import {
     fetchDocuments,
     createDocument,
     updateDocument,
-    deleteDocument
+    deleteDocument,
+    uploadFile
 } from '../services/admin.service';
+import { Upload } from 'lucide-react';
 
 interface Document {
     id: string;
@@ -37,6 +39,7 @@ const DocumentCenter = () => {
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
     const [isModalOpen, setIsModalOpen] = useState(false);
+    const [uploading, setUploading] = useState(false);
     const [editingDoc, setEditingDoc] = useState<Document | null>(null);
     const [formData, setFormData] = useState({
         title: '',
@@ -344,16 +347,50 @@ const DocumentCenter = () => {
                                 </div>
                             </div>
                             <div>
-                                <label className="block text-xs font-black text-gray-400 uppercase tracking-widest mb-2">File URL *</label>
-                                <input
-                                    required
-                                    type="url"
-                                    className="w-full px-6 py-4 bg-gray-50 border-none rounded-2xl outline-none focus:ring-4 focus:ring-primary/5 font-bold"
-                                    value={formData.file_url}
-                                    onChange={(e) => setFormData({ ...formData, file_url: e.target.value })}
-                                    placeholder="https://storage.example.com/document.pdf"
-                                />
-                                <p className="text-xs text-gray-400 mt-2">Upload to your storage bucket and paste the public URL here</p>
+                                <label className="block text-xs font-black text-gray-400 uppercase tracking-widest mb-2">Governing Document File *</label>
+                                <div className="space-y-4">
+                                    <label className={`w-full flex items-center justify-center gap-3 px-6 py-10 bg-gray-50 border-2 border-dashed border-gray-200 rounded-[32px] cursor-pointer hover:border-primary/30 transition-all ${uploading ? 'opacity-50 pointer-events-none' : ''}`}>
+                                        <div className="text-center">
+                                            <Upload className={`w-8 h-8 mx-auto mb-2 ${uploading ? 'animate-bounce text-primary' : 'text-gray-400'}`} />
+                                            <p className="text-sm font-bold text-gray-900">{uploading ? 'Processing Transaction...' : 'Drop PDF or Click to Upload'}</p>
+                                            <p className="text-[10px] text-gray-400 mt-1 uppercase font-black">Max payload: 50MB • Secures to Governing Bucket</p>
+                                        </div>
+                                        <input
+                                            type="file"
+                                            className="hidden"
+                                            accept=".pdf,.doc,.docx"
+                                            onChange={async (e) => {
+                                                const file = e.target.files?.[0];
+                                                if (file) {
+                                                    try {
+                                                        setUploading(true);
+                                                        const data = await uploadFile('platform-documents', file);
+                                                        setFormData({
+                                                            ...formData,
+                                                            file_url: data.url,
+                                                            file_size: `${(file.size / (1024 * 1024)).toFixed(2)} MB`
+                                                        });
+                                                    } catch (err) {
+                                                        alert('Failed to upload document');
+                                                    } finally {
+                                                        setUploading(false);
+                                                    }
+                                                }
+                                            }}
+                                        />
+                                    </label>
+                                    <div className="relative">
+                                        <FileText className="absolute left-6 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
+                                        <input
+                                            required
+                                            type="url"
+                                            className="w-full pl-16 pr-6 py-4 bg-gray-50 border-none rounded-2xl outline-none focus:ring-4 focus:ring-primary/5 font-bold"
+                                            value={formData.file_url}
+                                            onChange={(e) => setFormData({ ...formData, file_url: e.target.value })}
+                                            placeholder="Or manually specify URL if already hosted..."
+                                        />
+                                    </div>
+                                </div>
                             </div>
                             <div className="grid grid-cols-2 gap-6">
                                 <div>

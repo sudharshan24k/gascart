@@ -7,17 +7,21 @@ import {
     FolderTree,
     Code,
     Type,
-    Image as ImageIcon
+    Image as ImageIcon,
+    Upload
 } from 'lucide-react';
-import { fetchCategories, addCategory, updateCategory, deleteCategory } from '../services/admin.service';
+import { fetchCategories, addCategory, updateCategory, deleteCategory, uploadFile } from '../services/admin.service';
 
 const CategoryManagement = () => {
     const [categories, setCategories] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
     const [imageFilter, setImageFilter] = useState('all');
+    const [parentFilter, setParentFilter] = useState('all');
+    const [sortBy, setSortBy] = useState('name_asc');
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingCategory, setEditingCategory] = useState<any>(null);
+    const [uploading, setUploading] = useState(false);
 
     const [formData, setFormData] = useState({
         name: '',
@@ -112,7 +116,19 @@ const CategoryManagement = () => {
             (imageFilter === 'with_image' && c.image_url) ||
             (imageFilter === 'without_image' && !c.image_url);
 
-        return matchesSearch && matchesImage;
+        const matchesParent = parentFilter === 'all' ||
+            (parentFilter === 'top_level' && !c.parent_id) ||
+            (parentFilter === 'sub_category' && c.parent_id);
+
+        return matchesSearch && matchesImage && matchesParent;
+    }).sort((a, b) => {
+        switch (sortBy) {
+            case 'name_asc': return a.name.localeCompare(b.name);
+            case 'name_desc': return b.name.localeCompare(a.name);
+            case 'newest': return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+            case 'oldest': return new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
+            default: return 0;
+        }
     });
 
     return (
@@ -152,26 +168,47 @@ const CategoryManagement = () => {
 
                 {/* Right: Grid of Categories */}
                 <div className="lg:col-span-2">
-                    <div className="flex flex-col sm:flex-row gap-4 mb-8">
-                        <div className="relative flex-grow">
+                    <div className="flex flex-wrap gap-4 mb-8">
+                        <div className="relative flex-grow min-w-[300px]">
                             <Search className="absolute left-5 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
                             <input
                                 type="text"
                                 placeholder="Filter domains by name, slug, or description..."
-                                className="w-full pl-14 pr-6 py-5 bg-white border border-gray-100 rounded-[20px] shadow-sm outline-none focus:ring-4 focus:ring-primary/5 transition-all font-bold"
+                                className="w-full pl-14 pr-6 py-4 bg-white border border-gray-100 rounded-[20px] shadow-sm outline-none focus:ring-4 focus:ring-primary/5 transition-all font-bold"
                                 value={searchTerm}
                                 onChange={(e) => setSearchTerm(e.target.value)}
                             />
                         </div>
-                        <select
-                            value={imageFilter}
-                            onChange={(e) => setImageFilter(e.target.value)}
-                            className="px-6 py-5 bg-white border border-gray-100 rounded-[20px] shadow-sm outline-none font-bold text-gray-700 min-w-[200px]"
-                        >
-                            <option value="all">All Assets</option>
-                            <option value="with_image">With Image</option>
-                            <option value="without_image">Needs Image</option>
-                        </select>
+                        <div className="flex gap-2 w-full sm:w-auto">
+                            <select
+                                value={parentFilter}
+                                onChange={(e) => setParentFilter(e.target.value)}
+                                className="px-4 py-4 bg-white border border-gray-100 rounded-[20px] shadow-sm outline-none font-bold text-gray-700 text-sm flex-grow sm:flex-grow-0"
+                            >
+                                <option value="all">All Levels</option>
+                                <option value="top_level">Top Level</option>
+                                <option value="sub_category">Sub-categories</option>
+                            </select>
+                            <select
+                                value={imageFilter}
+                                onChange={(e) => setImageFilter(e.target.value)}
+                                className="px-4 py-4 bg-white border border-gray-100 rounded-[20px] shadow-sm outline-none font-bold text-gray-700 text-sm flex-grow sm:flex-grow-0"
+                            >
+                                <option value="all">All Assets</option>
+                                <option value="with_image">With Image</option>
+                                <option value="without_image">No Image</option>
+                            </select>
+                            <select
+                                value={sortBy}
+                                onChange={(e) => setSortBy(e.target.value)}
+                                className="px-4 py-4 bg-white border border-gray-100 rounded-[20px] shadow-sm outline-none font-bold text-gray-700 text-sm flex-grow sm:flex-grow-0"
+                            >
+                                <option value="name_asc">Name A-Z</option>
+                                <option value="name_desc">Name Z-A</option>
+                                <option value="newest">Newest</option>
+                                <option value="oldest">Oldest</option>
+                            </select>
+                        </div>
                     </div>
 
                     <div className="grid sm:grid-cols-2 gap-4">
@@ -243,16 +280,48 @@ const CategoryManagement = () => {
                                 </div>
                             </div>
                             <div>
-                                <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">Visual Icon/Image URL</label>
-                                <div className="relative">
-                                    <ImageIcon className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-300 w-4 h-4" />
-                                    <input
-                                        type="text"
-                                        className="w-full pl-12 pr-4 py-4 bg-gray-50 border-none rounded-xl outline-none focus:ring-2 focus:ring-primary/20 font-medium"
-                                        value={formData.image_url}
-                                        onChange={(e) => setFormData({ ...formData, image_url: e.target.value })}
-                                        placeholder="https://gascart.com/assets/..."
-                                    />
+                                <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">Visual Icon/Image</label>
+                                <div className="space-y-4">
+                                    <div className="flex items-center gap-4">
+                                        {formData.image_url && (
+                                            <div className="w-16 h-16 rounded-xl overflow-hidden bg-gray-100 border border-gray-100 flex-shrink-0">
+                                                <img src={formData.image_url} alt="Preview" className="w-full h-full object-cover" />
+                                            </div>
+                                        )}
+                                        <label className={`flex-grow flex items-center justify-center gap-3 px-6 py-4 bg-white border-2 border-dashed border-gray-200 rounded-2xl cursor-pointer hover:border-primary/30 transition-all ${uploading ? 'opacity-50 pointer-events-none' : ''}`}>
+                                            <Upload className={`w-5 h-5 ${uploading ? 'animate-bounce' : 'text-gray-400'}`} />
+                                            <span className="text-sm font-bold text-gray-500">{uploading ? 'Uploading...' : 'Upload New Icon'}</span>
+                                            <input
+                                                type="file"
+                                                className="hidden"
+                                                accept="image/*"
+                                                onChange={async (e) => {
+                                                    const file = e.target.files?.[0];
+                                                    if (file) {
+                                                        try {
+                                                            setUploading(true);
+                                                            const data = await uploadFile('categories', file);
+                                                            setFormData({ ...formData, image_url: data.url });
+                                                        } catch (err) {
+                                                            alert('Failed to upload image');
+                                                        } finally {
+                                                            setUploading(false);
+                                                        }
+                                                    }
+                                                }}
+                                            />
+                                        </label>
+                                    </div>
+                                    <div className="relative">
+                                        <ImageIcon className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-300 w-4 h-4" />
+                                        <input
+                                            type="text"
+                                            className="w-full pl-12 pr-4 py-4 bg-gray-50 border-none rounded-xl outline-none focus:ring-2 focus:ring-primary/20 font-medium"
+                                            value={formData.image_url}
+                                            onChange={(e) => setFormData({ ...formData, image_url: e.target.value })}
+                                            placeholder="Or paste external URL..."
+                                        />
+                                    </div>
                                 </div>
                             </div>
                             <div>
