@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
-import { UserPlus, Star, MapPin, Search, Filter, Building2, Loader2, User, LayoutGrid, List as ListIcon } from 'lucide-react';
+import { UserPlus, Star, MapPin, Search, Building2, Loader2, User, LayoutGrid, List as ListIcon } from 'lucide-react';
 import { api } from '../services/api';
 
 const Consultants: React.FC = () => {

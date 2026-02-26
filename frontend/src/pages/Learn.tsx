@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react'; // Refresh
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import { BookOpen, Search, Video, Lock, Lightbulb, Zap, FileText, Download, File, FileCode, CheckCircle2 } from 'lucide-react';
+import { BookOpen, Search, Video, Lock, Lightbulb, FileText, Download, File, FileCode, CheckCircle2 } from 'lucide-react';
 import { api } from '../services/api';
 
 const Learn: React.FC = () => {
@@ -217,7 +217,7 @@ const Learn: React.FC = () => {
                 {/* Categories Overview */}
                 {categories.length > 0 && (
                     <div className="mt-32 grid md:grid-cols-3 gap-8">
-                        {categories.slice(0, 3).map((cat, i) => (
+                        {categories.slice(0, 3).map((cat) => (
                             <div
                                 key={cat.id}
                                 onClick={() => setActiveCategory(cat.id)}
