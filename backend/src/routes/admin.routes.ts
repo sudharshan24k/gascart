@@ -1,10 +1,11 @@
 import { Router } from 'express';
-import { getDashboardStats, getAllUsers, getUserOrders, exportUsersCSV, exportInvoicesZIP, updateUser } from '../controllers/admin.controller';
+import { getDashboardStats, getAllUsers, getUserOrders, exportUsersCSV, exportInvoicesZIP, updateUser, getAuditLogs } from '../controllers/admin.controller';
 import { requireAuth, requireAdmin } from '../middlewares/auth.middleware';
 
 const router = Router();
 
 router.get('/stats', requireAuth, requireAdmin, getDashboardStats);
+router.get('/audit-logs', requireAuth, requireAdmin, getAuditLogs);
 router.get('/users', requireAuth, requireAdmin, getAllUsers);
 router.get('/users/:userId/orders', requireAuth, requireAdmin, getUserOrders);
 router.patch('/users/:userId', requireAuth, requireAdmin, updateUser);

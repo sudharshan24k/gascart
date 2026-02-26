@@ -207,3 +207,34 @@ export const exportInvoicesZIP = async (req: Request, res: Response, next: NextF
         }
     }
 };
+
+export const getAuditLogs = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const { target_type, target_id, limit = 50 } = req.query;
+        let query = supabase
+            .from('admin_audit_logs')
+            .select('*')
+            .order('created_at', { ascending: false })
+            .limit(Number(limit));
+
+        if (target_type) {
+            query = query.eq('target_type', target_type);
+        }
+
+        if (target_id) {
+            query = query.eq('target_id', target_id);
+        }
+
+        const { data, error } = await query;
+
+        if (error) throw error;
+
+        res.json({
+            status: 'success',
+            results: data.length,
+            data
+        });
+    } catch (err) {
+        next(err);
+    }
+};

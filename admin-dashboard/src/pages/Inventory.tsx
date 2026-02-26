@@ -15,7 +15,7 @@ import {
     Calendar
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { fetchAdminProducts, updateProductInventory } from '../services/admin.service';
+import { fetchAdminProducts, updateProductInventory, fetchAuditLogs } from '../services/admin.service';
 
 const Inventory = () => {
     const [products, setProducts] = useState<any[]>([]);
@@ -27,6 +27,7 @@ const Inventory = () => {
     const [updating, setUpdating] = useState<string | null>(null);
     const [selectedProduct, setSelectedProduct] = useState<any>(null);
     const [editingQuantity, setEditingQuantity] = useState<{ id: string, value: string } | null>(null);
+    const [auditLogs, setAuditLogs] = useState<any[]>([]);
 
     useEffect(() => {
         loadData();
@@ -44,6 +45,21 @@ const Inventory = () => {
         }
     };
 
+    const loadAuditLogs = async (productId: string) => {
+        try {
+            const data = await fetchAuditLogs({ target_type: 'product', target_id: productId, limit: 10 });
+            setAuditLogs(data || []);
+        } catch (err) {
+            console.error('Failed to load audit logs', err);
+        }
+    };
+
+    useEffect(() => {
+        if (selectedProduct) {
+            loadAuditLogs(selectedProduct.id);
+        }
+    }, [selectedProduct]);
+
     const handleStockUpdate = async (id: string, updates: { adjustment?: number; absolute?: number; low_stock_threshold?: number; variants?: any[]; warehouse_location?: string }) => {
         setUpdating(id);
         try {
@@ -59,6 +75,7 @@ const Inventory = () => {
         } finally {
             setUpdating(null);
             setEditingQuantity(null);
+            if (selectedProduct) loadAuditLogs(selectedProduct.id);
         }
     };
 
@@ -498,21 +515,22 @@ const Inventory = () => {
                                 <section className="space-y-6">
                                     <h4 className="text-[11px] font-black uppercase tracking-[0.2em] text-slate-400 px-1 border-l-4 border-slate-200 pl-4">System Event Log</h4>
                                     <div className="space-y-3">
-                                        {[
-                                            { event: 'Inventory Synchronization', date: 'Just Now', status: 'Optimal' },
-                                            { event: 'Threshold Recalibration', date: '2h ago', status: 'Updated' }
-                                        ].map((log, i) => (
-                                            <div key={i} className="flex justify-between items-center p-4 bg-slate-50 rounded-2xl border border-slate-100/50 hover:bg-white transition-colors">
+                                        {auditLogs.length > 0 ? auditLogs.map((log) => (
+                                            <div key={log.id} className="flex justify-between items-center p-4 bg-slate-50 rounded-2xl border border-slate-100/50 hover:bg-white transition-colors">
                                                 <div className="flex items-center gap-4">
-                                                    <div className="w-2 h-2 rounded-full bg-emerald-500" />
-                                                    <span className="text-xs font-bold text-slate-700">{log.event}</span>
+                                                    <div className={`w-2 h-2 rounded-full ${log.status === 'optimal' ? 'bg-emerald-500' : log.status === 'updated' ? 'bg-indigo-500' : 'bg-rose-500'}`} />
+                                                    <span className="text-xs font-bold text-slate-700">{log.action.replace(/_/g, ' ')}</span>
                                                 </div>
                                                 <div className="text-right">
-                                                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-tighter">{log.date}</p>
-                                                    <p className="text-[9px] font-bold text-emerald-600 uppercase mt-0.5">{log.status}</p>
+                                                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-tighter">{new Date(log.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</p>
+                                                    <p className={`text-[9px] font-bold uppercase mt-0.5 ${log.status === 'optimal' ? 'text-emerald-600' : log.status === 'updated' ? 'text-indigo-600' : 'text-rose-600'}`}>{log.status}</p>
                                                 </div>
                                             </div>
-                                        ))}
+                                        )) : (
+                                            <div className="p-4 text-center bg-slate-50 rounded-2xl border border-dashed border-slate-200">
+                                                <p className="text-[10px] font-bold text-slate-400 uppercase">No recent events recorded</p>
+                                            </div>
+                                        )}
                                     </div>
                                 </section>
                             </div>

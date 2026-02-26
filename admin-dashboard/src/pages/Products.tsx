@@ -11,6 +11,10 @@ import {
     ArrowLeftRight,
     Filter,
     RotateCcw,
+    Eye,
+    EyeOff,
+    LayoutGrid,
+    AlertCircle
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ProductModal } from '../components/products/ProductModal';
@@ -264,6 +268,13 @@ const AdminProducts = () => {
         }
     };
 
+    const stats = {
+        total: products.length,
+        published: products.filter(p => p.visibility_status === 'published').length,
+        lowStock: products.filter(p => p.stock_quantity > 0 && p.stock_quantity < 10).length,
+        outOfStock: products.filter(p => p.stock_quantity === 0).length
+    };
+
     const filteredProducts = products.filter(p => {
         const matchesSearch = p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
             p.id.toLowerCase().includes(searchQuery.toLowerCase());
@@ -302,16 +313,44 @@ const AdminProducts = () => {
         <div className="space-y-10">
             <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6">
                 <div>
-                    <h2 className="text-4xl font-black text-slate-900 tracking-tight">Asset Inventory</h2>
-                    <p className="text-slate-500 font-medium mt-1 uppercase text-xs tracking-[0.2em]">Control marketplace visibility, technical specs, and purchase models</p>
+                    <h2 className="text-4xl font-black text-slate-900 tracking-tight">Product Architecture</h2>
+                    <p className="text-slate-500 font-medium mt-1 uppercase text-xs tracking-[0.2em]">Master governance of industrial assets and supply configurations</p>
                 </div>
                 <button
                     onClick={() => handleOpenModal()}
                     className="admin-btn-primary gap-3 shadow-indigo-600/20"
                 >
                     <Plus className="w-5 h-5" />
-                    <span>Onboard Asset</span>
+                    <span>Onboard New Asset</span>
                 </button>
+            </div>
+
+            {/* Premium Stats Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+                {[
+                    { label: 'Total Assets', value: stats.total, icon: Package, color: 'text-indigo-600', bg: 'bg-indigo-50' },
+                    { label: 'Live on Market', value: stats.published, icon: Eye, color: 'text-emerald-600', bg: 'bg-emerald-50' },
+                    { label: 'Inventory Alert', value: stats.lowStock, icon: AlertCircle, color: 'text-amber-600', bg: 'bg-amber-50' },
+                    { label: 'Deep Depletion', value: stats.outOfStock, icon: LayoutGrid, color: 'text-rose-600', bg: 'bg-rose-50' }
+                ].map((stat, i) => (
+                    <motion.div
+                        key={i}
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: i * 0.1 }}
+                        className="admin-card-interactive group border-none"
+                    >
+                        <div className="flex items-center gap-5">
+                            <div className={`w-14 h-14 ${stat.bg} rounded-2xl flex items-center justify-center shadow-sm group-hover:scale-110 transition-transform duration-300`}>
+                                <stat.icon className={`w-7 h-7 ${stat.color}`} />
+                            </div>
+                            <div>
+                                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">{stat.label}</p>
+                                <p className="text-2xl font-black text-slate-900 tracking-tight">{stat.value}</p>
+                            </div>
+                        </div>
+                    </motion.div>
+                ))}
             </div>
 
             {/* Advanced Filters Bar */}
@@ -439,12 +478,12 @@ const AdminProducts = () => {
                 <div className="overflow-x-auto">
                     <table className="w-full text-left border-collapse">
                         <thead>
-                            <tr className="bg-slate-900 text-slate-400 text-[10px] font-black uppercase tracking-widest">
-                                <th className="py-6 px-10">Asset Details</th>
-                                <th className="py-6 px-10">Purchase Model</th>
-                                <th className="py-6 px-10">Financials</th>
-                                <th className="py-6 px-10">Visibility</th>
-                                <th className="py-6 px-10 text-right">Operations</th>
+                            <tr className="bg-slate-900 text-slate-400 text-[10px] font-black uppercase tracking-[0.2em]">
+                                <th className="py-8 px-12">Structural Asset</th>
+                                <th className="py-8 px-12">Purchase Model</th>
+                                <th className="py-8 px-12">Valuation</th>
+                                <th className="py-8 px-12">Protocol Status</th>
+                                <th className="py-8 px-12 text-right">Operations</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-slate-100">
@@ -463,77 +502,85 @@ const AdminProducts = () => {
                                     </tr>
                                 ))
                             ) : filteredProducts.map((product) => (
-                                <tr key={product.id} className="hover:bg-slate-50/50 transition-colors group">
-                                    <td className="py-8 px-10">
+                                <tr key={product.id} className="hover:bg-slate-50/50 transition-all border-l-4 border-l-transparent hover:border-l-indigo-600 group">
+                                    <td className="py-10 px-12">
                                         <div className="flex items-center gap-6">
-                                            <div className="w-16 h-16 bg-white rounded-2xl flex items-center justify-center shrink-0 border border-slate-100 overflow-hidden group-hover:scale-105 transition-transform shadow-sm">
+                                            <div className="w-20 h-20 bg-white rounded-2xl flex items-center justify-center shrink-0 border border-slate-100 overflow-hidden group-hover:scale-105 transition-transform shadow-sm relative">
                                                 {product.images?.[0] ? (
                                                     <img src={product.images[0]} alt="" referrerPolicy="no-referrer" className="w-full h-full object-cover" />
                                                 ) : (
-                                                    <Package className="w-8 h-8 text-slate-300" />
+                                                    <Package className="w-10 h-10 text-slate-300" />
                                                 )}
+                                                <div className="absolute inset-0 bg-indigo-600/0 group-hover:bg-indigo-600/10 transition-colors" />
                                             </div>
                                             <div>
-                                                <div className="font-bold text-slate-900 text-lg mb-1">{product.name}</div>
-                                                <div className="flex items-center gap-3">
-                                                    <span className="text-[10px] font-black bg-slate-100 text-slate-500 px-2 py-0.5 rounded-lg uppercase tracking-tighter">
-                                                        {product.categories?.name || 'Uncategorized'}
-                                                    </span>
-                                                    <span className="text-[10px] font-bold text-slate-400">Order: {product.order_index}</span>
+                                                <div className="font-black text-slate-900 text-xl tracking-tight mb-1">{product.name}</div>
+                                                <div className="flex items-center gap-2">
+                                                    <span className="text-[10px] font-black text-slate-300 uppercase tracking-widest font-mono">ID: {product.id.slice(0, 8).toUpperCase()}</span>
+                                                    <div className="w-1 h-1 rounded-full bg-slate-200" />
+                                                    <span className="text-[10px] font-bold text-indigo-600/60 uppercase">{product.categories?.name || 'Unspecified'}</span>
                                                 </div>
                                             </div>
                                         </div>
                                     </td>
-                                    <td className="py-8 px-10">
+                                    <td className="py-10 px-12">
                                         {product.purchase_model === 'rfq' ? (
-                                            <span className="flex items-center gap-2 text-sm font-bold text-slate-600">
-                                                <div className="w-2 h-2 rounded-full bg-amber-500"></div> Technical RFQ
+                                            <span className="px-4 py-1.5 rounded-xl text-[9px] font-black uppercase tracking-widest bg-amber-50 text-amber-600 border border-amber-100">
+                                                Technical RFQ
                                             </span>
                                         ) : product.purchase_model === 'both' ? (
-                                            <span className="flex items-center gap-2 text-sm font-bold text-indigo-600">
-                                                <div className="w-2 h-2 rounded-full bg-indigo-500 animate-pulse"></div> Hybrid Model
+                                            <span className="px-4 py-1.5 rounded-xl text-[9px] font-black uppercase tracking-widest bg-indigo-50 text-indigo-600 border border-indigo-100">
+                                                Hybrid Model
                                             </span>
                                         ) : (
-                                            <span className="flex items-center gap-2 text-sm font-bold text-emerald-600">
-                                                <div className="w-2 h-2 rounded-full bg-emerald-500"></div> Direct Buy
+                                            <span className="px-4 py-1.5 rounded-xl text-[9px] font-black uppercase tracking-widest bg-emerald-50 text-emerald-600 border border-emerald-100">
+                                                Direct Buy
                                             </span>
                                         )}
                                     </td>
-                                    <td className="py-8 px-10">
+                                    <td className="py-10 px-12">
                                         <div className="flex flex-col">
                                             {(product.price_min && product.price_max && product.price_min !== product.price_max) ? (
                                                 <>
-                                                    <span className="text-lg font-black text-slate-900 tracking-tight">₹{parseFloat(product.price_min).toLocaleString()} - ₹{parseFloat(product.price_max).toLocaleString()}</span>
-                                                    <span className="text-[10px] text-indigo-600 font-black uppercase tracking-widest mt-1">{product.vendor_count || 0} providers</span>
+                                                    <span className="text-xl font-black text-slate-900 tracking-tight">₹{parseFloat(product.price_min).toLocaleString()} - ₹{parseFloat(product.price_max).toLocaleString()}</span>
+                                                    <span className="text-[10px] text-indigo-600 font-black uppercase tracking-widest mt-1 opacity-60">{product.vendor_count || 0} providers</span>
                                                 </>
                                             ) : (
                                                 <>
-                                                    <span className="text-lg font-black text-slate-900 tracking-tight">₹{parseFloat(product.price).toLocaleString()}</span>
+                                                    <span className="text-xl font-black text-slate-900 tracking-tight">₹{parseFloat(product.price).toLocaleString()}</span>
                                                     {product.vendor_count > 0 && (
-                                                        <span className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-1">{product.vendor_count} provider{product.vendor_count > 1 ? 's' : ''}</span>
+                                                        <span className="text-[10px] text-slate-400 font-black uppercase tracking-widest mt-1">{product.vendor_count} provider{product.vendor_count > 1 ? 's' : ''}</span>
                                                     )}
                                                 </>
                                             )}
                                         </div>
                                     </td>
-                                    <td className="py-8 px-10">
-                                        <span className={`px-4 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest ${product.visibility_status === 'published' ? 'bg-emerald-50 text-emerald-600' :
-                                            product.visibility_status === 'draft' ? 'bg-amber-50 text-amber-600' : 'bg-slate-100 text-slate-500'
-                                            }`}>
-                                            {product.visibility_status || (product.is_active ? 'published' : 'hidden')}
-                                        </span>
+                                    <td className="py-10 px-12">
+                                        {product.visibility_status === 'published' ? (
+                                            <span className="flex items-center gap-2 text-[10px] font-black text-emerald-600 uppercase tracking-widest">
+                                                <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" /> Live
+                                            </span>
+                                        ) : product.visibility_status === 'draft' ? (
+                                            <span className="flex items-center gap-2 text-[10px] font-black text-amber-500 uppercase tracking-widest">
+                                                <div className="w-1.5 h-1.5 rounded-full bg-amber-500" /> Draft
+                                            </span>
+                                        ) : (
+                                            <span className="flex items-center gap-2 text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                                                <div className="w-1.5 h-1.5 rounded-full bg-slate-300" /> Hidden
+                                            </span>
+                                        )}
                                     </td>
-                                    <td className="py-8 px-10 text-right">
-                                        <div className="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-all transform translate-x-4 group-hover:translate-x-0">
+                                    <td className="py-10 px-12 text-right">
+                                        <div className="flex justify-end gap-3 opacity-0 group-hover:opacity-100 transition-all transform translate-x-4 group-hover:translate-x-0">
                                             <button
                                                 onClick={() => handleOpenModal(product)}
-                                                className="p-3 text-slate-400 hover:text-indigo-600 hover:bg-white rounded-xl shadow-sm border border-transparent hover:border-slate-100 transition-all"
+                                                className="w-12 h-12 flex items-center justify-center bg-white border border-slate-200 text-slate-400 hover:text-indigo-600 hover:border-indigo-100 hover:shadow-lg rounded-xl transition-all active:scale-90"
                                             >
                                                 <Edit2 className="w-5 h-5" />
                                             </button>
                                             <button
                                                 onClick={() => handleDelete(product.id)}
-                                                className="p-3 text-slate-400 hover:text-rose-500 hover:bg-white rounded-xl shadow-sm border border-transparent hover:border-slate-100 transition-all"
+                                                className="w-12 h-12 flex items-center justify-center bg-white border border-slate-200 text-slate-400 hover:text-rose-500 hover:border-rose-100 hover:shadow-lg rounded-xl transition-all active:scale-90"
                                             >
                                                 <Trash2 className="w-5 h-5" />
                                             </button>

@@ -432,101 +432,95 @@ export const ProductModal = ({
                             )}
 
                             {activeTab === 'media' && (
-                                <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-300 max-w-3xl">
+                                <div className="space-y-12 animate-in fade-in slide-in-from-bottom-4 duration-300 max-w-4xl">
                                     <div>
-                                        <div className="flex items-center justify-between mb-4">
+                                        <div className="flex items-center justify-between mb-8">
                                             <div>
-                                                <label className="block text-sm font-bold text-gray-900">Product Images</label>
-                                                <p className="text-xs text-gray-500 mt-1">URLs for product images</p>
+                                                <label className="block text-lg font-black text-gray-900 tracking-tight">Visual Assets</label>
+                                                <p className="text-xs text-gray-500 mt-1 uppercase tracking-widest font-black">Managed cloud storage for product imagery</p>
                                             </div>
-                                            <div className="flex items-center gap-3">
-                                                <button
-                                                    type="button"
-                                                    onClick={() => setFormData({
-                                                        ...formData,
-                                                        images: [...(formData.images || []), '']
-                                                    })}
-                                                    className="px-4 py-2 bg-gray-100 text-gray-700 hover:bg-black hover:text-white rounded-lg text-sm font-bold transition-all flex items-center gap-2"
-                                                >
-                                                    <Plus className="w-4 h-4" /> Add Image URL
-                                                </button>
-
-                                                <label className="px-4 py-2 bg-black hover:bg-gray-800 text-white cursor-pointer rounded-lg text-sm font-bold transition-all flex items-center gap-2 shadow-sm">
-                                                    <UploadCloud className="w-4 h-4" /> Upload Image
-                                                    <input
-                                                        type="file"
-                                                        accept="image/*"
-                                                        className="hidden"
-                                                        onChange={async (e) => {
-                                                            const file = e.target.files?.[0];
-                                                            if (!file) return;
-
-                                                            try {
-                                                                setUploading(true);
-                                                                const data = await uploadFile('products', file);
-                                                                setFormData({
-                                                                    ...formData,
-                                                                    images: [...(formData.images || []), data.url]
-                                                                });
-                                                            } catch (err: any) {
-                                                                alert('Upload failed: ' + err.message);
-                                                            } finally {
-                                                                setUploading(false);
-                                                            }
-                                                        }}
-                                                    />
-                                                </label>
-                                            </div>
+                                            <label className="px-6 py-3 bg-black hover:bg-gray-800 text-white cursor-pointer rounded-2xl text-xs font-black uppercase tracking-[0.1em] transition-all flex items-center gap-3 shadow-xl shadow-black/10 active:scale-95">
+                                                <UploadCloud className="w-5 h-5 text-red-500" />
+                                                <span>{uploading ? 'Processing...' : 'Upload Asset'}</span>
+                                                <input
+                                                    disabled={uploading}
+                                                    type="file"
+                                                    accept="image/*"
+                                                    className="hidden"
+                                                    onChange={async (e) => {
+                                                        const file = e.target.files?.[0];
+                                                        if (!file) return;
+                                                        try {
+                                                            setUploading(true);
+                                                            const data = await uploadFile('products', file);
+                                                            setFormData({
+                                                                ...formData,
+                                                                images: [...(formData.images || []), data.url]
+                                                            });
+                                                        } catch (err: any) {
+                                                            alert('Upload failed: ' + err.message);
+                                                        } finally {
+                                                            setUploading(false);
+                                                        }
+                                                    }}
+                                                />
+                                            </label>
                                         </div>
 
-                                        <div className="space-y-4">
+                                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                                             {(formData.images || []).map((imgUrl: string, idx: number) => {
                                                 const driveMatch = imgUrl.match(/drive\.google\.com\/(?:file\/d\/|open\?id=)([a-zA-Z0-9_-]+)/);
                                                 const displayUrl = driveMatch ? `https://drive.google.com/uc?id=${driveMatch[1]}` : imgUrl;
                                                 return (
-                                                    <div key={idx} className="flex flex-col md:flex-row gap-4 p-5 bg-gray-50 border border-gray-200 rounded-2xl items-center">
-                                                        {displayUrl && (
-                                                            <img src={displayUrl} alt="Preview" referrerPolicy="no-referrer" className="w-12 h-12 rounded object-cover border border-gray-200 shrink-0" />
+                                                    <div key={idx} className="group relative bg-gray-50 border-2 border-gray-100 rounded-[24px] overflow-hidden aspect-square hover:border-black transition-all">
+                                                        {displayUrl ? (
+                                                            <img
+                                                                src={displayUrl}
+                                                                alt="Asset Preview"
+                                                                referrerPolicy="no-referrer"
+                                                                className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                                                            />
+                                                        ) : (
+                                                            <div className="w-full h-full flex items-center justify-center text-gray-300">
+                                                                <Package className="w-12 h-12" />
+                                                            </div>
                                                         )}
-                                                        <div className="relative flex-grow">
-                                                            <LinkIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-                                                            <input
-                                                                placeholder="Image URL (e.g. https://example.com/image.jpg)"
-                                                                className="w-full pl-11 pr-4 py-3 bg-white border border-gray-200 rounded-lg outline-none focus:border-red-500 focus:ring-2 focus:ring-red-500/20 text-sm font-bold"
-                                                                value={imgUrl}
-                                                                onChange={(e) => {
-                                                                    const newImages = [...formData.images];
-                                                                    newImages[idx] = e.target.value;
+                                                        <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-3">
+                                                            <button
+                                                                type="button"
+                                                                onClick={() => {
+                                                                    const newImages = formData.images.filter((_: any, i: number) => i !== idx);
                                                                     setFormData({ ...formData, images: newImages });
                                                                 }}
-                                                            />
+                                                                className="w-10 h-10 bg-white text-red-600 rounded-xl flex items-center justify-center hover:bg-red-600 hover:text-white transition-all transform -translate-y-2 group-hover:translate-y-0 shadow-lg"
+                                                            >
+                                                                <Trash2 className="w-5 h-5" />
+                                                            </button>
                                                         </div>
-                                                        <button
-                                                            type="button"
-                                                            onClick={() => {
-                                                                const newImages = formData.images.filter((_: any, i: number) => i !== idx);
-                                                                setFormData({ ...formData, images: newImages });
-                                                            }}
-                                                            className="p-3 text-gray-400 hover:text-red-500 hover:bg-white rounded-lg transition-colors border border-transparent hover:border-red-100 shrink-0"
-                                                        >
-                                                            <Trash2 className="w-5 h-5" />
-                                                        </button>
+                                                        {idx === 0 && (
+                                                            <div className="absolute top-4 left-4 px-3 py-1 bg-black text-white text-[9px] font-black uppercase tracking-widest rounded-lg">
+                                                                Cover Asset
+                                                            </div>
+                                                        )}
                                                     </div>
                                                 );
                                             })}
-                                            {(!formData.images || formData.images.length === 0) && (
-                                                <div className="p-8 text-center border-2 border-dashed border-gray-200 rounded-2xl">
-                                                    <p className="text-gray-500 font-medium">No images added. Please add at least one image URL.</p>
-                                                </div>
-                                            )}
+                                            <button
+                                                type="button"
+                                                onClick={() => setFormData({ ...formData, images: [...(formData.images || []), ''] })}
+                                                className="border-2 border-dashed border-gray-200 rounded-[24px] aspect-square flex flex-col items-center justify-center gap-3 text-gray-400 hover:border-black hover:text-black transition-all group"
+                                            >
+                                                <Plus className="w-8 h-8 group-hover:scale-110 transition-transform" />
+                                                <span className="text-[10px] font-black uppercase tracking-widest">Manual Link</span>
+                                            </button>
                                         </div>
                                     </div>
 
                                     <div>
-                                        <div className="flex items-center justify-between mb-4">
+                                        <div className="flex items-center justify-between mb-6">
                                             <div>
-                                                <label className="block text-sm font-bold text-gray-900">Technical Documents</label>
-                                                <p className="text-xs text-gray-500 mt-1">Manuals, Certifications, and Specifications</p>
+                                                <label className="block text-lg font-black text-gray-900 tracking-tight">Technical Documentation</label>
+                                                <p className="text-xs text-gray-500 mt-1 uppercase tracking-widest font-black">Engineering specs and certification manuals</p>
                                             </div>
                                             <button
                                                 type="button"
@@ -534,9 +528,9 @@ export const ProductModal = ({
                                                     ...formData,
                                                     documents: [...(formData.documents || []), { name: '', url: '' }]
                                                 })}
-                                                className="px-4 py-2 bg-gray-100 text-gray-700 hover:bg-black hover:text-white rounded-lg text-sm font-bold transition-all flex items-center gap-2"
+                                                className="px-5 py-2.5 bg-gray-100 text-gray-700 hover:bg-black hover:text-white rounded-xl text-[10px] font-black uppercase tracking-widest transition-all flex items-center gap-2"
                                             >
-                                                <Plus className="w-4 h-4" /> Add Document
+                                                <Plus className="w-4 h-4" /> Add Doc Reference
                                             </button>
                                         </div>
 

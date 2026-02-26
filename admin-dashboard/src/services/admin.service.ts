@@ -207,6 +207,11 @@ export const fetchProductVendors = async (productId: string) => {
     return response.data.data;
 };
 
+export const fetchAuditLogs = async (params?: { target_type?: string; target_id?: string; limit?: number }) => {
+    const response = await adminApi.get('/admin/audit-logs', { params });
+    return response.data.data;
+};
+
 
 // Document Management
 export const fetchDocuments = async (params?: { category?: string; status?: string }) => {

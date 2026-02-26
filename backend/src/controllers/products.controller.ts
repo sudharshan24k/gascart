@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import { supabase } from '../config/supabase';
 import redis from '../services/redis.service';
+import { logAdminAction } from '../services/audit.service';
 
 export const getProducts = async (req: Request, res: Response, next: NextFunction) => {
     try {
@@ -283,8 +284,26 @@ export const updateInventory = async (req: Request, res: Response, next: NextFun
         const { id } = req.params;
         const { adjustment, absolute, low_stock_threshold, variants, warehouse_location } = req.body;
 
+        // Fetch current product for previous stock info and logging
+        const { data: product, error: fetchError } = await supabase
+            .from('products')
+            .select('stock_quantity, name')
+            .eq('id', id)
+            .single();
+
+        if (fetchError) throw fetchError;
+
         const updates: any = {};
-        if (absolute !== undefined && typeof absolute === 'number') updates.stock_quantity = Math.max(0, absolute);
+        let finalStock = product.stock_quantity;
+
+        if (absolute !== undefined && typeof absolute === 'number') {
+            updates.stock_quantity = Math.max(0, absolute);
+            finalStock = updates.stock_quantity;
+        } else if (adjustment !== undefined && typeof adjustment === 'number') {
+            updates.stock_quantity = Math.max(0, (product.stock_quantity || 0) + adjustment);
+            finalStock = updates.stock_quantity;
+        }
+
         if (low_stock_threshold !== undefined && typeof low_stock_threshold === 'number') updates.low_stock_threshold = Math.max(0, low_stock_threshold);
         if (variants !== undefined && Array.isArray(variants)) updates.variants = variants;
         if (warehouse_location !== undefined) updates.warehouse_location = warehouse_location;
@@ -298,28 +317,21 @@ export const updateInventory = async (req: Request, res: Response, next: NextFun
                 .single();
 
             if (error) throw error;
-            return res.json({ status: 'success', data });
-        }
 
-        if (adjustment !== undefined && typeof adjustment === 'number') {
-            const { data: product, error: fetchError } = await supabase
-                .from('products')
-                .select('stock_quantity')
-                .eq('id', id)
-                .single();
+            // Log the inventory update
+            await logAdminAction({
+                action: 'UPDATE_INVENTORY',
+                targetType: 'product',
+                targetId: id,
+                details: {
+                    product_name: product.name,
+                    previous_stock: product.stock_quantity,
+                    new_stock: finalStock,
+                    updates: Object.keys(updates).filter(k => k !== 'stock_quantity')
+                },
+                status: 'updated'
+            });
 
-            if (fetchError) throw fetchError;
-
-            const newStock = Math.max(0, (product.stock_quantity || 0) + adjustment);
-
-            const { data, error } = await supabase
-                .from('products')
-                .update({ stock_quantity: newStock })
-                .eq('id', id)
-                .select()
-                .single();
-
-            if (error) throw error;
             return res.json({ status: 'success', data });
         }
 
