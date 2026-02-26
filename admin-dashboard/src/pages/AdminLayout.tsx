@@ -1,10 +1,10 @@
 import { useState, useEffect } from 'react';
 import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import {
-    LayoutDashboard, Package, ShoppingCart, Users, Settings, LogOut,
+    LayoutDashboard, Package, ShoppingCart, Users, LogOut,
     ClipboardCheck, BookOpen, FolderTree, Building2, ShieldCheck,
     Settings2, Menu, X, Search, Bell, ChevronRight, User,
-    Database, Receipt, MessageSquare
+    Database, MessageSquare
 } from 'lucide-react';
 import { authService } from '../services/auth.service';
 import { supabase } from '../services/api';

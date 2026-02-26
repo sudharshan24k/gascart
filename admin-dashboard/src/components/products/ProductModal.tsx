@@ -15,7 +15,7 @@ export const ProductModal = ({
     onRemoveVendor
 }: any) => {
     const [activeTab, setActiveTab] = useState('basic');
-    const [uploading, setUploading] = useState(false);
+    const [isUploadingAsset, setIsUploadingAsset] = useState(false);
 
     if (!isOpen) return null;
 
@@ -441,9 +441,9 @@ export const ProductModal = ({
                                             </div>
                                             <label className="px-6 py-3 bg-black hover:bg-gray-800 text-white cursor-pointer rounded-2xl text-xs font-black uppercase tracking-[0.1em] transition-all flex items-center gap-3 shadow-xl shadow-black/10 active:scale-95">
                                                 <UploadCloud className="w-5 h-5 text-red-500" />
-                                                <span>{uploading ? 'Processing...' : 'Upload Asset'}</span>
+                                                <span>{isUploadingAsset ? 'Processing...' : 'Upload Asset'}</span>
                                                 <input
-                                                    disabled={uploading}
+                                                    disabled={isUploadingAsset}
                                                     type="file"
                                                     accept="image/*"
                                                     className="hidden"
@@ -451,7 +451,7 @@ export const ProductModal = ({
                                                         const file = e.target.files?.[0];
                                                         if (!file) return;
                                                         try {
-                                                            setUploading(true);
+                                                            setIsUploadingAsset(true);
                                                             const data = await uploadFile('products', file);
                                                             setFormData({
                                                                 ...formData,
@@ -460,7 +460,7 @@ export const ProductModal = ({
                                                         } catch (err: any) {
                                                             alert('Upload failed: ' + err.message);
                                                         } finally {
-                                                            setUploading(false);
+                                                            setIsUploadingAsset(false);
                                                         }
                                                     }}
                                                 />

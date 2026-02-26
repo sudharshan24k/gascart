@@ -5,14 +5,10 @@ import {
     Edit2,
     Trash2,
     X,
-    CheckCircle,
     Package,
-    ClipboardList,
-    ArrowLeftRight,
     Filter,
     RotateCcw,
     Eye,
-    EyeOff,
     LayoutGrid,
     AlertCircle
 } from 'lucide-react';
