@@ -1,8 +1,18 @@
-import React from 'react';
+import React, { useState } from 'react';
+import { ChevronDown, FileText, Mail, MapPin, Globe } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 
-const sections = [
+interface Section {
+    title: string;
+    intro?: string;
+    bullets?: string[];
+    content?: string[];
+    contact?: boolean;
+}
+
+const sections: Section[] = [
     {
-        title: '1. Acceptance of Terms',
+        title: 'Acceptance of Terms',
         content: [
             'By accessing, browsing, registering, or creating a login on www.gascart.in ("Platform"), you agree to be legally bound by these Terms of Service.',
             'Creation of a user account or login shall constitute full acceptance of these Terms.',
@@ -10,7 +20,7 @@ const sections = [
         ],
     },
     {
-        title: '2. Nature of the Platform',
+        title: 'Nature of the Platform',
         content: [
             'GasCart, operated by Stut Instruments, is a B2B marketplace and sourcing facilitation platform serving the CBG, Bio-CNG, and conventional CNG ecosystem.',
             'The Platform connects buyers, vendors, manufacturers, consultants, and service providers.',
@@ -19,7 +29,7 @@ const sections = [
         ],
     },
     {
-        title: '3. Buyer Responsibilities',
+        title: 'Buyer Responsibilities',
         intro: 'Buyers are responsible for:',
         bullets: [
             'Conducting independent technical and commercial evaluation',
@@ -32,7 +42,7 @@ const sections = [
         ],
     },
     {
-        title: '4. Vendor Responsibility',
+        title: 'Vendor Responsibility',
         intro: 'Vendors are independently responsible for:',
         bullets: [
             'Accuracy of product information',
@@ -46,7 +56,7 @@ const sections = [
         ],
     },
     {
-        title: '5. No Commercial Liability',
+        title: 'No Commercial Liability',
         intro: 'GasCart shall not be liable for:',
         bullets: [
             'Product defects',
@@ -60,7 +70,7 @@ const sections = [
         ],
     },
     {
-        title: '6. Payments and Transactions',
+        title: 'Payments and Transactions',
         content: [
             'GasCart may facilitate transactions directly through the Platform or may operate on an introduction-based commission model.',
             'Where transactions occur directly between buyer and seller, GasCart is not a party to the commercial contract.',
@@ -68,14 +78,14 @@ const sections = [
         ],
     },
     {
-        title: '7. Intellectual Property',
+        title: 'Intellectual Property',
         content: [
             'All content, branding, structure, and intellectual property related to the Platform are owned by Stut Instruments unless otherwise stated.',
             'Users may not reproduce, copy, distribute, or exploit Platform content without written permission.',
         ],
     },
     {
-        title: '8. User Conduct',
+        title: 'User Conduct',
         intro: 'Users agree not to:',
         bullets: [
             'Provide false information',
@@ -87,14 +97,14 @@ const sections = [
         content: ['GasCart reserves the right to suspend or terminate accounts for violations.'],
     },
     {
-        title: '9. Data & Privacy',
+        title: 'Data & Privacy',
         content: [
             'Use of the Platform is also governed by the Privacy Policy published on www.gascart.in.',
             'Users consent to data sharing necessary for RFQ processing and vendor engagement.',
         ],
     },
     {
-        title: '10. Limitation of Role',
+        title: 'Limitation of Role',
         content: [
             'GasCart functions as a sourcing facilitator.',
             'It does not assume responsibility for inspection, certification, quality verification, or contractual enforcement between parties.',
@@ -102,62 +112,71 @@ const sections = [
         ],
     },
     {
-        title: '11. Governing Law & Jurisdiction',
+        title: 'Governing Law & Jurisdiction',
         content: [
             'These Terms shall be governed by and interpreted in accordance with the laws of India.',
             'Any disputes arising out of or relating to the use of the Platform shall be subject to the exclusive jurisdiction of courts located in Sirsi, Karnataka.',
         ],
     },
     {
-        title: '12. Amendments',
+        title: 'Amendments',
         content: [
             'Stut Instruments reserves the right to modify these Terms at any time.',
             'Continued use of the Platform after updates constitutes acceptance of the revised Terms.',
         ],
     },
     {
-        title: '13. Contact Information',
+        title: 'Contact Information',
         content: ['For queries related to these Terms:'],
         contact: true,
     },
 ];
 
-const TermsOfService: React.FC = () => {
+const AccordionSection: React.FC<{ section: Section; index: number }> = ({ section, index }) => {
+    const [open, setOpen] = useState(index === 0);
+
     return (
-        <div className="bg-white min-h-screen">
-            {/* Header */}
-            <div className="bg-neutral-900 text-white py-16">
-                <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-4xl">
-                    <span className="inline-block text-xs font-bold uppercase tracking-widest text-primary mb-4">
-                        Legal
-                    </span>
-                    <h1 className="text-4xl md:text-5xl font-display font-bold mb-4">Terms of Service</h1>
-                    <p className="text-gray-400 text-lg">
-                        <span className="font-semibold text-white">Stut Instruments</span> · Operating{' '}
-                        <span className="text-primary">www.gascart.in</span>
-                    </p>
-                    <p className="text-gray-500 text-sm mt-2">Effective Date: 26 February 2026</p>
-                </div>
-            </div>
+        <motion.div
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: index * 0.04 }}
+            className="bg-white border border-gray-100 rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-shadow"
+        >
+            <button
+                onClick={() => setOpen(!open)}
+                className="w-full text-left flex items-center gap-5 px-6 py-5 group"
+            >
+                <span className="flex-shrink-0 w-8 h-8 rounded-xl bg-primary/10 text-primary flex items-center justify-center text-xs font-black">
+                    {String(index + 1).padStart(2, '0')}
+                </span>
+                <span className="flex-1 text-base font-bold text-gray-900 group-hover:text-primary transition-colors">
+                    {section.title}
+                </span>
+                <ChevronDown
+                    className={`w-5 h-5 text-gray-400 flex-shrink-0 transition-transform duration-300 ${open ? 'rotate-180' : ''}`}
+                />
+            </button>
 
-            {/* Body */}
-            <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-4xl py-16">
-                <div className="space-y-12">
-                    {sections.map((section, i) => (
-                        <section key={i} className="border-b border-gray-100 pb-10 last:border-0">
-                            <h2 className="text-xl font-bold text-gray-900 mb-4 font-display">
-                                {section.title}
-                            </h2>
-
+            <AnimatePresence initial={false}>
+                {open && (
+                    <motion.div
+                        key="content"
+                        initial={{ height: 0, opacity: 0 }}
+                        animate={{ height: 'auto', opacity: 1 }}
+                        exit={{ height: 0, opacity: 0 }}
+                        transition={{ duration: 0.3 }}
+                        className="overflow-hidden"
+                    >
+                        <div className="px-6 pb-6 border-t border-gray-50 pt-4 space-y-4">
                             {section.intro && (
-                                <p className="text-gray-600 leading-relaxed mb-3">{section.intro}</p>
+                                <p className="text-gray-500 font-medium">{section.intro}</p>
                             )}
 
                             {section.bullets && (
-                                <ul className="list-none space-y-2 mb-4">
+                                <ul className="space-y-2">
                                     {section.bullets.map((b, j) => (
-                                        <li key={j} className="flex items-start gap-2 text-gray-600">
-                                            <span className="mt-1.5 w-1.5 h-1.5 rounded-full bg-primary flex-shrink-0" />
+                                        <li key={j} className="flex items-start gap-3 text-gray-600">
+                                            <span className="mt-2 w-1.5 h-1.5 rounded-full bg-primary flex-shrink-0" />
                                             {b}
                                         </li>
                                     ))}
@@ -165,44 +184,75 @@ const TermsOfService: React.FC = () => {
                             )}
 
                             {section.content && (
-                                <div className="space-y-3">
+                                <div className="space-y-2">
                                     {section.content.map((para, j) => (
-                                        <p key={j} className="text-gray-600 leading-relaxed">
-                                            {para}
-                                        </p>
+                                        <p key={j} className="text-gray-600 leading-relaxed">{para}</p>
                                     ))}
                                 </div>
                             )}
 
                             {section.contact && (
-                                <div className="mt-4 bg-neutral-50 border border-neutral-100 rounded-2xl p-6 space-y-2 text-gray-700">
-                                    <p className="font-bold text-gray-900">Stut Instruments</p>
-                                    <p>
-                                        Website:{' '}
-                                        <a
-                                            href="https://www.gascart.in"
-                                            className="text-primary hover:underline"
-                                            target="_blank"
-                                            rel="noreferrer"
-                                        >
+                                <div className="mt-2 bg-neutral-900 rounded-2xl p-5 space-y-3 text-white">
+                                    <p className="font-bold text-white text-lg">Stut Instruments</p>
+                                    <div className="flex items-center gap-2 text-gray-300">
+                                        <Globe className="w-4 h-4 text-primary flex-shrink-0" />
+                                        <a href="https://www.gascart.in" className="text-primary hover:underline" target="_blank" rel="noreferrer">
                                             www.gascart.in
                                         </a>
-                                    </p>
-                                    <p>
-                                        Email:{' '}
+                                    </div>
+                                    <div className="flex items-center gap-2 text-gray-300">
+                                        <Mail className="w-4 h-4 text-primary flex-shrink-0" />
                                         <a href="mailto:info@gascart.in" className="text-primary hover:underline">
                                             info@gascart.in
                                         </a>
-                                    </p>
-                                    <p className="text-sm text-gray-500">
-                                        Registered Address: No 52, Kelagina Onikeri, Melina Onikeri Post,
-                                        Sirsi 581402, Karnataka, India
-                                    </p>
+                                    </div>
+                                    <div className="flex items-start gap-2 text-gray-300">
+                                        <MapPin className="w-4 h-4 text-primary flex-shrink-0 mt-0.5" />
+                                        <span className="text-sm">No 52, Kelagina Onikeri, Melina Onikeri Post, Sirsi 581402, Karnataka, India</span>
+                                    </div>
                                 </div>
                             )}
-                        </section>
+                        </div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
+        </motion.div>
+    );
+};
+
+const TermsOfService: React.FC = () => {
+    return (
+        <div className="bg-neutral-50 min-h-screen">
+            {/* Hero */}
+            <div className="relative bg-neutral-900 text-white overflow-hidden">
+                <div className="absolute inset-0 bg-gradient-to-br from-primary-900/40 via-neutral-900 to-neutral-900" />
+                <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-primary/10 rounded-full blur-3xl -mr-40 -mt-40" />
+                <div className="relative container mx-auto px-4 sm:px-6 lg:px-8 max-w-4xl py-20">
+                    <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 border border-white/10 mb-6">
+                        <FileText className="w-4 h-4 text-primary" />
+                        <span className="text-xs font-bold uppercase tracking-widest text-gray-300">Legal · Terms</span>
+                    </div>
+                    <h1 className="text-5xl md:text-6xl font-display font-black mb-4 leading-tight">
+                        Terms of <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary-400 to-primary-200">Service</span>
+                    </h1>
+                    <p className="text-gray-400 text-lg mb-3">
+                        <span className="text-white font-semibold">Stut Instruments</span> · Operating{' '}
+                        <a href="https://www.gascart.in" className="text-primary hover:underline" target="_blank" rel="noreferrer">www.gascart.in</a>
+                    </p>
+                    <p className="text-gray-500 text-sm">Effective Date: 26 February 2026</p>
+                </div>
+            </div>
+
+            {/* Content */}
+            <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-4xl py-16">
+                <div className="space-y-4">
+                    {sections.map((section, i) => (
+                        <AccordionSection key={i} section={section} index={i} />
                     ))}
                 </div>
+                <p className="text-center text-gray-400 text-sm mt-12">
+                    Last updated: 26 February 2026 · Stut Instruments · www.gascart.in
+                </p>
             </div>
         </div>
     );
