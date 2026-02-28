@@ -37,6 +37,7 @@ import PaymentCancel from './pages/PaymentCancel';
 import AdminProducts from './pages/Admin/Products';
 import VendorManager from './pages/Admin/VendorManager';
 import PrivacyPolicy from './pages/PrivacyPolicy';
+import TermsOfService from './pages/TermsOfService';
 
 import { ToastProvider } from './context/ToastContext';
 
@@ -88,6 +89,7 @@ function App() {
                                     <Route path="admin/products" element={<AdminProducts />} />
                                     <Route path="admin/vendors" element={<VendorManager />} />
                                     <Route path="privacy" element={<PrivacyPolicy />} />
+                                    <Route path="terms" element={<TermsOfService />} />
                                 </Route>
                             </Routes>
                         </Router>
