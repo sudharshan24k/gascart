@@ -40,6 +40,7 @@ import PrivacyPolicy from './pages/PrivacyPolicy';
 import TermsOfService from './pages/TermsOfService';
 
 import { ToastProvider } from './context/ToastContext';
+import ScrollToTop from './components/ScrollToTop';
 
 function App() {
     // Default Marketplace Routes
@@ -49,6 +50,7 @@ function App() {
                 <EnquiryProvider>
                     <ToastProvider>
                         <Router>
+                            <ScrollToTop />
                             <Routes>
                                 <Route path="/" element={<Layout />}>
                                     <Route index element={<Home />} />
