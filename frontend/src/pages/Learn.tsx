@@ -95,7 +95,7 @@ const Learn: React.FC = () => {
                                 Knowledge <span className="text-primary italic">Hub</span>
                             </h1>
                             <p className="text-xl text-gray-500 max-w-2xl leading-relaxed">
-                                Master the Bio-CNG value chain with engineering guides, market analysis, and professional insights.
+                                Master the CNG value chain — covering both Bio-CNG and conventional CNG — with engineering guides, market analysis, and professional insights.
                             </p>
                         </div>
 

@@ -18,7 +18,7 @@ const Footer: React.FC = () => {
                             </span>
                         </Link>
                         <p className="text-gray-400 mb-8 leading-relaxed max-w-sm">
-                            Pioneering the future of sustainable energy with advanced biomethane and Bio-CNG solutions. Join us in building a greener tomorrow.
+                            Empowering both Bio-CNG and conventional CNG ecosystems with a unified platform for components, machinery, and spares. Join us in building efficient and sustainable gas infrastructure.
                         </p>
                         <div className="flex space-x-4">
                             {[Linkedin, Twitter, Facebook].map((Icon, idx) => (
@@ -71,15 +71,15 @@ const Footer: React.FC = () => {
                         <ul className="space-y-6">
                             <li className="flex items-start">
                                 <MapPin className="h-6 w-6 text-primary mr-4 mt-1 flex-shrink-0" />
-                                <span className="text-gray-400">123 Innovation Drive, Green Tech Park, CA 90210</span>
+                                <span className="text-gray-400">No 5, Rajdhani Building, KHB Colony, Sirsi 581401 KA</span>
                             </li>
                             <li className="flex items-center">
                                 <Phone className="h-5 w-5 text-primary mr-4 flex-shrink-0" />
-                                <span className="text-gray-400">+1 (555) 123-4567</span>
+                                <span className="text-gray-400">973 990 3856 <span className="text-gray-500 text-xs">(SMS for call back)</span></span>
                             </li>
                             <li className="flex items-center">
                                 <Mail className="h-5 w-5 text-primary mr-4 flex-shrink-0" />
-                                <a href="mailto:info@gascart.com" className="text-gray-400 hover:text-primary transition-colors">info@gascart.com</a>
+                                <a href="mailto:info@gascart.in" className="text-gray-400 hover:text-primary transition-colors">info@gascart.in</a>
                             </li>
                         </ul>
                     </div>

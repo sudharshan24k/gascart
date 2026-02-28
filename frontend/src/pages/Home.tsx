@@ -37,7 +37,8 @@ const Home: React.FC = () => {
                             <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary-400 to-primary-200">Sustainable Fuel</span>
                         </h1>
                         <p className="text-lg sm:text-xl text-gray-300 mb-10 max-w-xl leading-relaxed">
-                            Advanced biomethane and Bio-CNG technologies designed for industrial efficiency and environmental stewardship.
+                            All CBG & CNG components, equipment, and expertise —<br />
+                            in one structured, education-led marketplace.
                         </p>
                         <div className="flex flex-col sm:flex-row gap-4">
                             <Link to="/shop" className="btn btn-primary btn-lg shadow-glow-primary hover:scale-105 active:scale-95">
@@ -55,12 +56,12 @@ const Home: React.FC = () => {
                                 <p className="text-sm text-gray-400 font-medium">Efficiency Rate</p>
                             </div>
                             <div>
-                                <h4 className="text-3xl font-bold text-white mb-1">500+</h4>
-                                <p className="text-sm text-gray-400 font-medium">Projects Deployed</p>
+                                <h4 className="text-3xl font-bold text-white mb-1">130+</h4>
+                                <p className="text-sm text-gray-400 font-medium">Returning Customers</p>
                             </div>
                             <div>
-                                <h4 className="text-3xl font-bold text-white mb-1">24/7</h4>
-                                <p className="text-sm text-gray-400 font-medium">Expert Support</p>
+                                <h4 className="text-3xl font-bold text-white mb-1">365</h4>
+                                <p className="text-sm text-gray-400 font-medium">Days Support</p>
                             </div>
                         </div>
                     </motion.div>
@@ -84,8 +85,8 @@ const Home: React.FC = () => {
                                         <Leaf className="w-6 h-6" />
                                     </div>
                                     <div>
-                                        <p className="text-sm font-bold text-gray-900">Eco-Friendly Certified</p>
-                                        <p className="text-xs text-gray-500">ISO 14001 Standard Compliant</p>
+                                        <p className="text-sm font-bold text-gray-900">Physically Audited.</p>
+                                        <p className="text-xs text-gray-500">Multi-Step Verified Suppliers.</p>
                                     </div>
                                 </div>
                             </div>
@@ -107,20 +108,20 @@ const Home: React.FC = () => {
                         {[
                             {
                                 icon: Zap,
-                                title: "High Efficiency",
-                                desc: "Our reactors achieve up to 30% higher gas output compared to conventional systems.",
+                                title: "High Uptime",
+                                desc: "Customers who source through GasCart achieve improved plant uptime with minimal execution and maintenance effort.",
                                 color: "bg-primary-100 text-primary-600"
                             },
                             {
                                 icon: Shield,
                                 title: "Reliability First",
-                                desc: "Built with industrial-grade materials to ensure 99.9% operational uptime.",
+                                desc: "Built Around Industrial-Grade Components and a Carefully Evaluated Supplier Network.",
                                 color: "bg-secondary-100 text-secondary-600"
                             },
                             {
                                 icon: TrendingUp,
                                 title: "Scalable Solutions",
-                                desc: "Modular design allows your plant to grow seamlessly alongside your business needs.",
+                                desc: "Empowering your procurement team with a platform to achieve more with fewer resources.",
                                 color: "bg-neutral-100 text-neutral-600"
                             }
                         ].map((feature, idx) => (
@@ -156,15 +157,15 @@ const Home: React.FC = () => {
                             <span className="text-secondary font-bold tracking-wider uppercase text-sm mb-2 block">Our Workflow</span>
                             <h2 className="text-3xl md:text-5xl font-display font-bold text-gray-900 mb-6">Streamlined for Maximum Output</h2>
                             <p className="text-lg text-gray-600 mb-8 max-w-lg">
-                                From waste collection to energy distribution, every step is optimized for minimal loss and maximum gain.
+                                From learning the system to sourcing the right components, each step is designed for structured and efficient decision-making.
                             </p>
 
                             <ul className="space-y-6">
                                 {[
-                                    "Automated waste sorting and pre-processing",
-                                    "Anaerobic digestion with real-time monitoring",
-                                    "Gas purification and compression",
-                                    "Grid injection or fuel station distribution"
+                                    "Structured technology understanding before procurement",
+                                    "Specification-driven component comparison",
+                                    "Industrial-style RFQ and supplier evaluation",
+                                    "Expert-backed validation and purchase execution"
                                 ].map((item, idx) => (
                                     <li key={idx} className="flex items-start gap-4">
                                         <div className="flex-shrink-0 w-6 h-6 rounded-full bg-success-100 flex items-center justify-center mt-1">
@@ -177,7 +178,7 @@ const Home: React.FC = () => {
 
                             <div className="mt-10">
                                 <Link to="/technology" className="btn btn-outline border-neutral-300 hover:border-primary hover:text-primary gap-2">
-                                    View Full Process <ArrowRight className="w-4 h-4" />
+                                    How GasCart Works <ArrowRight className="w-4 h-4" />
                                 </Link>
                             </div>
                         </motion.div>
@@ -212,7 +213,7 @@ const Home: React.FC = () => {
                 <div className="container mx-auto px-4 z-10 relative text-center">
                     <h2 className="text-3xl md:text-5xl font-display font-bold text-white mb-6">Ready to Power Your Future?</h2>
                     <p className="text-xl text-primary-100 mb-10 max-w-2xl mx-auto">
-                        Join hundreds of industries switching to sustainable bio-energy today. Get a custom consultation for your plant.
+                        Join hundreds of industries switching to greener fuel &amp; modern purchasing. Get a custom consultation for your plant or source components with ease.
                     </p>
                     <div className="flex flex-col sm:flex-row justify-center gap-4">
                         <Link to="/contact" className="btn btn-secondary btn-lg shadow-lg shadow-secondary/30">

@@ -61,7 +61,7 @@ const Consultants: React.FC = () => {
                 <div className="mb-12 flex flex-col md:flex-row md:items-end justify-between gap-6">
                     <div>
                         <h1 className="text-4xl font-bold text-gray-900 mb-4 tracking-tight">Experts & Consultants</h1>
-                        <p className="text-gray-600 max-w-xl">Consult with certified Bio-CNG professionals for plant design, audit, and technical optimization.</p>
+                        <p className="text-gray-600 max-w-xl">Consult with prominent Oil &amp; Gas professionals for plant design, audit, and technical optimization.</p>
                     </div>
                     <div className="flex gap-4">
                         <Link

@@ -7,33 +7,33 @@ const Technology: React.FC = () => {
     const steps = [
         {
             icon: Recycle,
-            title: "Feedstock Collection",
-            description: "Organic waste is collected and prepared for efficient digestion.",
-            details: "We handle various types of feedstock including agricultural waste, food waste, and manure. The material is shredded and blended to ensure a consistent mix for the digestive process.",
+            title: "Learn & Define Requirements",
+            description: "Understand the relevant CBG or CNG technology through structured learning modules.",
+            details: "Define capacity, pressure, purity, and application requirements before initiating any sourcing or supplier interaction. Structured learning ensures your team starts with a clear technical foundation, reducing costly misalignments downstream.",
             color: "text-primary",
             bg: "bg-primary-50"
         },
         {
             icon: Database,
-            title: "Pre-treatment & Digestion",
-            description: "Anaerobic digestion in world-class reactors to produce raw biogas.",
-            details: "The prepared material enters our state-of-the-art anaerobic digesters. Here, specialized microorganisms break down the organic matter in an oxygen-free environment, releasing raw biogas and producing nutrient-rich digestate.",
+            title: "Compare & Shortlist Components",
+            description: "Evaluate industrial-grade components using specification-driven comparison tools.",
+            details: "Review technical parameters, compatibility, and supplier credentials to shortlist suitable options aligned with project requirements. Our structured comparison framework helps procurement teams make informed, defensible decisions faster.",
             color: "text-primary",
             bg: "bg-primary-50"
         },
         {
             icon: Zap,
-            title: "Gas Purification",
-            description: "Cleaning raw biogas to remove CO2, H2S and impurities.",
-            details: "Raw biogas undergoes a multi-stage purification process. Using advanced membrane separation or scrubbing technology, we remove carbon dioxide, hydrogen sulfide, and moisture to reach pipeline-quality biomethane standards.",
+            title: "Raise Structured RFQ & Engage Suppliers",
+            description: "Submit an industrial-style RFQ outlining precise technical specifications.",
+            details: "Receive supplier responses, clarify technical queries, and engage in structured discussions to ensure alignment before commercial negotiation. GasCart's RFQ framework ensures every supplier interaction is documented, traceable, and technically sound.",
             color: "text-primary",
             bg: "bg-primary-50"
         },
         {
             icon: Truck,
-            title: "Bio-CNG Bottling",
-            description: "Compression and distribution of clean Bio-CNG for use.",
-            details: "The purified biomethane is compressed to high pressures (200-250 bar) and filled into specialized cylinders or cascades. This Bio-CNG is then ready for transport and use in industrial applications or automotive fuel.",
+            title: "Negotiate & Place Order",
+            description: "Finalize commercial terms directly with the supplier or through the GasCart platform.",
+            details: "Confirm scope, documentation, delivery schedules, and proceed with structured order placement for confident execution. Every order is backed by a verified supplier, clear specifications, and a structured procurement trail.",
             color: "text-primary",
             bg: "bg-primary-50"
         }
@@ -46,9 +46,9 @@ const Technology: React.FC = () => {
             <section className="bg-primary-dark text-white py-24 relative overflow-hidden">
                 <div className="absolute inset-0 bg-primary opacity-20 pattern-grid-lg"></div>
                 <div className="container mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10">
-                    <h1 className="text-4xl md:text-5xl font-display font-bold mb-6">Innovative Biomethane Process</h1>
+                    <h1 className="text-4xl md:text-5xl font-display font-bold mb-6">Innovative & Relatable Sourcing</h1>
                     <p className="text-xl opacity-90 max-w-3xl mx-auto">
-                        Our integrated gasification technology converts organic waste into high-purity Bio-CNG through a series of optimized industrial steps.
+                        Our structured marketplace replicates industrial purchasing process, not a pure marketplace but a tool for education, comparison, RFQ management, and supplier engagement. You remain within your current purchasing practice.
                     </p>
                 </div>
             </section>
@@ -69,7 +69,7 @@ const Technology: React.FC = () => {
                             className="inline-flex items-center gap-2 px-6 py-2.5 bg-gradient-to-r from-primary/10 via-blue-500/10 to-primary/10 border border-primary/20 text-primary rounded-full mb-8 backdrop-blur-sm"
                         >
                             <span className="w-2 h-2 rounded-full bg-primary animate-pulse" />
-                            <span className="text-xs font-black uppercase tracking-[0.3em]">Process Visualized</span>
+                            <span className="text-xs font-black uppercase tracking-[0.3em]">How It Works</span>
                         </motion.div>
                         <motion.h2
                             initial={{ opacity: 0, y: 20 }}
@@ -77,7 +77,7 @@ const Technology: React.FC = () => {
                             transition={{ delay: 0.1 }}
                             className="text-4xl md:text-5xl font-display font-black mb-6 bg-gradient-to-r from-gray-900 via-gray-800 to-gray-900 bg-clip-text text-transparent"
                         >
-                            Interactive Industrial Workflow
+                            Your Procurement Journey on GasCart
                         </motion.h2>
                         <motion.p
                             initial={{ opacity: 0, y: 20 }}
@@ -85,7 +85,7 @@ const Technology: React.FC = () => {
                             transition={{ delay: 0.2 }}
                             className="text-lg text-gray-600 leading-relaxed font-medium max-w-2xl mx-auto"
                         >
-                            Explore our comprehensive Bio-CNG production process through an intuitive, interactive visualization. Click each step to understand the complete journey from organic waste to clean renewable energy.
+                            Walk through GasCart's structured procurement journey — from understanding the technology to placing a verified order. Click each step to explore how we help your team source smarter.
                         </motion.p>
                     </div>
 

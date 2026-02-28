@@ -212,7 +212,7 @@ const VendorEnquiry: React.FC = () => {
                             Scale Your <span className="text-primary italic">Industrial Reach</span> with Gascart
                         </h1>
                         <p className="text-xl text-gray-500 mb-12 leading-relaxed font-medium">
-                            Join India's most trusted ecosystem for Bio-CNG, LPG, and Industrial Energy equipment.
+                            Join India's most trusted and innovative ecosystem for Bio-CNG, CNG and Industrial support equipment.
                         </p>
 
                         <div className="space-y-8 mb-12">
