@@ -36,6 +36,7 @@ import PaymentSuccess from './pages/PaymentSuccess';
 import PaymentCancel from './pages/PaymentCancel';
 import AdminProducts from './pages/Admin/Products';
 import VendorManager from './pages/Admin/VendorManager';
+import PrivacyPolicy from './pages/PrivacyPolicy';
 
 import { ToastProvider } from './context/ToastContext';
 
@@ -86,6 +87,7 @@ function App() {
                                     {/* Admin Routes */}
                                     <Route path="admin/products" element={<AdminProducts />} />
                                     <Route path="admin/vendors" element={<VendorManager />} />
+                                    <Route path="privacy" element={<PrivacyPolicy />} />
                                 </Route>
                             </Routes>
                         </Router>
