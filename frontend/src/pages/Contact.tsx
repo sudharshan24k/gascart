@@ -28,7 +28,7 @@ const Contact: React.FC = () => {
                 <div className="container mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10">
                     <h1 className="text-4xl md:text-5xl font-display font-bold mb-6">Let's Connect</h1>
                     <p className="text-xl text-primary-50 max-w-3xl mx-auto opacity-90">
-                        Discuss your bio-energy requirements with our technical implementation team.
+                        Reach out to the GasCart team for sourcing support, vendor enquiries, or general platform assistance.
                     </p>
                 </div>
             </section>
@@ -46,10 +46,11 @@ const Contact: React.FC = () => {
                                         <MapPin className="h-6 w-6" />
                                     </div>
                                     <div className="ml-6">
-                                        <h3 className="text-lg font-bold text-gray-900 mb-1">Main Facility</h3>
+                                        <h3 className="text-lg font-bold text-gray-900 mb-1">Registered Office</h3>
                                         <p className="text-gray-600">
-                                            Plot No. 45, Industrial Area Phase II,<br />
-                                            Biogas Industrial Park, IN 110021
+                                            No 52, Kelagina Onikeri,<br />
+                                            Melina Onikeri Post, Sirsi,<br />
+                                            Uttara Kannada, Karnataka – 581402
                                         </p>
                                     </div>
                                 </div>
@@ -59,9 +60,9 @@ const Contact: React.FC = () => {
                                         <Phone className="h-6 w-6" />
                                     </div>
                                     <div className="ml-6">
-                                        <h3 className="text-lg font-bold text-gray-900 mb-1">Technical Support</h3>
-                                        <p className="text-gray-600 font-medium">+91 (800) 555-0199</p>
-                                        <p className="text-gray-500 text-sm mt-1">Available 24/7 for Plant Operations</p>
+                                        <h3 className="text-lg font-bold text-gray-900 mb-1">Phone & SMS</h3>
+                                        <p className="text-gray-600 font-medium">973 990 3856</p>
+                                        <p className="text-gray-500 text-sm mt-1">SMS preferred for call back requests</p>
                                     </div>
                                 </div>
 
@@ -70,9 +71,8 @@ const Contact: React.FC = () => {
                                         <Mail className="h-6 w-6" />
                                     </div>
                                     <div className="ml-6">
-                                        <h3 className="text-lg font-bold text-gray-900 mb-1">Electronic Correspondence</h3>
-                                        <p className="text-gray-600">contact@gascart.in</p>
-                                        <p className="text-gray-600">sales@gascart.in</p>
+                                        <h3 className="text-lg font-bold text-gray-900 mb-1">Email</h3>
+                                        <a href="mailto:info@gascart.in" className="text-gray-600 hover:text-primary transition-colors">info@gascart.in</a>
                                     </div>
                                 </div>
                             </div>
@@ -83,7 +83,7 @@ const Contact: React.FC = () => {
                                     <p className="text-gray-600">Our engineers are online on WhatsApp.</p>
                                 </div>
                                 <a
-                                    href="https://wa.me/91XXXXXXXXXX"
+                                    href="https://wa.me/919739903856"
                                     target="_blank"
                                     rel="noopener noreferrer"
                                     className="bg-[#25D366] hover:bg-[#128C7E] text-white px-8 py-3 rounded-full font-bold flex items-center shadow-lg transition-transform active:scale-95 whitespace-nowrap"
@@ -94,14 +94,14 @@ const Contact: React.FC = () => {
 
                             <div className="mt-8 w-full h-64 bg-neutral-light rounded-3xl overflow-hidden border border-neutral-dark/20 relative">
                                 <iframe
-                                    src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d224345.83923307525!2d77.0688975!3d28.5272803!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x390cfd5b347eb62d%3A0x37205b71dbbd3b!2sNew%20Delhi%2C%20Delhi!5e0!3m2!1sen!2sin!4v1673891234567!5m2!1sen!2sin"
+                                    src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d30730.123456789!2d74.8271!3d14.6197!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3bbe44f5ffffffff%3A0x1234567890abcdef!2sSirsi%2C%20Karnataka!5e0!3m2!1sen!2sin!4v1709140800000!5m2!1sen!2sin"
                                     width="100%"
                                     height="100%"
                                     style={{ border: 0 }}
                                     allowFullScreen
                                     loading="lazy"
                                     referrerPolicy="no-referrer-when-downgrade"
-                                    title="Gascart Location"
+                                    title="Gascart Location – Sirsi, Karnataka"
                                 ></iframe>
                             </div>
                         </div>
