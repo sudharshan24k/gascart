@@ -272,6 +272,8 @@ const ProductDetail: React.FC = () => {
                                     <div className="space-y-3">
                                         {product.vendors.map((vendor: any) => {
                                             const isSelected = selectedVendor?.vendor_id === vendor.vendor_id;
+                                            const stockQty = vendor.vendor_stock_quantity || product.stock_quantity || 0;
+                                            const vPrice = vendor.vendor_price ?? product.price ?? 0;
                                             return (
                                                 <button
                                                     key={vendor.vendor_id}
@@ -283,12 +285,12 @@ const ProductDetail: React.FC = () => {
                                                 >
                                                     <div>
                                                         <div className="font-bold text-neutral-900">{vendor.profiles?.company_name || 'Vendor'}</div>
-                                                        <div className={`text-xs font-bold mt-1 ${vendor.vendor_stock_quantity > 0 ? 'text-green-600' : 'text-red-500'}`}>
-                                                            {vendor.vendor_stock_quantity > 0 ? 'In Stock' : 'Out of Stock'}
+                                                        <div className={`text-xs font-bold mt-1 ${stockQty > 0 ? 'text-green-600' : 'text-red-500'}`}>
+                                                            {stockQty > 0 ? 'In Stock' : 'Out of Stock'}
                                                         </div>
                                                     </div>
                                                     <div className="text-right">
-                                                        <div className="font-bold text-lg">₹{vendor.vendor_price?.toLocaleString()}</div>
+                                                        <div className="font-bold text-lg">₹{Number(vPrice).toLocaleString()}</div>
                                                         {vendor.vendor_lead_time_days && <div className="text-xs text-neutral-500">{vendor.vendor_lead_time_days} Days Lead Time</div>}
                                                     </div>
                                                 </button>
@@ -312,7 +314,7 @@ const ProductDetail: React.FC = () => {
                                                 await addToCart(product.id, quantity, selectedVariant, selectedVendor);
                                                 window.location.href = '/cart';
                                             }}
-                                            disabled={(selectedVendor ? (selectedVendor.vendor_stock_quantity || 0) : (product.stock_quantity || 0)) === 0}
+                                            disabled={(selectedVendor ? (selectedVendor.vendor_stock_quantity || product.stock_quantity || 0) : (product.stock_quantity || 0)) === 0}
                                             className="flex-1 py-4 bg-primary text-white rounded-2xl font-black text-lg shadow-lg shadow-primary/30 hover:bg-primary-dark transition-all flex items-center justify-center gap-3 group disabled:opacity-50 disabled:cursor-not-allowed"
                                         >
                                             <ShoppingCart className="w-6 h-6 group-hover:scale-110 transition-transform" />
@@ -616,7 +618,7 @@ const ProductDetail: React.FC = () => {
                                                                 <option value="">Any / Preferred Vendor</option>
                                                                 {product.vendors.map((v: any) => (
                                                                     <option key={v.vendor_id} value={v.vendor_id}>
-                                                                        {v.profiles?.company_name || 'Vendor'} (₹{v.vendor_price?.toLocaleString()})
+                                                                        {v.profiles?.company_name || 'Vendor'} (₹{Number(v.vendor_price ?? product.price).toLocaleString()})
                                                                     </option>
                                                                 ))}
                                                             </select>
