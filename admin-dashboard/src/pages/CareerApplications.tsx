@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Briefcase, Filter, Download, User, Mail, Phone, Clock, FileText, CheckCircle, XCircle } from 'lucide-react';
+import { Briefcase, Filter, User, Mail, Phone, Clock, FileText, CheckCircle, XCircle } from 'lucide-react';
 import { getCareerApplications, updateCareerApplicationStatus } from '../services/admin.service';
 import { toast } from 'react-hot-toast';
 import { supabase } from '../services/api';

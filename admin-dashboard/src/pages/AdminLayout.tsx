@@ -8,6 +8,7 @@ import {
 } from 'lucide-react';
 import { authService } from '../services/auth.service';
 import { supabase } from '../services/api';
+import { useAuth } from '../context/AuthContext';
 
 const AdminLayout = () => {
     const location = useLocation();
@@ -15,6 +16,7 @@ const AdminLayout = () => {
     const [sidebarOpen, setSidebarOpen] = useState(false);
     const [scrolled, setScrolled] = useState(false);
     const [userProfile, setUserProfile] = useState<any>(null);
+    const { permissions, isSuperAdmin } = useAuth();
 
     useEffect(() => {
         const handleScroll = () => setScrolled(window.scrollY > 10);
@@ -47,39 +49,52 @@ const AdminLayout = () => {
             title: 'Core Operations',
             items: [
                 { name: 'Insights', path: '/', icon: LayoutDashboard },
-                { name: 'Assets', path: '/products', icon: Package },
-                { name: 'Inventory', path: '/inventory', icon: Database },
-                { name: 'Orders', path: '/orders', icon: ShoppingCart },
+                { name: 'Assets', path: '/products', icon: Package, permission: 'manage_products' },
+                { name: 'Inventory', path: '/inventory', icon: Database, permission: 'manage_products' },
+                { name: 'Orders', path: '/orders', icon: ShoppingCart, permission: 'manage_orders' },
             ]
         },
         {
             title: 'Marketplace Engine',
             items: [
-                { name: 'RFQ Manager', path: '/rfqs', icon: ClipboardCheck },
-                { name: 'RFQ Configurator', path: '/rfq-config', icon: Settings2 },
-                { name: 'Vendor Ecosystem', path: '/vendors', icon: Building2 },
+                { name: 'RFQ Manager', path: '/rfqs', icon: ClipboardCheck, permission: 'manage_rfqs' },
+                { name: 'RFQ Configurator', path: '/rfq-config', icon: Settings2, permission: 'manage_rfqs' },
+                { name: 'Vendor Ecosystem', path: '/vendors', icon: Building2, permission: 'manage_vendors' },
             ]
         },
         {
             title: 'Content & Knowledge',
             items: [
-                { name: 'Knowledge Hub', path: '/learn', icon: BookOpen },
-                { name: 'Media Library', path: '/media', icon: ImageIcon },
-                { name: 'Taxonomy', path: '/taxonomy', icon: FolderTree },
-                { name: 'Legal Vault', path: '/documents', icon: ShieldCheck },
+                { name: 'Knowledge Hub', path: '/learn', icon: BookOpen, permission: 'manage_content' },
+                { name: 'Media Library', path: '/media', icon: ImageIcon, permission: 'manage_content' },
+                { name: 'Taxonomy', path: '/taxonomy', icon: FolderTree, permission: 'manage_products' },
+                { name: 'Legal Vault', path: '/documents', icon: ShieldCheck, permission: 'manage_content' },
             ]
         },
         {
             title: 'Users & Experts',
             items: [
-                { name: 'User Management', path: '/users', icon: Users },
-                { name: 'Expert Network', path: '/consultants', icon: User },
-                { name: 'Expert Inquiries', path: '/consultant-inquiries', icon: MessageSquare },
-                { name: 'Career Resumes', path: '/careers', icon: FileText },
-                { name: 'Audit Logs', path: '/audit-logs', icon: Activity },
+                { name: 'User Management', path: '/users', icon: Users, permission: 'manage_users' },
+                { name: 'Expert Network', path: '/consultants', icon: User, permission: 'manage_consultants' },
+                { name: 'Expert Inquiries', path: '/consultant-inquiries', icon: MessageSquare, permission: 'manage_consultants' },
+                { name: 'Career Resumes', path: '/careers', icon: FileText, permission: 'manage_careers' },
+                { name: 'Admin Control', path: '/admin-management', icon: ShieldCheck, requireSuperAdmin: true },
+                { name: 'Audit Logs', path: '/audit-logs', icon: Activity, requireSuperAdmin: true },
             ]
         }
     ];
+
+    const canView = (item: any) => {
+        if (isSuperAdmin) return true;
+        if (item.requireSuperAdmin) return false;
+        if (!item.permission) return true;
+        return permissions.includes(item.permission);
+    };
+
+    const visibleGroups = navigationGroups.map(group => ({
+        ...group,
+        items: group.items.filter(canView)
+    })).filter(group => group.items.length > 0);
 
     const handleLogout = async () => {
         localStorage.removeItem('admin_logged_in');
@@ -109,13 +124,13 @@ const AdminLayout = () => {
                 </div>
 
                 <nav className="flex-grow p-4 space-y-8 overflow-y-auto custom-scrollbar">
-                    {navigationGroups.map((group) => (
+                    {visibleGroups.map((group) => (
                         <div key={group.title}>
                             <h3 className="px-4 text-[10px] font-black uppercase tracking-[0.2em] text-slate-500 mb-4">
                                 {group.title}
                             </h3>
                             <div className="space-y-1">
-                                {group.items.map((item) => (
+                                {group.items.map((item: any) => (
                                     <Link
                                         key={item.path}
                                         to={item.path}

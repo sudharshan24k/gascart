@@ -1,6 +1,6 @@
-import { BrowserRouter as Router, Routes, Route, Navigate, Outlet } from 'react-router-dom';
-import { useState, useEffect } from 'react';
-import { supabase } from './services/api';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { AuthProvider } from './context/AuthContext';
+import { ProtectedRoute } from './components/RequirePermission';
 import AdminLayout from './pages/AdminLayout';
 import Dashboard from './pages/Dashboard';
 import Products from './pages/Products';
@@ -18,104 +18,69 @@ import UserManagement from './pages/UserManagement';
 import MediaLibrary from './pages/MediaLibrary';
 import AuditLogs from './pages/AuditLogs';
 import CareerApplications from './pages/CareerApplications';
+import AdminManagement from './pages/AdminManagement';
 import Login from './pages/Login';
-
-const ProtectedRoute = () => {
-    const [loading, setLoading] = useState(true);
-    const [isAuthenticated, setIsAuthenticated] = useState(false);
-    const [error, setError] = useState<string | null>(null);
-
-    useEffect(() => {
-        const checkAuth = async () => {
-            const { data: { session } } = await supabase.auth.getSession();
-            const isHardcodedAdmin = localStorage.getItem('admin_logged_in') === 'true';
-
-            if (session) {
-                // If using actual Supabase session, verify status from profile
-                const { data: profile } = await supabase
-                    .from('profiles')
-                    .select('account_status')
-                    .eq('id', session.user.id)
-                    .single();
-
-                if (profile?.account_status === 'banned') {
-                    setError('Your account has been banned.');
-                    await supabase.auth.signOut();
-                    setIsAuthenticated(false);
-                } else if (profile?.account_status === 'deactivated') {
-                    setError('Your account is deactivated.');
-                    await supabase.auth.signOut();
-                    setIsAuthenticated(false);
-                } else {
-                    setIsAuthenticated(true);
-                }
-            } else {
-                setIsAuthenticated(isHardcodedAdmin);
-            }
-            setLoading(false);
-        };
-        checkAuth();
-
-        const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
-            const isHardcodedAdmin = localStorage.getItem('admin_logged_in') === 'true';
-            if (session) {
-                const { data: profile } = await supabase
-                    .from('profiles')
-                    .select('account_status')
-                    .eq('id', session.user.id)
-                    .single();
-
-                if (profile?.account_status === 'banned' || profile?.account_status === 'deactivated') {
-                    await supabase.auth.signOut();
-                    setIsAuthenticated(false);
-                } else {
-                    setIsAuthenticated(true);
-                }
-            } else {
-                setIsAuthenticated(isHardcodedAdmin);
-            }
-        });
-
-        return () => subscription.unsubscribe();
-    }, []);
-
-    if (loading) return <div className="flex items-center justify-center min-h-screen">Loading...</div>;
-
-    if (error) return <Navigate to="/login" state={{ error }} replace />;
-
-    if (!isAuthenticated) return <Navigate to="/login" replace />;
-
-    return <Outlet />;
-};
 
 function App() {
     return (
-        <Router>
-            <Routes>
-                <Route path="/login" element={<Login />} />
-                <Route element={<ProtectedRoute />}>
-                    <Route path="/" element={<AdminLayout />}>
-                        <Route index element={<Dashboard />} />
-                        <Route path="products" element={<Products />} />
-                        <Route path="rfqs" element={<RFQManagement />} />
-                        <Route path="learn" element={<KnowledgeHubManagement />} />
-                        <Route path="taxonomy" element={<CategoryManagement />} />
-                        <Route path="rfq-config" element={<RFQConfigurator />} />
-                        <Route path="vendors" element={<VendorManagement />} />
-                        <Route path="documents" element={<DocumentCenter />} />
-                        <Route path="consultants" element={<ConsultantManagement />} />
-                        <Route path="consultant-inquiries" element={<ConsultantInquiries />} />
-                        <Route path="inventory" element={<Inventory />} />
-                        <Route path="orders" element={<Orders />} />
-                        <Route path="users" element={<UserManagement />} />
-                        <Route path="media" element={<MediaLibrary />} />
-                        <Route path="audit-logs" element={<AuditLogs />} />
-                        <Route path="careers" element={<CareerApplications />} />
+        <AuthProvider>
+            <Router>
+                <Routes>
+                    <Route path="/login" element={<Login />} />
+
+                    <Route element={<ProtectedRoute />}>
+                        <Route path="/" element={<AdminLayout />}>
+                            <Route index element={<Dashboard />} />
+
+                            <Route element={<ProtectedRoute permission="manage_products" />}>
+                                <Route path="products" element={<Products />} />
+                                <Route path="taxonomy" element={<CategoryManagement />} />
+                                <Route path="inventory" element={<Inventory />} />
+                            </Route>
+
+                            <Route element={<ProtectedRoute permission="manage_orders" />}>
+                                <Route path="orders" element={<Orders />} />
+                            </Route>
+
+                            <Route element={<ProtectedRoute permission="manage_rfqs" />}>
+                                <Route path="rfqs" element={<RFQManagement />} />
+                                <Route path="rfq-config" element={<RFQConfigurator />} />
+                            </Route>
+
+                            <Route element={<ProtectedRoute permission="manage_users" />}>
+                                <Route path="users" element={<UserManagement />} />
+                            </Route>
+
+                            <Route element={<ProtectedRoute permission="manage_vendors" />}>
+                                <Route path="vendors" element={<VendorManagement />} />
+                            </Route>
+
+                            <Route element={<ProtectedRoute permission="manage_consultants" />}>
+                                <Route path="consultants" element={<ConsultantManagement />} />
+                                <Route path="consultant-inquiries" element={<ConsultantInquiries />} />
+                            </Route>
+
+                            <Route element={<ProtectedRoute permission="manage_content" />}>
+                                <Route path="learn" element={<KnowledgeHubManagement />} />
+                                <Route path="documents" element={<DocumentCenter />} />
+                                <Route path="media" element={<MediaLibrary />} />
+                            </Route>
+
+                            <Route element={<ProtectedRoute permission="manage_careers" />}>
+                                <Route path="careers" element={<CareerApplications />} />
+                            </Route>
+
+                            <Route element={<ProtectedRoute requireSuperAdmin />}>
+                                <Route path="audit-logs" element={<AuditLogs />} />
+                                <Route path="admin-management" element={<AdminManagement />} />
+                            </Route>
+                        </Route>
                     </Route>
-                </Route>
-                <Route path="*" element={<Navigate to="/" replace />} />
-            </Routes>
-        </Router>
+
+                    <Route path="*" element={<Navigate to="/" replace />} />
+                </Routes>
+            </Router>
+        </AuthProvider>
     );
 }
 

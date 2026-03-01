@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { UploadCloud, CheckCircle, AlertCircle, Briefcase, FileText, User, Mail, Phone, Loader2 } from 'lucide-react';
 import { api, supabase } from '../services/api';
 
