@@ -14,6 +14,7 @@ interface User {
     id: string;
     email: string;
     full_name: string;
+    company_name?: string;
     role: string;
     created_at: string;
     account_status: string;
@@ -159,7 +160,7 @@ const UserManagement: React.FC = () => {
     ).sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
 
     const handleExportFilteredUsers = () => {
-        const headers = ['ID', 'User', 'Email', 'Role', 'Status', 'Joined Date', 'Time'];
+        const headers = ['ID', 'User', 'Email', 'Company', 'Role', 'Status', 'Joined Date', 'Time'];
 
         const csvRows = [headers.join(',')];
 
@@ -169,6 +170,7 @@ const UserManagement: React.FC = () => {
                 u.id,
                 `"${(u.full_name || 'No Name').replace(/"/g, '""')}"`,
                 u.email || '',
+                `"${(u.company_name || '—').replace(/"/g, '""')}"`,
                 u.role || 'customer',
                 u.account_status || 'active',
                 dateObj.toLocaleDateString(),
@@ -269,6 +271,11 @@ const UserManagement: React.FC = () => {
                                     />
                                 </th>
                                 <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider">User</th>
+                                <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider bg-indigo-50 border-x border-indigo-100">
+                                    <span className="flex items-center gap-1.5 text-indigo-600">
+                                        🏢 Company / Name
+                                    </span>
+                                </th>
                                 <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider">Role</th>
                                 <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider">Joined At</th>
                                 <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider">Actions</th>
@@ -291,7 +298,7 @@ const UserManagement: React.FC = () => {
                                     </td>
                                     <td className="px-6 py-4">
                                         <div className="flex items-center gap-3">
-                                            <div className="h-10 w-10 bg-primary-100 text-primary-600 rounded-full flex items-center justify-center font-bold">
+                                            <div className="h-10 w-10 bg-primary-100 text-primary-600 rounded-full flex items-center justify-center font-bold shrink-0">
                                                 {user.full_name?.charAt(0) || user.email.charAt(0).toUpperCase()}
                                             </div>
                                             <div>
@@ -299,6 +306,18 @@ const UserManagement: React.FC = () => {
                                                 <p className="text-sm text-gray-500">{user.email}</p>
                                             </div>
                                         </div>
+                                    </td>
+                                    {/* Company Name column */}
+                                    <td className="px-6 py-4 bg-indigo-50/40 border-x border-indigo-100">
+                                        {user.company_name ? (
+                                            <div className="flex flex-col gap-1">
+                                                <span className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-indigo-600 text-white text-xs font-black rounded-lg shadow-sm w-fit">
+                                                    🏢 {user.company_name}
+                                                </span>
+                                            </div>
+                                        ) : (
+                                            <span className="text-gray-300 text-sm font-bold">— Individual</span>
+                                        )}
                                     </td>
                                     <td className="px-6 py-4">
                                         <div className="flex flex-col gap-1">

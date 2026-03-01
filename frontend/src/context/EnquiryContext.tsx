@@ -17,6 +17,7 @@ export type ComparisonItem = {
     name: string;
     image?: string;
     category?: string;
+    price?: number;
     attributes?: any;
 };
 
@@ -31,7 +32,8 @@ type EnquiryAction =
     | { type: 'REMOVE_ITEM'; payload: string }
     | { type: 'CLEAR_ENQUIRY' }
     | { type: 'TOGGLE_COMPARISON'; payload: ComparisonItem }
-    | { type: 'REMOVE_COMPARISON'; payload: string };
+    | { type: 'REMOVE_COMPARISON'; payload: string }
+    | { type: 'CLEAR_COMPARISON' };
 
 const EnquiryContext = createContext<{
     state: EnquiryState;
@@ -90,6 +92,9 @@ const enquiryReducer = (state: EnquiryState, action: EnquiryAction): EnquiryStat
                 ...state,
                 comparisonItems: state.comparisonItems.filter(i => i.id !== action.payload)
             };
+
+        case 'CLEAR_COMPARISON':
+            return { ...state, comparisonItems: [] };
 
         default:
             return state;

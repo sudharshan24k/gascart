@@ -368,7 +368,14 @@ const ProductListing: React.FC = () => {
                                                 <button
                                                     onClick={() => dispatch({
                                                         type: 'TOGGLE_COMPARISON',
-                                                        payload: { id: product.id, name: product.name, image: mainImage, category: product.category }
+                                                        payload: {
+                                                            id: product.id,
+                                                            name: product.name,
+                                                            image: mainImage,
+                                                            category: product.category || product.categories?.name,
+                                                            price: Number(product.price),
+                                                            attributes: product.attributes
+                                                        }
                                                     })}
                                                     className={`absolute top-4 right-4 p-2 rounded-xl backdrop-blur-md transition-all ${isInComparison ? 'bg-primary text-white' : 'bg-white/80 text-neutral-600 hover:bg-white'}`}
                                                 >
@@ -431,7 +438,7 @@ const ProductListing: React.FC = () => {
                                     Compare Now
                                 </Link>
                                 <button
-                                    onClick={() => {/* Clear logic would go here via context */ }}
+                                    onClick={() => dispatch({ type: 'CLEAR_COMPARISON' })}
                                     className="p-2.5 hover:bg-white/10 rounded-full transition-colors"
                                 >
                                     <X className="w-4 h-4 text-neutral-400" />

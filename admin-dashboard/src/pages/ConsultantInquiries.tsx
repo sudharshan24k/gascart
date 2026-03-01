@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { api } from '../services/api';
+import { supabase } from '../services/api';
 import InquiryFilters from '../components/consultants/InquiryFilters';
 import InquiryList from '../components/consultants/InquiryList';
 
@@ -40,6 +41,18 @@ const ConsultantInquiries: React.FC = () => {
             console.error('Failed to update status:', error);
             alert('Failed to update status');
         }
+    };
+
+    const handleAssignConsultant = async (inquiryId: string, consultantId: string) => {
+        const { error } = await supabase
+            .from('consultant_inquiries')
+            .update({ consultant_id: consultantId, status: 'accepted' })
+            .eq('id', inquiryId);
+        if (error) {
+            alert('Failed to assign expert: ' + error.message);
+            return;
+        }
+        fetchInquiries();
     };
 
     const getStatusStyle = (status: string) => {
@@ -122,6 +135,7 @@ const ConsultantInquiries: React.FC = () => {
                 loading={loading}
                 handleUpdateStatus={handleUpdateStatus}
                 getStatusStyle={getStatusStyle}
+                onAssignConsultant={handleAssignConsultant}
             />
         </div>
     );

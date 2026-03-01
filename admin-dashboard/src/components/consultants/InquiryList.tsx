@@ -7,9 +7,10 @@ interface InquiryListProps {
     loading: boolean;
     handleUpdateStatus: (id: string, newStatus: string) => void;
     getStatusStyle: (status: string) => string;
+    onAssignConsultant?: (inquiryId: string, consultantId: string) => Promise<void>;
 }
 
-const InquiryList: React.FC<InquiryListProps> = ({ inquiries, loading, handleUpdateStatus, getStatusStyle }) => {
+const InquiryList: React.FC<InquiryListProps> = ({ inquiries, loading, handleUpdateStatus, getStatusStyle, onAssignConsultant }) => {
     if (loading) {
         return (
             <div className="p-8 text-center bg-white rounded-xl shadow-sm border border-neutral-200">
@@ -43,6 +44,7 @@ const InquiryList: React.FC<InquiryListProps> = ({ inquiries, loading, handleUpd
                         inq={inq}
                         handleUpdateStatus={handleUpdateStatus}
                         getStatusStyle={getStatusStyle}
+                        onAssignConsultant={onAssignConsultant}
                     />
                 ))}
             </div>

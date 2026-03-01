@@ -50,15 +50,33 @@ const Compare: React.FC = () => {
                         </div>
                         <h1 className="text-5xl font-black text-gray-900">Compare Assets</h1>
                     </div>
-                    <button
-                        onClick={() => {
-                            // Bulk Add to Enquiry logic
-                            items.forEach(i => dispatch({ type: 'ADD_ITEM', payload: { ...i, price: 0, quantity: 1, vendor: 'Various' } }));
-                        }}
-                        className="bg-gray-900 text-white px-10 py-5 rounded-2xl font-black shadow-2xl flex items-center gap-3 hover:bg-primary transition-all active:scale-95"
-                    >
-                        <ClipboardList className="w-5 h-5" /> Add Selected to Enquiry
-                    </button>
+                    <div className="flex flex-col sm:flex-row gap-3">
+                        <button
+                            onClick={() => {
+                                items.forEach(i => dispatch({
+                                    type: 'ADD_ITEM',
+                                    payload: {
+                                        id: i.id,
+                                        name: i.name,
+                                        price: i.price ?? 0,
+                                        quantity: 1,
+                                        image: i.image,
+                                        category: i.category,
+                                        vendor: 'Various'
+                                    }
+                                }));
+                            }}
+                            className="bg-gray-900 text-white px-10 py-5 rounded-2xl font-black shadow-2xl flex items-center gap-3 hover:bg-primary transition-all active:scale-95"
+                        >
+                            <ClipboardList className="w-5 h-5" /> Add All to Enquiry
+                        </button>
+                        <button
+                            onClick={() => dispatch({ type: 'CLEAR_COMPARISON' })}
+                            className="border-2 border-gray-200 text-gray-500 px-6 py-5 rounded-2xl font-black flex items-center gap-2 hover:border-red-300 hover:text-red-500 transition-all active:scale-95"
+                        >
+                            <X className="w-4 h-4" /> Clear All
+                        </button>
+                    </div>
                 </div>
 
                 <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">

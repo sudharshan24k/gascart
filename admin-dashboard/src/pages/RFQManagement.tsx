@@ -113,7 +113,11 @@ const RFQManagement: React.FC = () => {
                                 <th className="px-10 py-6">Preferred Vendor</th>
                                 <th className="px-10 py-6">Technical Payload</th>
                                 <th className="px-10 py-6">Timestamp</th>
-                                <th className="px-10 py-6 text-right">Operations</th>
+                                <th className="px-10 py-6 text-right"
+                                    style={{ background: 'linear-gradient(135deg, #1a1a2e 0%, #16213e 100%)', color: '#a78bfa', borderRadius: '0 12px 0 0' }}
+                                >
+                                    ⚙️ Operations
+                                </th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-gray-50">
@@ -161,18 +165,34 @@ const RFQManagement: React.FC = () => {
                                     <td className="px-10 py-8 text-sm text-gray-400 font-black font-mono">
                                         {formatDateIST(rfq.created_at)}
                                     </td>
-                                    <td className="px-10 py-8 text-right">
-                                        <select
-                                            onChange={(e) => handleStatusUpdate(rfq.id, e.target.value)}
-                                            value={rfq.status}
-                                            className="text-xs font-black border-2 border-gray-50 bg-gray-50/50 py-2 pl-4 pr-10 rounded-xl outline-none focus:border-primary/20 transition-all appearance-none cursor-pointer"
-                                        >
-                                            <option value="new">New</option>
-                                            <option value="processing">In Progress</option>
-                                            <option value="completed">Completed</option>
-                                            <option value="rejected">Rejected</option>
-                                            <option value="closed">Closed (Legacy)</option>
-                                        </select>
+                                    <td className="px-6 py-8 text-right"
+                                        style={{
+                                            background: rfq.status === 'new' ? 'rgba(251,191,36,0.06)' :
+                                                rfq.status === 'processing' ? 'rgba(59,130,246,0.06)' :
+                                                    rfq.status === 'completed' ? 'rgba(16,185,129,0.06)' :
+                                                        rfq.status === 'rejected' ? 'rgba(239,68,68,0.06)' :
+                                                            'rgba(100,116,139,0.06)'
+                                        }}
+                                    >
+                                        <div className="flex flex-col items-end gap-1">
+                                            <span className="text-[9px] font-black uppercase tracking-widest text-gray-400">Change Status</span>
+                                            <select
+                                                onChange={(e) => handleStatusUpdate(rfq.id, e.target.value)}
+                                                value={rfq.status}
+                                                className={`text-xs font-black py-2.5 pl-4 pr-8 rounded-xl outline-none transition-all appearance-none cursor-pointer border-2 ${rfq.status === 'new' ? 'bg-amber-50 border-amber-200 text-amber-700 focus:border-amber-400' :
+                                                        rfq.status === 'processing' ? 'bg-blue-50 border-blue-200 text-blue-700 focus:border-blue-400' :
+                                                            rfq.status === 'completed' ? 'bg-green-50 border-green-200 text-green-700 focus:border-green-400' :
+                                                                rfq.status === 'rejected' ? 'bg-red-50 border-red-200 text-red-700 focus:border-red-400' :
+                                                                    'bg-gray-50 border-gray-200 text-gray-500 focus:border-gray-400'
+                                                    }`}
+                                            >
+                                                <option value="new">🟡 New</option>
+                                                <option value="processing">🔵 In Progress</option>
+                                                <option value="completed">🟢 Completed</option>
+                                                <option value="rejected">🔴 Rejected</option>
+                                                <option value="closed">⚫ Closed (Legacy)</option>
+                                            </select>
+                                        </div>
                                     </td>
                                 </tr>
                             ))}

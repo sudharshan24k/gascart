@@ -2,6 +2,7 @@ import { Request, Response, NextFunction } from 'express';
 import { supabase } from '../config/supabase';
 import archiver from 'archiver';
 import { generateInvoiceBuffer, generateInvoiceStream } from '../utils/invoice.util';
+import { logAction } from '../utils/auditLogger';
 
 export const getDashboardStats = async (req: Request, res: Response, next: NextFunction) => {
     try {
@@ -128,6 +129,17 @@ export const updateUser = async (req: Request, res: Response, next: NextFunction
 
         if (error) throw error;
 
+        // Audit log
+        const changes = Object.entries(updates)
+            .map(([k, v]) => `${k} → ${v}`)
+            .join(', ');
+        await logAction(req, 'STATUS_CHANGE', `Updated user ${data?.email || userId}: ${changes}`, {
+            entity_type: 'user',
+            entity_id: userId,
+            entity_label: data?.email || userId,
+            metadata: { updates }
+        });
+
         res.json({
             status: 'success',
             data
@@ -210,30 +222,85 @@ export const exportInvoicesZIP = async (req: Request, res: Response, next: NextF
 
 export const getAuditLogs = async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const { target_type, target_id, limit = 50 } = req.query;
+        const {
+            action,
+            entity_type,
+            actor_id,
+            search,
+            start_date,
+            end_date,
+            limit = '200',
+            offset = '0'
+        } = req.query;
+
         let query = supabase
-            .from('admin_audit_logs')
-            .select('*')
+            .from('audit_logs')
+            .select('*', { count: 'exact' })
             .order('created_at', { ascending: false })
-            .limit(Number(limit));
+            .limit(Number(limit))
+            .range(Number(offset), Number(offset) + Number(limit) - 1);
 
-        if (target_type) {
-            query = query.eq('target_type', target_type);
-        }
+        if (action) query = query.eq('action', action);
+        if (entity_type) query = query.eq('entity_type', entity_type);
+        if (actor_id) query = query.eq('actor_id', actor_id);
+        if (start_date) query = query.gte('created_at', start_date as string);
+        if (end_date) query = query.lte('created_at', `${end_date}T23:59:59Z`);
+        if (search) query = query.ilike('description', `%${search}%`);
 
-        if (target_id) {
-            query = query.eq('target_id', target_id);
-        }
-
-        const { data, error } = await query;
+        const { data, error, count } = await query;
 
         if (error) throw error;
 
         res.json({
             status: 'success',
-            results: data.length,
+            total: count,
+            results: data?.length ?? 0,
             data
         });
+    } catch (err) {
+        next(err);
+    }
+};
+
+export const getCareerApplications = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const { category, status } = req.query;
+        let query = supabase.from('career_applications').select('*').order('created_at', { ascending: false });
+
+        if (category) query = query.eq('category', category);
+        if (status) query = query.eq('status', status);
+
+        const { data, error } = await query;
+        if (error) throw error;
+
+        res.json({ status: 'success', data });
+    } catch (err) {
+        next(err);
+    }
+};
+
+export const updateCareerApplicationStatus = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const { id } = req.params;
+        const { status } = req.body;
+
+        const { data, error } = await supabase
+            .from('career_applications')
+            .update({ status })
+            .eq('id', id)
+            .select()
+            .single();
+
+        if (error) throw error;
+
+        await logAction(req, 'STATUS_CHANGE', `Updated career application status for ${data.full_name} to ${status}`, {
+            entity_type: 'system',
+            entity_id: id,
+            entity_label: data.full_name,
+            metadata: { old_status: req.body.old_status, new_status: status }
+        });
+
+        res.json({ status: 'success', data });
     } catch (err) {
         next(err);
     }

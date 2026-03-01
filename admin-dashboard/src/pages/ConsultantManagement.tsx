@@ -29,6 +29,10 @@ const ConsultantManagement = () => {
     const [startDate, setStartDate] = useState('');
     const [endDate, setEndDate] = useState('');
 
+    // Contract dates — set by admin at time of authorization (internal only)
+    const [contractStart, setContractStart] = useState('');
+    const [contractExpiry, setContractExpiry] = useState('');
+
     useEffect(() => {
         loadConsultants();
     }, [activeTab]);
@@ -46,16 +50,18 @@ const ConsultantManagement = () => {
         }
     };
 
-    const handleAction = async (e: React.MouseEvent, id: string, status: string, is_visible: boolean = false) => {
+    const handleAction = async (e: React.MouseEvent, id: string, status: string, is_visible: boolean = false, extras?: Record<string, any>) => {
         e.stopPropagation();
         try {
-            await updateConsultantStatus(id, { status, is_visible });
+            await updateConsultantStatus(id, { status, is_visible, ...extras });
             if (status === 'approved') {
                 alert('Consultant profile has been activated and is now live.');
             }
             loadConsultants();
             if (selectedConsultant?.id === id) {
                 setSelectedConsultant(null);
+                setContractStart('');
+                setContractExpiry('');
             }
         } catch (err) {
             console.error('Action failed', err);
@@ -378,28 +384,67 @@ const ConsultantManagement = () => {
                             </div>
 
                             {/* Panel Footer */}
-                            <div className="p-10 border-t border-gray-50 bg-white grid grid-cols-2 gap-4">
+                            <div className="p-10 border-t border-gray-50 bg-white space-y-5">
                                 {selectedConsultant.status === 'pending' ? (
                                     <>
-                                        <button
-                                            onClick={(e) => handleAction(e, selectedConsultant.id, 'rejected')}
-                                            className="px-8 py-5 border-2 border-gray-100 text-gray-400 hover:text-red-500 hover:border-red-100 rounded-[24px] text-xs font-black uppercase tracking-widest transition-all"
-                                        >
-                                            Decline Request
-                                        </button>
-                                        <button
-                                            onClick={(e) => handleAction(e, selectedConsultant.id, 'approved', true)}
-                                            className="px-8 py-5 bg-primary text-white rounded-[24px] text-xs font-black uppercase tracking-widest shadow-2xl shadow-primary/20 hover:bg-primary-dark transition-all scale-105"
-                                        >
-                                            Authorize Profile
-                                        </button>
+                                        {/* Admin-only contract dates */}
+                                        <div className="bg-amber-50 border border-amber-100 rounded-[20px] p-5 space-y-4">
+                                            <p className="text-[10px] font-black text-amber-700 uppercase tracking-widest flex items-center gap-2">
+                                                <Calendar className="w-3.5 h-3.5" /> Contract Terms (Admin Only)
+                                            </p>
+                                            <div className="grid grid-cols-2 gap-4">
+                                                <div>
+                                                    <label className="block text-[9px] font-black text-amber-600 uppercase tracking-widest mb-1.5">Contract Start Date</label>
+                                                    <input
+                                                        type="date"
+                                                        value={contractStart}
+                                                        onChange={(e) => setContractStart(e.target.value)}
+                                                        className="w-full bg-white border border-amber-200 rounded-xl px-3 py-2.5 text-sm font-bold text-gray-800 outline-none focus:ring-2 focus:ring-amber-300 transition"
+                                                    />
+                                                </div>
+                                                <div>
+                                                    <label className="block text-[9px] font-black text-amber-600 uppercase tracking-widest mb-1.5">Contract Expiry Date</label>
+                                                    <input
+                                                        type="date"
+                                                        value={contractExpiry}
+                                                        min={contractStart || undefined}
+                                                        onChange={(e) => setContractExpiry(e.target.value)}
+                                                        className="w-full bg-white border border-amber-200 rounded-xl px-3 py-2.5 text-sm font-bold text-gray-800 outline-none focus:ring-2 focus:ring-amber-300 transition"
+                                                    />
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div className="grid grid-cols-2 gap-4">
+                                            <button
+                                                onClick={(e) => handleAction(e, selectedConsultant.id, 'rejected')}
+                                                className="px-8 py-5 border-2 border-gray-100 text-gray-400 hover:text-red-500 hover:border-red-100 rounded-[24px] text-xs font-black uppercase tracking-widest transition-all"
+                                            >
+                                                Decline Request
+                                            </button>
+                                            <button
+                                                onClick={(e) => handleAction(
+                                                    e,
+                                                    selectedConsultant.id,
+                                                    'approved',
+                                                    true,
+                                                    {
+                                                        contract_start_date: contractStart || null,
+                                                        contract_expiry_date: contractExpiry || null
+                                                    }
+                                                )}
+                                                className="px-8 py-5 bg-primary text-white rounded-[24px] text-xs font-black uppercase tracking-widest shadow-2xl shadow-primary/20 hover:bg-primary-dark transition-all scale-105"
+                                            >
+                                                Authorize Profile
+                                            </button>
+                                        </div>
                                     </>
                                 ) : (
                                     <button
                                         onClick={(e) => handleAction(e, selectedConsultant.id, selectedConsultant.status === 'suspended' ? 'approved' : 'suspended', selectedConsultant.status === 'suspended')}
-                                        className={`col-span-2 px-8 py-5 rounded-[24px] text-xs font-black uppercase tracking-widest transition-all ${selectedConsultant.status === 'suspended'
-                                            ? 'bg-emerald-500 text-white shadow-xl shadow-emerald-500/20 hover:bg-emerald-600'
-                                            : 'bg-white border-2 border-gray-100 text-gray-400 hover:text-red-500 hover:border-red-100'
+                                        className={`w-full px-8 py-5 rounded-[24px] text-xs font-black uppercase tracking-widest transition-all ${selectedConsultant.status === 'suspended'
+                                                ? 'bg-emerald-500 text-white shadow-xl shadow-emerald-500/20 hover:bg-emerald-600'
+                                                : 'bg-white border-2 border-gray-100 text-gray-400 hover:text-red-500 hover:border-red-100'
                                             }`}
                                     >
                                         {selectedConsultant.status === 'suspended' ? 'Reinstate Executive Authorization' : 'Suspend Advisory Access'}

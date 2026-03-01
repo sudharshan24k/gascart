@@ -37,7 +37,7 @@ export const fetchConsultants = async (params?: { status?: string; is_visible?: 
     return response.data.data;
 };
 
-export const updateConsultantStatus = async (id: string, updates: { status?: string; is_visible?: boolean }) => {
+export const updateConsultantStatus = async (id: string, updates: { status?: string; is_visible?: boolean; contract_start_date?: string | null; contract_expiry_date?: string | null;[key: string]: any }) => {
     const response = await adminApi.patch(`/consultants/${id}`, updates);
     return response.data.data;
 };
@@ -80,8 +80,8 @@ export const updateAdminRFQStatus = async (id: string, status: string) => {
 };
 
 // Category Management
-export const fetchCategories = async () => {
-    const response = await adminApi.get('/categories');
+export const fetchCategories = async (status: string = 'active') => {
+    const response = await adminApi.get('/categories', { params: { status } });
     return response.data.data;
 };
 
@@ -95,8 +95,15 @@ export const updateCategory = async (id: string, categoryData: any) => {
     return response.data.data;
 };
 
+// Soft delete — marks as deleted
 export const deleteCategory = async (id: string) => {
     const response = await adminApi.delete(`/categories/${id}`);
+    return response.data;
+};
+
+// Hard delete — permanently removes record
+export const permanentlyDeleteCategory = async (id: string) => {
+    const response = await adminApi.delete(`/categories/${id}/permanent`);
     return response.data;
 };
 
@@ -315,5 +322,20 @@ export const uploadFile = async (bucket: string, file: File) => {
         }
     });
     return response.data.data;
+};
+
+export const getCareerApplications = async (params?: { category?: string; status?: string }) => {
+    const response = await adminApi.get('/careers', { params });
+    return response.data;
+};
+
+export const updateCareerApplicationStatus = async (id: string, status: string, old_status: string) => {
+    const response = await adminApi.patch(`/careers/${id}/status`, { status, old_status });
+    return response.data;
+};
+
+export const getAuditLogs = async (params?: Partial<{ action: string; entity_type: string; actor_id: string; search: string; start_date: string; end_date: string; limit: number; offset: number; }>) => {
+    const response = await adminApi.get('/admin/audit-logs', { params });
+    return response.data;
 };
 

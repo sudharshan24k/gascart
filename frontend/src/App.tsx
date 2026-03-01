@@ -38,6 +38,7 @@ import AdminProducts from './pages/Admin/Products';
 import VendorManager from './pages/Admin/VendorManager';
 import PrivacyPolicy from './pages/PrivacyPolicy';
 import TermsOfService from './pages/TermsOfService';
+import Careers from './pages/Careers';
 
 import { ToastProvider } from './context/ToastContext';
 import ScrollToTop from './components/ScrollToTop';
@@ -65,6 +66,7 @@ function App() {
                                     <Route path="consultant-dashboard" element={<ConsultantDashboard />} />
                                     <Route path="vendor-enquiry" element={<VendorEnquiry />} />
                                     <Route path="contact" element={<Contact />} />
+                                    <Route path="careers" element={<Careers />} />
 
                                     {/* Industrial Marketplace Routes */}
                                     <Route path="shop" element={<ProductListing />} />

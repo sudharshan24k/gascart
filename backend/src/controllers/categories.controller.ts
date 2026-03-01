@@ -3,11 +3,16 @@ import { supabase } from '../config/supabase';
 
 export const getCategories = async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const { data, error } = await supabase
-            .from('categories')
-            .select('*')
-            .order('name');
+        const status = (req.query.status as string) || 'active';
+        const query = supabase.from('categories').select('*').order('name');
 
+        if (status === 'all') {
+            // no filter
+        } else {
+            query.eq('status', status);
+        }
+
+        const { data, error } = await query;
         if (error) throw error;
         res.json({ status: 'success', data });
     } catch (err) {
@@ -20,7 +25,7 @@ export const createCategory = async (req: Request, res: Response, next: NextFunc
         console.log('[CategoriesController] Creating category with body:', req.body);
         const { data, error } = await supabase
             .from('categories')
-            .insert([req.body])
+            .insert([{ ...req.body, status: 'active' }])
             .select()
             .single();
 
@@ -51,12 +56,28 @@ export const updateCategory = async (req: Request, res: Response, next: NextFunc
     }
 };
 
+// Soft delete — marks category as 'deleted', no data is removed
 export const deleteCategory = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const { id } = req.params;
+        const { error } = await supabase
+            .from('categories')
+            .update({ status: 'deleted' })
+            .eq('id', id);
+        if (error) throw error;
+        res.json({ status: 'success', message: 'Category marked as deleted' });
+    } catch (err) {
+        next(err);
+    }
+};
+
+// Hard delete — permanently removes the record. Only callable explicitly by admin.
+export const permanentlyDeleteCategory = async (req: Request, res: Response, next: NextFunction) => {
     try {
         const { id } = req.params;
         const { error } = await supabase.from('categories').delete().eq('id', id);
         if (error) throw error;
-        res.json({ status: 'success', message: 'Category deleted' });
+        res.json({ status: 'success', message: 'Category permanently deleted' });
     } catch (err) {
         next(err);
     }

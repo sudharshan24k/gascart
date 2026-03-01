@@ -4,7 +4,7 @@ import {
     LayoutDashboard, Package, ShoppingCart, Users, LogOut,
     ClipboardCheck, BookOpen, FolderTree, Building2, ShieldCheck,
     Settings2, Menu, X, Search, Bell, ChevronRight, User,
-    Database, MessageSquare
+    Database, MessageSquare, ImageIcon, Activity, FileText
 } from 'lucide-react';
 import { authService } from '../services/auth.service';
 import { supabase } from '../services/api';
@@ -64,6 +64,7 @@ const AdminLayout = () => {
             title: 'Content & Knowledge',
             items: [
                 { name: 'Knowledge Hub', path: '/learn', icon: BookOpen },
+                { name: 'Media Library', path: '/media', icon: ImageIcon },
                 { name: 'Taxonomy', path: '/taxonomy', icon: FolderTree },
                 { name: 'Legal Vault', path: '/documents', icon: ShieldCheck },
             ]
@@ -74,6 +75,8 @@ const AdminLayout = () => {
                 { name: 'User Management', path: '/users', icon: Users },
                 { name: 'Expert Network', path: '/consultants', icon: User },
                 { name: 'Expert Inquiries', path: '/consultant-inquiries', icon: MessageSquare },
+                { name: 'Career Resumes', path: '/careers', icon: FileText },
+                { name: 'Audit Logs', path: '/audit-logs', icon: Activity },
             ]
         }
     ];

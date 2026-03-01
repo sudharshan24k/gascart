@@ -440,10 +440,39 @@ export const api = {
         },
         getMyProfile: async () => {
             const token = (await supabase.auth.getSession()).data.session?.access_token;
-            if (!token) throw new Error('Not authenticated');
             const apiUrl = getBaseUrl();
             const res = await fetch(`${apiUrl}/consultants/my-profile`, {
-                headers: { 'Authorization': `Bearer ${token}` }
+                headers: token ? { 'Authorization': `Bearer ${token}` } : {}
+            });
+            return res.json();
+        },
+        submitInquiry: async (data: {
+            service_required: string;
+            project_description?: string;
+            timeline_preference?: string;
+            guest_email?: string;
+            consultant_id?: string | null;
+        }) => {
+            const token = (await supabase.auth.getSession()).data.session?.access_token;
+            const apiUrl = getBaseUrl();
+            const res = await fetch(`${apiUrl}/consultants/inquiries`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+                },
+                body: JSON.stringify(data)
+            });
+            return res.json();
+        }
+    },
+    careers: {
+        submitApplication: async (data: any) => {
+            const apiUrl = getBaseUrl();
+            const res = await fetch(`${apiUrl}/careers`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
             });
             return res.json();
         }

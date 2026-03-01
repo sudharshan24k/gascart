@@ -505,14 +505,7 @@ export const ProductModal = ({
                                                     </div>
                                                 );
                                             })}
-                                            <button
-                                                type="button"
-                                                onClick={() => setFormData({ ...formData, images: [...(formData.images || []), ''] })}
-                                                className="border-2 border-dashed border-gray-200 rounded-[24px] aspect-square flex flex-col items-center justify-center gap-3 text-gray-400 hover:border-black hover:text-black transition-all group"
-                                            >
-                                                <Plus className="w-8 h-8 group-hover:scale-110 transition-transform" />
-                                                <span className="text-[10px] font-black uppercase tracking-widest">Manual Link</span>
-                                            </button>
+
                                         </div>
                                     </div>
 

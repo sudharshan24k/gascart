@@ -15,6 +15,9 @@ import ConsultantInquiries from './pages/ConsultantInquiries';
 import RFQConfigurator from './pages/RFQConfigurator';
 import Inventory from './pages/Inventory';
 import UserManagement from './pages/UserManagement';
+import MediaLibrary from './pages/MediaLibrary';
+import AuditLogs from './pages/AuditLogs';
+import CareerApplications from './pages/CareerApplications';
 import Login from './pages/Login';
 
 const ProtectedRoute = () => {
@@ -105,6 +108,9 @@ function App() {
                         <Route path="inventory" element={<Inventory />} />
                         <Route path="orders" element={<Orders />} />
                         <Route path="users" element={<UserManagement />} />
+                        <Route path="media" element={<MediaLibrary />} />
+                        <Route path="audit-logs" element={<AuditLogs />} />
+                        <Route path="careers" element={<CareerApplications />} />
                     </Route>
                 </Route>
                 <Route path="*" element={<Navigate to="/" replace />} />

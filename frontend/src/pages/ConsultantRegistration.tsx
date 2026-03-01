@@ -1,15 +1,18 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { motion } from 'framer-motion';
-import { UserPlus, Mail, Phone, Briefcase, FileText, CheckCircle, MapPin, Award, Building2, Layers, Image as ImageIcon } from 'lucide-react';
+import { UserPlus, Mail, Phone, Briefcase, FileText, CheckCircle, MapPin, Award, Building2, Layers, Image as ImageIcon, Link, Upload, X } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { api } from '../services/api';
+import { api, supabase } from '../services/api';
 
 const ConsultantRegistration: React.FC = () => {
     const { user } = useAuth();
     const navigate = useNavigate();
     const [submitting, setSubmitting] = useState(false);
     const [submitted, setSubmitted] = useState(false);
+    const [uploadingImage, setUploadingImage] = useState(false);
+    const [imagePreview, setImagePreview] = useState<string | null>(null);
+    const photoInputRef = useRef<HTMLInputElement>(null);
     const [formData, setFormData] = useState({
         first_name: '',
         last_name: '',
@@ -22,8 +25,34 @@ const ConsultantRegistration: React.FC = () => {
         qualification: '',
         company_name: '',
         projects_completed: '',
-        profile_image: ''
+        profile_image: '',   // will be stored as Supabase storage path (internal only)
+        profile_link: ''     // LinkedIn or website (internal only)
     });
+
+    const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+        // Show local preview immediately
+        setImagePreview(URL.createObjectURL(file));
+        setUploadingImage(true);
+        try {
+            const ext = file.name.split('.').pop();
+            const filename = `consultant_${Date.now()}.${ext}`;
+            const { error } = await supabase.storage
+                .from('avatars')
+                .upload(filename, file, { cacheControl: '3600', upsert: false });
+            if (error) throw error;
+            // Store the path — admin can view via Supabase dashboard, not exposed publicly
+            const { data } = supabase.storage.from('avatars').getPublicUrl(filename);
+            setFormData(prev => ({ ...prev, profile_image: data.publicUrl }));
+        } catch (err) {
+            console.error('Photo upload failed', err);
+            alert('Photo upload failed. Please try again.');
+            setImagePreview(null);
+        } finally {
+            setUploadingImage(false);
+        }
+    };
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -272,16 +301,45 @@ const ConsultantRegistration: React.FC = () => {
                                         onChange={(e) => setFormData({ ...formData, location: e.target.value })}
                                     />
                                 </div>
+
+                                {/* Passport Photo Upload — stored internally, not shown publicly */}
                                 <div>
                                     <label className="block text-sm font-bold text-gray-700 mb-2 flex items-center gap-2">
-                                        <ImageIcon className="w-4 h-4" /> Profile Image URL
+                                        <ImageIcon className="w-4 h-4" /> Passport Photo
+                                        <span className="ml-1 text-[10px] font-bold bg-gray-100 text-gray-400 px-2 py-0.5 rounded-full uppercase tracking-wider">Internal Only</span>
                                     </label>
+                                    <div
+                                        onClick={() => photoInputRef.current?.click()}
+                                        className="relative w-full h-32 border-2 border-dashed border-gray-200 rounded-xl flex flex-col items-center justify-center gap-2 cursor-pointer hover:border-primary/40 hover:bg-primary/5 transition-all overflow-hidden"
+                                    >
+                                        {imagePreview ? (
+                                            <>
+                                                <img src={imagePreview} alt="Preview" className="absolute inset-0 w-full h-full object-cover rounded-xl" />
+                                                <div className="absolute inset-0 bg-black/30 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity">
+                                                    <button
+                                                        type="button"
+                                                        onClick={e => { e.stopPropagation(); setImagePreview(null); setFormData(f => ({ ...f, profile_image: '' })); }}
+                                                        className="p-2 bg-red-500 rounded-full text-white"
+                                                    >
+                                                        <X className="w-4 h-4" />
+                                                    </button>
+                                                </div>
+                                            </>
+                                        ) : (
+                                            <>
+                                                <Upload className={`w-6 h-6 ${uploadingImage ? 'animate-bounce text-primary' : 'text-gray-300'}`} />
+                                                <span className="text-xs text-gray-400 font-medium">
+                                                    {uploadingImage ? 'Uploading...' : 'Click to upload (JPG/PNG, max 2MB)'}
+                                                </span>
+                                            </>
+                                        )}
+                                    </div>
                                     <input
-                                        type="url"
-                                        placeholder="https://..."
-                                        className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary outline-none transition-all"
-                                        value={formData.profile_image}
-                                        onChange={(e) => setFormData({ ...formData, profile_image: e.target.value })}
+                                        ref={photoInputRef}
+                                        type="file"
+                                        accept="image/jpeg,image/png,image/webp"
+                                        className="hidden"
+                                        onChange={handlePhotoUpload}
                                     />
                                 </div>
                             </div>
@@ -303,6 +361,21 @@ const ConsultantRegistration: React.FC = () => {
                                         </button>
                                     ))}
                                 </div>
+                            </div>
+
+                            <div>
+                                <label className="block text-sm font-bold text-gray-700 mb-2 flex items-center gap-2">
+                                    <Link className="w-4 h-4" /> Professional Profile Link
+                                    <span className="ml-1 text-[10px] font-bold bg-gray-100 text-gray-400 px-2 py-0.5 rounded-full uppercase tracking-wider">Internal Only</span>
+                                </label>
+                                <input
+                                    type="url"
+                                    placeholder="LinkedIn profile or personal website URL"
+                                    className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary outline-none transition-all"
+                                    value={formData.profile_link}
+                                    onChange={(e) => setFormData({ ...formData, profile_link: e.target.value })}
+                                />
+                                <p className="text-xs text-gray-400 mt-1.5">Visible to GasCart admins only — not displayed to public buyers.</p>
                             </div>
 
                             <div>
