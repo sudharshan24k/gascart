@@ -7,7 +7,7 @@ const client = new Client({
 async function run() {
   await client.connect();
   const fs = require('fs');
-  const sql = fs.readFileSync('database/migrations/31_consultant_inquiries.sql', 'utf8');
+  const sql = fs.readFileSync('database/migrations/42_fix_rls_recursion.sql', 'utf8');
   
   try {
     await client.query(sql);

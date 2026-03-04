@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate, useLocation, Navigate } from 'react-router-dom';
 import { authService } from '../services/auth.service';
+import { useAuth } from '../context/AuthContext';
 
 const AdminWarningBanner = () => (
     <div style={{
@@ -89,12 +90,25 @@ const Login = () => {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [showSuccessModal, setShowSuccessModal] = useState(false);
+    const { isAuthenticated, loading: authLoading } = useAuth();
 
     useEffect(() => {
         if (location.state?.error) {
             setError(location.state.error);
         }
     }, [location]);
+
+    if (authLoading) {
+        return (
+            <div className="min-h-screen flex items-center justify-center bg-gray-50">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div>
+            </div>
+        );
+    }
+
+    if (!authLoading && isAuthenticated) {
+        return <Navigate to="/" replace />;
+    }
 
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();

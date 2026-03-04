@@ -316,12 +316,28 @@ export const exportInvoicesZIP = async (orderIds: string[]) => {
 export const uploadFile = async (bucket: string, file: File) => {
     const formData = new FormData();
     formData.append('file', file);
-    const response = await adminApi.post(`/upload/${bucket}`, formData, {
-        headers: {
-            'Content-Type': 'multipart/form-data'
-        }
-    });
+    const response = await adminApi.post(`/upload/${bucket}`, formData);
     return response.data.data;
+};
+
+export const removeFile = async (bucket: string, filename: string) => {
+    const response = await adminApi.delete(`/upload/${bucket}`, {
+        data: { path: filename }
+    });
+    return response.data;
+};
+
+export const renameFile = async (bucket: string, oldPath: string, newPath: string) => {
+    const response = await adminApi.post(`/upload/${bucket}/rename`, {
+        oldPath,
+        newPath
+    });
+    return response.data;
+};
+
+export const listBucketFiles = async (bucket: string) => {
+    const response = await adminApi.get(`/upload/${bucket}/files`);
+    return response.data;
 };
 
 export const getCareerApplications = async (params?: { category?: string; status?: string }) => {
@@ -336,6 +352,11 @@ export const updateCareerApplicationStatus = async (id: string, status: string, 
 
 export const getAuditLogs = async (params?: Partial<{ action: string; entity_type: string; actor_id: string; search: string; start_date: string; end_date: string; limit: number; offset: number; }>) => {
     const response = await adminApi.get('/admin/audit-logs', { params });
+    return response.data;
+};
+
+export const getResumeSignedUrl = async (path: string) => {
+    const response = await adminApi.post('/careers/signed-url', { path });
     return response.data;
 };
 

@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Package, ClipboardList, ShieldCheck, FileText, Filter, Link as LinkIcon, X, CheckCircle, Plus, Trash2, ArrowLeftRight, Edit2, UploadCloud } from 'lucide-react';
+import { Package, ClipboardList, ShieldCheck, FileText, Filter, Link as LinkIcon, X, CheckCircle, Plus, Trash2, ArrowLeftRight, Edit2, UploadCloud, Image as ImageIcon } from 'lucide-react';
 import { uploadFile } from '../../services/admin.service';
+import { MediaLibraryModal } from '../MediaLibraryModal';
 export const ProductModal = ({
     isOpen,
     onClose,
@@ -16,6 +17,11 @@ export const ProductModal = ({
 }: any) => {
     const [activeTab, setActiveTab] = useState('basic');
     const [isUploadingAsset, setIsUploadingAsset] = useState(false);
+    const [isUploadingDoc, setIsUploadingDoc] = useState(false);
+
+    // Media Library Modal State
+    const [mediaModalOpen, setMediaModalOpen] = useState(false);
+    const [mediaModalBucket, setMediaModalBucket] = useState<'products' | 'platform-documents'>('products');
 
     if (!isOpen) return null;
 
@@ -439,32 +445,45 @@ export const ProductModal = ({
                                                 <label className="block text-lg font-black text-gray-900 tracking-tight">Visual Assets</label>
                                                 <p className="text-xs text-gray-500 mt-1 uppercase tracking-widest font-black">Managed cloud storage for product imagery</p>
                                             </div>
-                                            <label className="px-6 py-3 bg-black hover:bg-gray-800 text-white cursor-pointer rounded-2xl text-xs font-black uppercase tracking-[0.1em] transition-all flex items-center gap-3 shadow-xl shadow-black/10 active:scale-95">
-                                                <UploadCloud className="w-5 h-5 text-red-500" />
-                                                <span>{isUploadingAsset ? 'Processing...' : 'Upload Asset'}</span>
-                                                <input
-                                                    disabled={isUploadingAsset}
-                                                    type="file"
-                                                    accept="image/*"
-                                                    className="hidden"
-                                                    onChange={async (e) => {
-                                                        const file = e.target.files?.[0];
-                                                        if (!file) return;
-                                                        try {
-                                                            setIsUploadingAsset(true);
-                                                            const data = await uploadFile('products', file);
-                                                            setFormData({
-                                                                ...formData,
-                                                                images: [...(formData.images || []), data.url]
-                                                            });
-                                                        } catch (err: any) {
-                                                            alert('Upload failed: ' + err.message);
-                                                        } finally {
-                                                            setIsUploadingAsset(false);
-                                                        }
+                                            <div className="flex items-center gap-2">
+                                                <button
+                                                    type="button"
+                                                    onClick={() => {
+                                                        setMediaModalBucket('products');
+                                                        setMediaModalOpen(true);
                                                     }}
-                                                />
-                                            </label>
+                                                    className="px-6 py-3 bg-indigo-50 hover:bg-indigo-100 border border-indigo-100 text-indigo-700 rounded-2xl text-xs font-black uppercase tracking-[0.1em] transition-all flex items-center gap-2 shadow-sm active:scale-95"
+                                                >
+                                                    <ImageIcon className="w-4 h-4" />
+                                                    <span>Choose from Library</span>
+                                                </button>
+                                                <label className="px-6 py-3 bg-black hover:bg-gray-800 text-white cursor-pointer rounded-2xl text-xs font-black uppercase tracking-[0.1em] transition-all flex items-center gap-3 shadow-xl shadow-black/10 active:scale-95">
+                                                    <UploadCloud className="w-5 h-5 text-red-500" />
+                                                    <span>{isUploadingAsset ? 'Processing...' : 'Upload Asset'}</span>
+                                                    <input
+                                                        disabled={isUploadingAsset}
+                                                        type="file"
+                                                        accept="image/*"
+                                                        className="hidden"
+                                                        onChange={async (e) => {
+                                                            const file = e.target.files?.[0];
+                                                            if (!file) return;
+                                                            try {
+                                                                setIsUploadingAsset(true);
+                                                                const data = await uploadFile('products', file);
+                                                                setFormData({
+                                                                    ...formData,
+                                                                    images: [...(formData.images || []), data.url]
+                                                                });
+                                                            } catch (err: any) {
+                                                                alert('Upload failed: ' + err.message);
+                                                            } finally {
+                                                                setIsUploadingAsset(false);
+                                                            }
+                                                        }}
+                                                    />
+                                                </label>
+                                            </div>
                                         </div>
 
                                         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -515,16 +534,44 @@ export const ProductModal = ({
                                                 <label className="block text-lg font-black text-gray-900 tracking-tight">Technical Documentation</label>
                                                 <p className="text-xs text-gray-500 mt-1 uppercase tracking-widest font-black">Engineering specs and certification manuals</p>
                                             </div>
-                                            <button
-                                                type="button"
-                                                onClick={() => setFormData({
-                                                    ...formData,
-                                                    documents: [...(formData.documents || []), { name: '', url: '' }]
-                                                })}
-                                                className="px-5 py-2.5 bg-gray-100 text-gray-700 hover:bg-black hover:text-white rounded-xl text-[10px] font-black uppercase tracking-widest transition-all flex items-center gap-2"
-                                            >
-                                                <Plus className="w-4 h-4" /> Add Doc Reference
-                                            </button>
+                                            <div className="flex items-center gap-2">
+                                                <button
+                                                    type="button"
+                                                    onClick={() => {
+                                                        setMediaModalBucket('platform-documents');
+                                                        setMediaModalOpen(true);
+                                                    }}
+                                                    className="px-5 py-2.5 bg-indigo-50 border border-indigo-100 text-indigo-700 hover:bg-indigo-100 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all flex items-center gap-2"
+                                                >
+                                                    <FileText className="w-4 h-4" /> Choose from Library
+                                                </button>
+                                                <label className="px-5 py-2.5 bg-black hover:bg-gray-800 text-white cursor-pointer rounded-xl text-[10px] font-black uppercase tracking-widest transition-all flex items-center gap-2 active:scale-95 shadow-md">
+                                                    <UploadCloud className="w-4 h-4 text-amber-400" />
+                                                    <span>{isUploadingDoc ? 'Processing...' : 'Upload Asset'}</span>
+                                                    <input
+                                                        disabled={isUploadingDoc}
+                                                        type="file"
+                                                        accept=".pdf,.doc,.docx"
+                                                        className="hidden"
+                                                        onChange={async (e) => {
+                                                            const file = e.target.files?.[0];
+                                                            if (!file) return;
+                                                            try {
+                                                                setIsUploadingDoc(true);
+                                                                const data = await uploadFile('platform-documents', file);
+                                                                setFormData({
+                                                                    ...formData,
+                                                                    documents: [...(formData.documents || []), { name: file.name, url: data.url }]
+                                                                });
+                                                            } catch (err: any) {
+                                                                alert('Upload failed: ' + err.message);
+                                                            } finally {
+                                                                setIsUploadingDoc(false);
+                                                            }
+                                                        }}
+                                                    />
+                                                </label>
+                                            </div>
                                         </div>
 
                                         <div className="space-y-4">
@@ -694,6 +741,29 @@ export const ProductModal = ({
                         </button>
                     </div>
                 </motion.div>
+
+                <MediaLibraryModal
+                    isOpen={mediaModalOpen}
+                    onClose={() => {
+                        setMediaModalOpen(false);
+                    }}
+                    bucket={mediaModalBucket}
+                    title={`Select ${mediaModalBucket === 'products' ? 'Asset Image' : 'Platform Document'}`}
+                    onSelect={(url) => {
+                        if (mediaModalBucket === 'products') {
+                            setFormData({
+                                ...formData,
+                                images: [...(formData.images || []), url]
+                            });
+                        } else if (mediaModalBucket === 'platform-documents') {
+                            setFormData({
+                                ...formData,
+                                documents: [...(formData.documents || []), { name: 'New Document', url: url }]
+                            });
+                        }
+                        setMediaModalOpen(false);
+                    }}
+                />
             </div>
         </AnimatePresence>
     );

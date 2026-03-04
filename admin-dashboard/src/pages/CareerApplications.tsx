@@ -1,9 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Briefcase, Filter, User, Mail, Phone, Clock, FileText, CheckCircle, XCircle } from 'lucide-react';
-import { getCareerApplications, updateCareerApplicationStatus } from '../services/admin.service';
+import { getCareerApplications, updateCareerApplicationStatus, getResumeSignedUrl as getProxiedResumeUrl } from '../services/admin.service';
 import { toast } from 'react-hot-toast';
-import { supabase } from '../services/api';
 
 const CATEGORIES = ['All Categories', 'Technicians', 'Officers', 'Entry level management', 'Middle management'];
 const STATUSES = ['All Statuses', 'pending', 'reviewed', 'rejected'];
@@ -49,9 +48,9 @@ const CareerApplications: React.FC = () => {
 
     const getResumeUrl = async (path: string) => {
         try {
-            const { data } = await supabase.storage.from('resumes').createSignedUrl(path, 60 * 60); // 1 hour expiry
-            if (data?.signedUrl) {
-                window.open(data.signedUrl, '_blank');
+            const res = await getProxiedResumeUrl(path);
+            if (res.status === 'success' && res.data?.signedUrl) {
+                window.open(res.data.signedUrl, '_blank');
             } else {
                 toast.error('Could not generate resume link');
             }

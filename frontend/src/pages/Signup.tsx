@@ -9,6 +9,7 @@ const Signup = () => {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [success, setSuccess] = useState(false);
+    const [submittedEmail, setSubmittedEmail] = useState('');
 
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
@@ -45,9 +46,8 @@ const Signup = () => {
                 company_name: companyName,
                 business_details: businessDetails
             });
+            setSubmittedEmail(email);
             setSuccess(true);
-            // Optional: delay redirect if auto-login logic exists, otherwise show success msg
-            setTimeout(() => navigate('/login'), 2000);
         } catch (err: any) {
             setError(err.message || 'Failed to create account');
             setLoading(false);
@@ -56,16 +56,39 @@ const Signup = () => {
 
     if (success) {
         return (
-            <div className="min-h-screen bg-neutral-50 flex items-center justify-center p-4">
-                <div className="max-w-md w-full bg-white rounded-3xl shadow-xl p-8 text-center animate-in fade-in zoom-in duration-300">
-                    <div className="w-20 h-20 bg-success-100 rounded-full flex items-center justify-center mx-auto mb-6">
-                        <CheckCircle2 className="w-10 h-10 text-success-600" />
-                    </div>
-                    <h2 className="text-3xl font-bold text-neutral-900 mb-2 font-display">Account Created!</h2>
-                    <p className="text-neutral-500 mb-8">Welcome to Gascart. Redirecting you to login...</p>
-                    <div className="w-full bg-neutral-100 rounded-full h-1 overflow-hidden">
-                        <div className="h-full bg-success-500 animate-[progress_2s_ease-in-out]"></div>
-                    </div>
+            <div className="min-h-screen bg-neutral-50 flex items-center justify-center p-4 relative overflow-hidden">
+                {/* Background decorative elements */}
+                <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1532601224476-15c79f2f7a51?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80')] bg-cover bg-center opacity-10"></div>
+                <div className="absolute inset-0 bg-gradient-to-t from-neutral-50 via-white/80 to-neutral-50"></div>
+
+                {/* Modal Overlay */}
+                <div className="fixed inset-0 bg-neutral-900/40 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+                    <motion.div
+                        initial={{ opacity: 0, scale: 0.95, y: 10 }}
+                        animate={{ opacity: 1, scale: 1, y: 0 }}
+                        className="max-w-md w-full bg-white rounded-3xl shadow-2xl p-8 md:p-10 text-center relative border border-gray-100"
+                    >
+                        <div className="w-20 h-20 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-6">
+                            <Mail className="w-10 h-10 text-primary animate-pulse" />
+                        </div>
+                        <h2 className="text-3xl font-bold text-neutral-900 mb-3 font-display">Check Your Email</h2>
+                        <p className="text-neutral-600 mb-2 leading-relaxed">
+                            We've sent a verification link to:
+                        </p>
+                        <p className="font-semibold text-neutral-900 mb-8 bg-neutral-50 py-3 px-4 rounded-xl border border-neutral-100 break-all w-fit mx-auto">
+                            {submittedEmail}
+                        </p>
+                        <p className="text-sm text-neutral-500 mb-8">
+                            Please click the link in the email to verify your account and login. Sometimes it can end up in the spam folder!
+                        </p>
+                        <button
+                            onClick={() => navigate('/login')}
+                            className="w-full bg-primary hover:bg-primary-600 text-white font-bold py-3.5 px-4 rounded-xl shadow-lg shadow-primary/20 transition-all flex items-center justify-center gap-2 transform active:scale-[0.98]"
+                        >
+                            Go to Login
+                            <ArrowRight className="w-4 h-4 ml-1" />
+                        </button>
+                    </motion.div>
                 </div>
             </div>
         );

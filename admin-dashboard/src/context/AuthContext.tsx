@@ -80,6 +80,42 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         return () => subscription.unsubscribe();
     }, []);
 
+    // 30-minute auto-logout idle timer
+    useEffect(() => {
+        let timeoutId: ReturnType<typeof setTimeout>;
+        const INACTIVITY_LIMIT_MS = 30 * 60 * 1000; // 30 minutes
+
+        const handleActivity = () => {
+            clearTimeout(timeoutId);
+            if (isAuthenticated) {
+                timeoutId = setTimeout(async () => {
+                    console.log('Session expired due to inactivity. Logging out...');
+                    await supabase.auth.signOut();
+                    localStorage.removeItem('admin_logged_in');
+                    window.location.href = '/login'; // Force redirect to login
+                }, INACTIVITY_LIMIT_MS);
+            }
+        };
+
+        if (isAuthenticated) {
+            handleActivity(); // Start timer
+
+            // Add event listeners for user activity
+            window.addEventListener('mousemove', handleActivity);
+            window.addEventListener('keydown', handleActivity);
+            window.addEventListener('scroll', handleActivity);
+            window.addEventListener('click', handleActivity);
+        }
+
+        return () => {
+            clearTimeout(timeoutId);
+            window.removeEventListener('mousemove', handleActivity);
+            window.removeEventListener('keydown', handleActivity);
+            window.removeEventListener('scroll', handleActivity);
+            window.removeEventListener('click', handleActivity);
+        };
+    }, [isAuthenticated]);
+
     return (
         <AuthContext.Provider value={{ isAuthenticated, isAdmin, isSuperAdmin, permissions, loading, userProfile }}>
             {children}

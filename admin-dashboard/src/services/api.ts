@@ -13,7 +13,15 @@ if (!supabaseUrl || !supabaseKey) {
 // This allows the app to load even if broken, so usage can see console errors
 export const supabase = createClient(
     supabaseUrl || 'https://placeholder.supabase.co',
-    supabaseKey || 'placeholder-key'
+    supabaseKey || 'placeholder-key',
+    {
+        auth: {
+            storage: typeof window !== 'undefined' ? window.sessionStorage : undefined,
+            autoRefreshToken: true,
+            persistSession: true,
+            detectSessionInUrl: true
+        }
+    }
 );
 
 export const api = {

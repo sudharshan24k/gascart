@@ -11,7 +11,8 @@ import {
     AlertTriangle,
     ArchiveX,
     RefreshCcw,
-    Skull
+    Skull,
+    Image as ImageIcon
 } from 'lucide-react';
 import {
     fetchCategories,
@@ -21,6 +22,7 @@ import {
     permanentlyDeleteCategory,
     uploadFile
 } from '../services/admin.service';
+import { MediaLibraryModal } from '../components/MediaLibraryModal';
 
 // ─── Soft Delete Warning Popup ───────────────────────────────────────────────
 const SoftDeleteModal = ({
@@ -205,6 +207,7 @@ const CategoryManagement = () => {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingCategory, setEditingCategory] = useState<any>(null);
     const [uploading, setUploading] = useState(false);
+    const [isMediaModalOpen, setIsMediaModalOpen] = useState(false);
 
     const [softDeleteTarget, setSoftDeleteTarget] = useState<any>(null);
     const [permanentDeleteTarget, setPermanentDeleteTarget] = useState<any>(null);
@@ -603,29 +606,39 @@ const CategoryManagement = () => {
                                             <img src={formData.image_url} alt="Preview" className="w-full h-full object-cover" />
                                         </div>
                                     )}
-                                    <label className={`flex-grow flex items-center justify-center gap-3 px-6 py-4 bg-white border-2 border-dashed border-gray-200 rounded-2xl cursor-pointer hover:border-primary/30 transition-all ${uploading ? 'opacity-50 pointer-events-none' : ''}`}>
-                                        <Upload className={`w-5 h-5 ${uploading ? 'animate-bounce' : 'text-gray-400'}`} />
-                                        <span className="text-sm font-bold text-gray-500">{uploading ? 'Uploading...' : 'Upload New Icon'}</span>
-                                        <input
-                                            type="file"
-                                            className="hidden"
-                                            accept="image/*"
-                                            onChange={async (e) => {
-                                                const file = e.target.files?.[0];
-                                                if (file) {
-                                                    try {
-                                                        setUploading(true);
-                                                        const data = await uploadFile('categories', file);
-                                                        setFormData({ ...formData, image_url: data.url });
-                                                    } catch (err) {
-                                                        alert('Failed to upload image');
-                                                    } finally {
-                                                        setUploading(false);
+                                    <div className="flex-grow flex flex-col sm:flex-row gap-3">
+                                        <label className={`flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-white border-2 border-dashed border-gray-200 rounded-xl cursor-pointer hover:border-primary/30 transition-all ${uploading ? 'opacity-50 pointer-events-none' : ''}`}>
+                                            <Upload className={`w-4 h-4 ${uploading ? 'animate-bounce' : 'text-gray-400'}`} />
+                                            <span className="text-sm font-bold text-gray-500">{uploading ? 'Uploading...' : 'Upload New'}</span>
+                                            <input
+                                                type="file"
+                                                className="hidden"
+                                                accept="image/*"
+                                                onChange={async (e) => {
+                                                    const file = e.target.files?.[0];
+                                                    if (file) {
+                                                        try {
+                                                            setUploading(true);
+                                                            const data = await uploadFile('categories', file);
+                                                            setFormData({ ...formData, image_url: data.url });
+                                                        } catch (err) {
+                                                            alert('Failed to upload image');
+                                                        } finally {
+                                                            setUploading(false);
+                                                        }
                                                     }
-                                                }
-                                            }}
-                                        />
-                                    </label>
+                                                }}
+                                            />
+                                        </label>
+                                        <button
+                                            type="button"
+                                            onClick={() => setIsMediaModalOpen(true)}
+                                            className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-indigo-50 text-indigo-700 hover:bg-indigo-100 rounded-xl transition-all border border-indigo-100 font-bold text-sm"
+                                        >
+                                            <ImageIcon className="w-4 h-4" />
+                                            Choose from Library
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
                             <div>
@@ -644,6 +657,17 @@ const CategoryManagement = () => {
                     </div>
                 </div>
             )}
+
+            <MediaLibraryModal
+                isOpen={isMediaModalOpen}
+                onClose={() => setIsMediaModalOpen(false)}
+                bucket="categories"
+                title="Select Taxonomy Icon"
+                onSelect={(url) => {
+                    setFormData({ ...formData, image_url: url });
+                    setIsMediaModalOpen(false);
+                }}
+            />
         </div>
     );
 };
