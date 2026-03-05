@@ -34,4 +34,4 @@
 - Open your Frontend URL.
 - Try adding a product to the cart or logging in.
 - If you see Network Errors, check the `VITE_API_URL` variable in your Frontend deployment settings on Vercel.
-- Check Vercel Logs for the Backend if API calls fail..
+- Check Vercel Logs for the Backend if API calls fail....
