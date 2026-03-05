@@ -332,12 +332,12 @@ export const listBucketFiles = async (bucket: string) => {
 };
 
 export const getCareerApplications = async (params?: { category?: string; status?: string }) => {
-    const response = await adminApi.get('/careers', { params });
+    const response = await adminApi.get('/admin/careers', { params });
     return response.data;
 };
 
 export const updateCareerApplicationStatus = async (id: string, status: string, old_status: string) => {
-    const response = await adminApi.patch(`/careers/${id}/status`, { status, old_status });
+    const response = await adminApi.patch(`/admin/careers/${id}/status`, { status, old_status });
     return response.data;
 };
 
@@ -361,7 +361,7 @@ export const getAuditLogs = async (params?: {
 };
 
 export const getResumeSignedUrl = async (path: string) => {
-    const response = await adminApi.post('/careers/signed-url', { path });
+    const response = await adminApi.post('/admin/careers/signed-url', { path });
     return response.data;
 };
 
