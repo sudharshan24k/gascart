@@ -120,14 +120,6 @@ const Login = () => {
         const password = formData.get('password') as string;
 
         try {
-            // Hardcoded admin credentials check
-            if (email === 'admin@admin.com' && password === 'admin') {
-                console.log('Logging in with hardcoded admin credentials');
-                sessionStorage.setItem('admin_logged_in', 'true');
-                setShowSuccessModal(true);
-                return;
-            }
-
             await authService.signIn(email, password);
             setShowSuccessModal(true);
         } catch (err: any) {
@@ -138,31 +130,45 @@ const Login = () => {
     };
 
     const handleModalConfirm = async () => {
+        console.log('[Login] Modal confirmed, refreshing auth...');
         setShowSuccessModal(false);
-        await refreshAuth();
+        setLoading(true);
 
-        // Log successful login
         try {
-            const session = await authService.getSession();
-            const isAdmin = sessionStorage.getItem('admin_logged_in') === 'true';
+            await refreshAuth();
 
-            await fetch(`${import.meta.env.VITE_API_URL}/admin/audit/log-auth`, {
+            // Log successful login
+            const session = await authService.getSession();
+
+            const response = await fetch(`${import.meta.env.VITE_API_URL}/admin/audit/log-auth`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${isAdmin ? 'development-token' : session?.access_token}`
+                    'Authorization': `Bearer ${session?.access_token}`
                 },
                 body: JSON.stringify({
                     action: 'LOGIN',
-                    description: `User logged in to Admin Dashboard ${isAdmin ? '(Dev Admin)' : ''}`,
-                    metadata: { is_dev_admin: isAdmin }
+                    description: `User logged in to Admin Dashboard`,
+                    metadata: {}
                 })
             });
+
+            if (!response.ok) {
+                console.error('[Audit] Failed to log login. Status:', response.status);
+                const errorData = await response.json().catch(() => ({}));
+                console.error('[Audit] Error details:', errorData);
+            }
         } catch (logErr) {
             console.warn('[Audit] Failed to log login:', logErr);
+        } finally {
+            setLoading(false);
+            // The top-level <Navigate to="/" /> in the component will handle the redirection 
+            // once isAuthenticated becomes true and loading becomes false.
+            // We only call navigate here if the reactive redirect doesn't fire for some reason.
+            setTimeout(() => {
+                navigate('/');
+            }, 100);
         }
-
-        navigate('/');
     };
 
     return (

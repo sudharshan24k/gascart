@@ -11,12 +11,6 @@ const adminApi = axios.create({
 // Add a request interceptor to automatically add the auth header
 adminApi.interceptors.request.use(async (config) => {
     try {
-        const isHardcodedAdmin = sessionStorage.getItem('admin_logged_in') === 'true';
-        if (isHardcodedAdmin) {
-            config.headers.Authorization = 'Bearer development-token';
-            return config;
-        }
-
         const { data: { session } } = await supabase.auth.getSession();
         if (session?.access_token) {
             config.headers.Authorization = `Bearer ${session.access_token}`;
@@ -214,10 +208,7 @@ export const fetchProductVendors = async (productId: string) => {
     return response.data.data;
 };
 
-export const fetchAuditLogs = async (params?: { target_type?: string; target_id?: string; limit?: number }) => {
-    const response = await adminApi.get('/admin/audit-logs', { params });
-    return response.data.data;
-};
+// Audit management services have been unified under getAuditLogs
 
 
 // Document Management
@@ -341,22 +332,36 @@ export const listBucketFiles = async (bucket: string) => {
 };
 
 export const getCareerApplications = async (params?: { category?: string; status?: string }) => {
-    const response = await adminApi.get('/careers', { params });
+    const response = await adminApi.get('/admin/careers', { params });
     return response.data;
 };
 
 export const updateCareerApplicationStatus = async (id: string, status: string, old_status: string) => {
-    const response = await adminApi.patch(`/careers/${id}/status`, { status, old_status });
+    const response = await adminApi.patch(`/admin/careers/${id}/status`, { status, old_status });
     return response.data;
 };
 
-export const getAuditLogs = async (params?: Partial<{ action: string; entity_type: string; actor_id: string; search: string; start_date: string; end_date: string; limit: number; offset: number; }>) => {
+export const getAuditLogs = async (params?: {
+    action?: string;
+    entity_type?: string;
+    target_type?: string;
+    entity_id?: string;
+    target_id?: string;
+    entity_label?: string;
+    actor_id?: string;
+    actor_email?: string;
+    search?: string;
+    start_date?: string;
+    end_date?: string;
+    limit?: number;
+    offset?: number;
+}) => {
     const response = await adminApi.get('/admin/audit-logs', { params });
-    return response.data;
+    return response.data; // Returns { status, total, results, data }
 };
 
 export const getResumeSignedUrl = async (path: string) => {
-    const response = await adminApi.post('/careers/signed-url', { path });
+    const response = await adminApi.post('/admin/careers/signed-url', { path });
     return response.data;
 };
 

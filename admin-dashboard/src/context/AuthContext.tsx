@@ -32,29 +32,27 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const [userProfile, setUserProfile] = useState<any | null>(null);
 
     const refreshAuth = async () => {
+        // Prevent concurrent refreshes if needed, but for now just ensure state is set correctly
         setLoading(true);
         try {
-            const { data: { session } } = await supabase.auth.getSession();
-            const isHardcodedAdmin = sessionStorage.getItem('admin_logged_in') === 'true';
-
-            if (isHardcodedAdmin) {
-                setIsAuthenticated(true);
-                setIsAdmin(true);
-                setIsSuperAdmin(true);
-                setPermissions(['super_admin']); // Super admin has all permissions implicitly
-                return;
-            }
+            const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+            if (sessionError) throw sessionError;
 
             if (session) {
-                const { data: profile } = await supabase
+                const { data: profile, error: profileError } = await supabase
                     .from('profiles')
                     .select('*')
                     .eq('id', session.user.id)
                     .single();
 
+                if (profileError) throw profileError;
+
                 if (profile?.account_status === 'banned' || profile?.account_status === 'deactivated') {
+                    console.warn('[Auth] Account deactivated');
                     await supabase.auth.signOut();
                     setIsAuthenticated(false);
+                    setIsAdmin(false);
+                    setUserProfile(null);
                 } else if (profile?.role === 'admin') {
                     setIsAuthenticated(true);
                     setIsAdmin(true);
@@ -64,8 +62,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                     setPermissions(perms);
                     setIsSuperAdmin(perms.includes('super_admin'));
                 } else {
+                    console.warn('[Auth] User is not an admin');
                     await supabase.auth.signOut();
                     setIsAuthenticated(false);
+                    setIsAdmin(false);
+                    setUserProfile(null);
                 }
             } else {
                 setIsAuthenticated(false);
@@ -74,6 +75,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 setPermissions([]);
                 setUserProfile(null);
             }
+        } catch (err) {
+            console.error('[Auth] Refresh error:', err);
+            // In case of error, default to unauthenticated
+            setIsAuthenticated(false);
+            setIsAdmin(false);
+            setUserProfile(null);
         } finally {
             setLoading(false);
         }
@@ -82,47 +89,55 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     useEffect(() => {
         refreshAuth();
 
-        const { data: { subscription } } = supabase.auth.onAuthStateChange(() => {
-            refreshAuth();
+        const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
+            console.log(`[Auth] State change: ${event}`);
+            if (event === 'SIGNED_IN' || event === 'SIGNED_OUT' || event === 'USER_UPDATED') {
+                refreshAuth();
+            }
         });
 
         return () => subscription.unsubscribe();
     }, []);
 
-    // 30-minute auto-logout idle timer
+    // Autologout idle timer
     useEffect(() => {
         let timeoutId: ReturnType<typeof setTimeout>;
         const INACTIVITY_LIMIT_MS = 30 * 60 * 1000; // 30 minutes
 
-        const handleActivity = () => {
-            clearTimeout(timeoutId);
+        const performLogout = async () => {
+            console.log('Session expired due to inactivity. Logging out...');
+            try {
+                await supabase.auth.signOut();
+            } catch (e) {
+                console.warn('Sign out failed during autologout', e);
+            }
+            setIsAuthenticated(false);
+            setIsAdmin(false);
+            window.location.href = '/login?reason=inactivity';
+        };
+
+        const resetTimer = () => {
+            if (timeoutId) clearTimeout(timeoutId);
             if (isAuthenticated) {
-                timeoutId = setTimeout(async () => {
-                    console.log('Session expired due to inactivity. Logging out...');
-                    await supabase.auth.signOut();
-                    sessionStorage.removeItem('admin_logged_in');
-                    window.location.href = '/login'; // Force redirect to login
-                }, INACTIVITY_LIMIT_MS);
+                timeoutId = setTimeout(performLogout, INACTIVITY_LIMIT_MS);
             }
         };
 
         if (isAuthenticated) {
-            handleActivity(); // Start timer
+            resetTimer();
 
-            // Add event listeners for user activity
-            window.addEventListener('mousemove', handleActivity);
-            window.addEventListener('keydown', handleActivity);
-            window.addEventListener('scroll', handleActivity);
-            window.addEventListener('click', handleActivity);
+            const activityEvents = ['mousemove', 'keydown', 'scroll', 'click', 'touchstart'];
+            activityEvents.forEach(event => {
+                window.addEventListener(event, resetTimer);
+            });
+
+            return () => {
+                if (timeoutId) clearTimeout(timeoutId);
+                activityEvents.forEach(event => {
+                    window.removeEventListener(event, resetTimer);
+                });
+            };
         }
-
-        return () => {
-            clearTimeout(timeoutId);
-            window.removeEventListener('mousemove', handleActivity);
-            window.removeEventListener('keydown', handleActivity);
-            window.removeEventListener('scroll', handleActivity);
-            window.removeEventListener('click', handleActivity);
-        };
     }, [isAuthenticated]);
 
     return (

@@ -61,9 +61,6 @@ export const api = {
     consultants: {
         getInquiries: async (params?: Record<string, string>) => {
             let token = (await supabase.auth.getSession()).data.session?.access_token;
-            if (!token && sessionStorage.getItem('admin_logged_in') === 'true') {
-                token = 'development-token'; // Use the bypass token for local dev
-            }
             if (!token) throw new Error('Not authenticated');
 
             const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3000/api/v1';
@@ -78,9 +75,6 @@ export const api = {
         },
         updateInquiryStatus: async (id: string, status: string) => {
             let token = (await supabase.auth.getSession()).data.session?.access_token;
-            if (!token && sessionStorage.getItem('admin_logged_in') === 'true') {
-                token = 'development-token';
-            }
             if (!token) throw new Error('Not authenticated');
 
             const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3000/api/v1';

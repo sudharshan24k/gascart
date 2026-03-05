@@ -48,7 +48,7 @@ const ROLE_PRESETS = [
 ];
 
 const AdminManagement: React.FC = () => {
-    const { userProfile } = useAuth();
+    const { userProfile, isSuperAdmin } = useAuth();
     const [admins, setAdmins] = useState<User[]>([]);
     const [loading, setLoading] = useState(true);
     const [selectedAdminId, setSelectedAdminId] = useState<string | null>(null);
@@ -175,13 +175,15 @@ const AdminManagement: React.FC = () => {
                     <h1 className="text-2xl font-bold text-gray-900">Admin Access Control</h1>
                     <p className="text-gray-500 text-sm">Manage dashboard permissions for administrators</p>
                 </div>
-                <button
-                    onClick={() => setShowCreateModal(true)}
-                    className="flex items-center gap-2 px-6 py-2.5 bg-indigo-600 hover:bg-white hover:text-indigo-600 border border-indigo-600 text-white rounded-xl text-sm font-bold transition-all shadow-md group"
-                >
-                    <Plus className="w-5 h-5 group-hover:scale-110 transition-transform" />
-                    Add Administrator
-                </button>
+                {isSuperAdmin && (
+                    <button
+                        onClick={() => setShowCreateModal(true)}
+                        className="flex items-center gap-2 px-6 py-2.5 bg-indigo-600 hover:bg-white hover:text-indigo-600 border border-indigo-600 text-white rounded-xl text-sm font-bold transition-all shadow-md group"
+                    >
+                        <Plus className="w-5 h-5 group-hover:scale-110 transition-transform" />
+                        Add Administrator
+                    </button>
+                )}
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">

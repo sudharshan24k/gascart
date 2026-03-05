@@ -231,6 +231,10 @@ export const getAuditLogs = async (req: Request, res: Response, next: NextFuncti
         const {
             action,
             entity_type,
+            target_type, // alias
+            entity_id,
+            target_id, // alias
+            entity_label,
             actor_id,
             actor_email,
             search,
@@ -247,12 +251,24 @@ export const getAuditLogs = async (req: Request, res: Response, next: NextFuncti
             .limit(Number(limit))
             .range(Number(offset), Number(offset) + Number(limit) - 1);
 
+        // Apply filters
         if (action) query = query.eq('action', action);
-        if (entity_type) query = query.eq('entity_type', entity_type);
+
+        // Handle entity type (with alias)
+        const finalEntityType = entity_type || target_type;
+        if (finalEntityType) query = query.eq('entity_type', finalEntityType);
+
+        // Handle entity ID (with alias)
+        const finalEntityId = entity_id || target_id;
+        if (finalEntityId) query = query.eq('entity_id', finalEntityId);
+
+        if (entity_label) query = query.ilike('entity_label', `%${entity_label}%`);
         if (actor_id) query = query.eq('actor_id', actor_id);
         if (actor_email) query = query.eq('actor_email', actor_email);
+
         if (start_date) query = query.gte('created_at', start_date as string);
         if (end_date) query = query.lte('created_at', `${end_date}T23:59:59Z`);
+
         if (search) query = query.ilike('description', `%${search}%`);
 
         const { data, error, count } = await query;
@@ -317,6 +333,7 @@ export const updateCareerApplicationStatus = async (req: Request, res: Response,
 export const logAuthEvent = async (req: Request, res: Response, next: NextFunction) => {
     try {
         const { action, description, metadata } = req.body;
+        console.log(`[Audit] Logging auth event: ${action} - ${description} (User: ${req.user?.email})`);
 
         if (!['LOGIN', 'LOGOUT'].includes(action)) {
             return res.status(400).json({ status: 'fail', message: 'Invalid auth action' });

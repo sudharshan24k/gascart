@@ -15,7 +15,7 @@ import {
     Calendar
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { fetchAdminProducts, updateProductInventory, fetchAuditLogs } from '../services/admin.service';
+import { fetchAdminProducts, updateProductInventory, getAuditLogs } from '../services/admin.service';
 
 const Inventory = () => {
     const [products, setProducts] = useState<any[]>([]);
@@ -47,8 +47,8 @@ const Inventory = () => {
 
     const loadAuditLogs = async (productId: string) => {
         try {
-            const data = await fetchAuditLogs({ target_type: 'product', target_id: productId, limit: 10 });
-            setAuditLogs(data || []);
+            const res = await getAuditLogs({ target_type: 'product', target_id: productId, limit: 10 });
+            setAuditLogs(res.data || []);
         } catch (err) {
             console.error('Failed to load audit logs', err);
         }
@@ -518,12 +518,19 @@ const Inventory = () => {
                                         {auditLogs.length > 0 ? auditLogs.map((log) => (
                                             <div key={log.id} className="flex justify-between items-center p-4 bg-slate-50 rounded-2xl border border-slate-100/50 hover:bg-white transition-colors">
                                                 <div className="flex items-center gap-4">
-                                                    <div className={`w-2 h-2 rounded-full ${log.status === 'optimal' ? 'bg-emerald-500' : log.status === 'updated' ? 'bg-indigo-500' : 'bg-rose-500'}`} />
-                                                    <span className="text-xs font-bold text-slate-700">{log.action.replace(/_/g, ' ')}</span>
+                                                    <div className={`w-2 h-2 rounded-full ${log.action === 'CREATE' ? 'bg-green-500' : log.action === 'UPDATE' ? 'bg-blue-500' : 'bg-rose-500'}`} />
+                                                    <div className="flex flex-col">
+                                                        <span className="text-xs font-bold text-slate-700">{log.action}</span>
+                                                        <span className="text-[10px] text-slate-500 line-clamp-1">{log.description}</span>
+                                                    </div>
                                                 </div>
                                                 <div className="text-right">
-                                                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-tighter">{new Date(log.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</p>
-                                                    <p className={`text-[9px] font-bold uppercase mt-0.5 ${log.status === 'optimal' ? 'text-emerald-600' : log.status === 'updated' ? 'text-indigo-600' : 'text-rose-600'}`}>{log.status}</p>
+                                                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-tighter">
+                                                        {new Date(log.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                                    </p>
+                                                    <p className={`text-[9px] font-bold uppercase mt-0.5 ${log.action === 'CREATE' ? 'text-green-600' : log.action === 'UPDATE' ? 'text-blue-600' : 'text-rose-600'}`}>
+                                                        {new Date(log.created_at).toLocaleDateString([], { day: '2-digit', month: 'short' })}
+                                                    </p>
                                                 </div>
                                             </div>
                                         )) : (
