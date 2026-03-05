@@ -1,4 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
+import { AuthRequest } from '../middlewares/auth.middleware';
 import { supabase } from '../config/supabase';
 import archiver from 'archiver';
 import { generateInvoiceBuffer, generateInvoiceStream } from '../utils/invoice.util';
@@ -330,7 +331,7 @@ export const updateCareerApplicationStatus = async (req: Request, res: Response,
     }
 };
 
-export const logAuthEvent = async (req: Request, res: Response, next: NextFunction) => {
+export const logAuthEvent = async (req: AuthRequest, res: Response, next: NextFunction) => {
     try {
         const { action, description, metadata } = req.body;
         console.log(`[Audit] Logging auth event: ${action} - ${description} (User: ${req.user?.email})`);
