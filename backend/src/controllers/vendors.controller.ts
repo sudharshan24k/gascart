@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import { supabase } from '../config/supabase';
+import { logAction } from '../utils/auditLogger';
 
 // Public vendor enquiry submission
 export const submitVendorEnquiry = async (req: Request, res: Response, next: NextFunction) => {
@@ -227,6 +228,13 @@ export const createVendor = async (req: Request, res: Response, next: NextFuncti
 
         if (error) throw error;
 
+        await logAction(req, 'CREATE', `Created vendor profile for '${company_name}'`, {
+            entity_type: 'vendor',
+            entity_id: data.id,
+            entity_label: company_name,
+            metadata: { vendor: data }
+        });
+
         // Include the temporary password in response so admin could share it with the vendor (if needed)
         res.status(201).json({ status: 'success', data: { ...data, temporary_password: tempPassword } });
     } catch (err) {
@@ -260,6 +268,8 @@ export const deleteVendor = async (req: Request, res: Response, next: NextFuncti
     try {
         const { id } = req.params;
 
+        const { data: vendor } = await supabase.from('profiles').select('company_name').eq('id', id).single();
+
         const { error } = await supabase
             .from('profiles')
             .delete()
@@ -267,6 +277,13 @@ export const deleteVendor = async (req: Request, res: Response, next: NextFuncti
             .eq('role', 'vendor');
 
         if (error) throw error;
+
+        await logAction(req, 'DELETE', `Deleted vendor '${vendor?.company_name || id}'`, {
+            entity_type: 'vendor',
+            entity_id: id,
+            entity_label: vendor?.company_name || id
+        });
+
         res.json({ status: 'success', message: 'Vendor deleted successfully' });
     } catch (err) {
         next(err);

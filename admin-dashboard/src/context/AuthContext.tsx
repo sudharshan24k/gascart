@@ -8,6 +8,7 @@ interface AuthContextType {
     permissions: string[];
     loading: boolean;
     userProfile: any | null;
+    refreshAuth: () => Promise<void>;
 }
 
 export const AuthContext = createContext<AuthContextType>({
@@ -17,6 +18,7 @@ export const AuthContext = createContext<AuthContextType>({
     permissions: [],
     loading: true,
     userProfile: null,
+    refreshAuth: async () => { },
 });
 
 export const useAuth = () => useContext(AuthContext);
@@ -29,17 +31,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const [permissions, setPermissions] = useState<string[]>([]);
     const [userProfile, setUserProfile] = useState<any | null>(null);
 
-    useEffect(() => {
-        const fetchAuth = async () => {
+    const refreshAuth = async () => {
+        setLoading(true);
+        try {
             const { data: { session } } = await supabase.auth.getSession();
-            const isHardcodedAdmin = localStorage.getItem('admin_logged_in') === 'true';
+            const isHardcodedAdmin = sessionStorage.getItem('admin_logged_in') === 'true';
 
             if (isHardcodedAdmin) {
                 setIsAuthenticated(true);
                 setIsAdmin(true);
                 setIsSuperAdmin(true);
                 setPermissions(['super_admin']); // Super admin has all permissions implicitly
-                setLoading(false);
                 return;
             }
 
@@ -67,14 +69,21 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 }
             } else {
                 setIsAuthenticated(false);
+                setIsAdmin(false);
+                setIsSuperAdmin(false);
+                setPermissions([]);
+                setUserProfile(null);
             }
+        } finally {
             setLoading(false);
-        };
+        }
+    };
 
-        fetchAuth();
+    useEffect(() => {
+        refreshAuth();
 
         const { data: { subscription } } = supabase.auth.onAuthStateChange(() => {
-            fetchAuth();
+            refreshAuth();
         });
 
         return () => subscription.unsubscribe();
@@ -91,7 +100,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 timeoutId = setTimeout(async () => {
                     console.log('Session expired due to inactivity. Logging out...');
                     await supabase.auth.signOut();
-                    localStorage.removeItem('admin_logged_in');
+                    sessionStorage.removeItem('admin_logged_in');
                     window.location.href = '/login'; // Force redirect to login
                 }, INACTIVITY_LIMIT_MS);
             }
@@ -117,7 +126,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }, [isAuthenticated]);
 
     return (
-        <AuthContext.Provider value={{ isAuthenticated, isAdmin, isSuperAdmin, permissions, loading, userProfile }}>
+        <AuthContext.Provider value={{
+            isAuthenticated,
+            isAdmin,
+            isSuperAdmin,
+            permissions,
+            loading,
+            userProfile,
+            refreshAuth
+        }}>
             {children}
         </AuthContext.Provider>
     );

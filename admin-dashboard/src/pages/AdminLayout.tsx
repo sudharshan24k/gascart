@@ -97,7 +97,28 @@ const AdminLayout = () => {
     })).filter(group => group.items.length > 0);
 
     const handleLogout = async () => {
-        localStorage.removeItem('admin_logged_in');
+        // Log logout before clearing session
+        try {
+            const { data: { session } } = await supabase.auth.getSession();
+            const isAdmin = sessionStorage.getItem('admin_logged_in') === 'true';
+
+            await fetch(`${import.meta.env.VITE_API_URL}/admin/audit/log-auth`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${isAdmin ? 'development-token' : session?.access_token}`
+                },
+                body: JSON.stringify({
+                    action: 'LOGOUT',
+                    description: `User logged out from Admin Dashboard ${isAdmin ? '(Dev Admin)' : ''}`,
+                    metadata: { is_dev_admin: isAdmin }
+                })
+            });
+        } catch (logErr) {
+            console.warn('[Audit] Failed to log logout:', logErr);
+        }
+
+        sessionStorage.removeItem('admin_logged_in');
         await authService.signOut();
         navigate('/login');
     };

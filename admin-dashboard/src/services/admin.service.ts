@@ -11,7 +11,7 @@ const adminApi = axios.create({
 // Add a request interceptor to automatically add the auth header
 adminApi.interceptors.request.use(async (config) => {
     try {
-        const isHardcodedAdmin = localStorage.getItem('admin_logged_in') === 'true';
+        const isHardcodedAdmin = sessionStorage.getItem('admin_logged_in') === 'true';
         if (isHardcodedAdmin) {
             config.headers.Authorization = 'Bearer development-token';
             return config;
@@ -360,3 +360,12 @@ export const getResumeSignedUrl = async (path: string) => {
     return response.data;
 };
 
+export const createAdmin = async (adminData: { email: string; full_name: string; password?: string; permissions: string[] }) => {
+    const response = await adminApi.post('/admin/users/create-admin', adminData);
+    return response.data.data;
+};
+
+export const deleteAdmin = async (userId: string) => {
+    const response = await adminApi.delete(`/admin/users/${userId}`);
+    return response.data;
+};

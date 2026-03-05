@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import { supabase } from '../config/supabase';
 import redis from '../services/redis.service';
-import { logAdminAction } from '../services/audit.service';
+import { logAction } from '../utils/auditLogger';
 
 export const getProducts = async (req: Request, res: Response, next: NextFunction) => {
     try {
@@ -225,9 +225,6 @@ export const getProduct = async (req: Request, res: Response, next: NextFunction
 
 export const createProduct = async (req: Request, res: Response, next: NextFunction) => {
     try {
-        // Basic validation should be here or in middleware
-        const { name, price, category_id, vendor_id, slug } = req.body;
-
         const { data, error } = await supabase
             .from('products')
             .insert([req.body])
@@ -235,6 +232,13 @@ export const createProduct = async (req: Request, res: Response, next: NextFunct
             .single();
 
         if (error) throw error;
+
+        await logAction(req, 'CREATE', `Created product '${data.name}'`, {
+            entity_type: 'product',
+            entity_id: data.id,
+            entity_label: data.name,
+            metadata: { product: data }
+        });
 
         res.status(201).json({ status: 'success', data });
     } catch (err) {
@@ -256,6 +260,13 @@ export const updateProduct = async (req: Request, res: Response, next: NextFunct
 
         if (error) throw error;
 
+        await logAction(req, 'UPDATE', `Updated product '${data.name}'`, {
+            entity_type: 'product',
+            entity_id: id,
+            entity_label: data.name,
+            metadata: { updates }
+        });
+
         res.json({ status: 'success', data });
     } catch (err) {
         next(err);
@@ -266,12 +277,22 @@ export const updateProduct = async (req: Request, res: Response, next: NextFunct
 export const deleteProduct = async (req: Request, res: Response, next: NextFunction) => {
     try {
         const { id } = req.params;
+
+        // Fetch product name before deletion for logging
+        const { data: product } = await supabase.from('products').select('name').eq('id', id).single();
+
         const { error } = await supabase
             .from('products')
             .delete()
             .eq('id', id);
 
         if (error) throw error;
+
+        await logAction(req, 'DELETE', `Deleted product '${product?.name || id}'`, {
+            entity_type: 'product',
+            entity_id: id,
+            entity_label: product?.name || id
+        });
 
         res.json({ status: 'success', message: 'Product deleted successfully' });
     } catch (err) {
@@ -319,17 +340,16 @@ export const updateInventory = async (req: Request, res: Response, next: NextFun
             if (error) throw error;
 
             // Log the inventory update
-            await logAdminAction({
-                action: 'UPDATE_INVENTORY',
-                targetType: 'product',
-                targetId: id,
-                details: {
+            await logAction(req, 'UPDATE', `Updated inventory for '${product.name}': stock ${product.stock_quantity} → ${finalStock}`, {
+                entity_type: 'product',
+                entity_id: id,
+                entity_label: product.name,
+                metadata: {
                     product_name: product.name,
                     previous_stock: product.stock_quantity,
                     new_stock: finalStock,
                     updates: Object.keys(updates).filter(k => k !== 'stock_quantity')
-                },
-                status: 'updated'
+                }
             });
 
             return res.json({ status: 'success', data });

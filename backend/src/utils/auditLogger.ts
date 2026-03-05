@@ -80,7 +80,7 @@ export const logAction = async (
     const user = (req as AuthRequest).user;
 
     await writeAuditLog({
-        actor_id: user?.id,
+        actor_id: user?.is_dev ? undefined : user?.id,
         actor_email: user?.email,
         actor_role: user?.role,
         action,

@@ -118,7 +118,7 @@ const UserManagement: React.FC = () => {
             // If the backend allows it, we could pass token as query param, but better to fetch with axios.
             // Let's use fetch with auth just like before but simplified.
             const { data: { session } } = await supabase.auth.getSession();
-            const token = localStorage.getItem('admin_logged_in') === 'true' ? 'development-token' : session?.access_token;
+            const token = sessionStorage.getItem('admin_logged_in') === 'true' ? 'development-token' : session?.access_token;
 
             const response = await fetch(url, {
                 headers: { 'Authorization': `Bearer ${token}` }

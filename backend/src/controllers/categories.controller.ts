@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import { supabase } from '../config/supabase';
+import { logAction } from '../utils/auditLogger';
 
 export const getCategories = async (req: Request, res: Response, next: NextFunction) => {
     try {
@@ -22,17 +23,21 @@ export const getCategories = async (req: Request, res: Response, next: NextFunct
 
 export const createCategory = async (req: Request, res: Response, next: NextFunction) => {
     try {
-        console.log('[CategoriesController] Creating category with body:', req.body);
         const { data, error } = await supabase
             .from('categories')
             .insert([{ ...req.body, status: 'active' }])
             .select()
             .single();
 
-        if (error) {
-            console.error('[CategoriesController] Insert error:', error);
-            throw error;
-        }
+        if (error) throw error;
+
+        await logAction(req, 'CREATE', `Created category '${data.name}'`, {
+            entity_type: 'category',
+            entity_id: data.id,
+            entity_label: data.name,
+            metadata: { category: data }
+        });
+
         res.status(201).json({ status: 'success', data });
     } catch (err) {
         next(err);
@@ -50,6 +55,14 @@ export const updateCategory = async (req: Request, res: Response, next: NextFunc
             .single();
 
         if (error) throw error;
+
+        await logAction(req, 'UPDATE', `Updated category '${data.name}'`, {
+            entity_type: 'category',
+            entity_id: id,
+            entity_label: data.name,
+            metadata: { updates: req.body }
+        });
+
         res.json({ status: 'success', data });
     } catch (err) {
         next(err);
@@ -60,11 +73,22 @@ export const updateCategory = async (req: Request, res: Response, next: NextFunc
 export const deleteCategory = async (req: Request, res: Response, next: NextFunction) => {
     try {
         const { id } = req.params;
+
+        const { data: category } = await supabase.from('categories').select('name').eq('id', id).single();
+
         const { error } = await supabase
             .from('categories')
             .update({ status: 'deleted' })
             .eq('id', id);
+
         if (error) throw error;
+
+        await logAction(req, 'DELETE', `Soft-deleted category '${category?.name || id}'`, {
+            entity_type: 'category',
+            entity_id: id,
+            entity_label: category?.name || id
+        });
+
         res.json({ status: 'success', message: 'Category marked as deleted' });
     } catch (err) {
         next(err);

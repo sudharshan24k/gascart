@@ -90,7 +90,7 @@ const Login = () => {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [showSuccessModal, setShowSuccessModal] = useState(false);
-    const { isAuthenticated, loading: authLoading } = useAuth();
+    const { isAuthenticated, loading: authLoading, refreshAuth } = useAuth();
 
     useEffect(() => {
         if (location.state?.error) {
@@ -123,7 +123,7 @@ const Login = () => {
             // Hardcoded admin credentials check
             if (email === 'admin@admin.com' && password === 'admin') {
                 console.log('Logging in with hardcoded admin credentials');
-                localStorage.setItem('admin_logged_in', 'true');
+                sessionStorage.setItem('admin_logged_in', 'true');
                 setShowSuccessModal(true);
                 return;
             }
@@ -137,8 +137,31 @@ const Login = () => {
         }
     };
 
-    const handleModalConfirm = () => {
+    const handleModalConfirm = async () => {
         setShowSuccessModal(false);
+        await refreshAuth();
+
+        // Log successful login
+        try {
+            const session = await authService.getSession();
+            const isAdmin = sessionStorage.getItem('admin_logged_in') === 'true';
+
+            await fetch(`${import.meta.env.VITE_API_URL}/admin/audit/log-auth`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${isAdmin ? 'development-token' : session?.access_token}`
+                },
+                body: JSON.stringify({
+                    action: 'LOGIN',
+                    description: `User logged in to Admin Dashboard ${isAdmin ? '(Dev Admin)' : ''}`,
+                    metadata: { is_dev_admin: isAdmin }
+                })
+            });
+        } catch (logErr) {
+            console.warn('[Audit] Failed to log login:', logErr);
+        }
+
         navigate('/');
     };
 

@@ -1,21 +1,45 @@
 import React, { useState, useEffect } from 'react';
-import { ShieldAlert, Search, Filter, RefreshCw, Activity, User, FileText, Database, Server } from 'lucide-react';
-import { getAuditLogs } from '../services/admin.service';
+import { ShieldAlert, Search, Filter, RefreshCw, Activity, User, FileText, Database, Server, Calendar, Mail } from 'lucide-react';
+import { getAuditLogs, fetchAllUsers } from '../services/admin.service';
 
 const AuditLogs: React.FC = () => {
     const [logs, setLogs] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [total, setTotal] = useState(0);
+    const [admins, setAdmins] = useState<any[]>([]);
 
     // Filters
     const [search, setSearch] = useState('');
     const [action, setAction] = useState('');
     const [entityType, setEntityType] = useState('');
+    const [actorEmail, setActorEmail] = useState('');
+    const [startDate, setStartDate] = useState('');
+    const [endDate, setEndDate] = useState('');
+
+    useEffect(() => {
+        loadAdmins();
+    }, []);
+
+    const loadAdmins = async () => {
+        try {
+            const data = await fetchAllUsers({ role: 'admin' });
+            setAdmins(data as any[]);
+        } catch (error) {
+            console.error('Failed to load admins for filter:', error);
+        }
+    };
 
     const fetchLogs = async () => {
         setLoading(true);
         try {
-            const res = await getAuditLogs({ search, action, entity_type: entityType });
+            const res = await getAuditLogs({
+                search,
+                action,
+                entity_type: entityType,
+                actor_email: actorEmail,
+                start_date: startDate,
+                end_date: endDate
+            });
             if (res.status === 'success') {
                 setLogs(res.data);
                 setTotal(res.total);
@@ -29,12 +53,21 @@ const AuditLogs: React.FC = () => {
 
     useEffect(() => {
         fetchLogs();
-    }, [action, entityType]);
+    }, [action, entityType, actorEmail, startDate, endDate]);
 
     // Handle search input separately so it doesn't fetch on every keystroke
     const handleSearch = (e: React.FormEvent) => {
         e.preventDefault();
         fetchLogs();
+    };
+
+    const clearFilters = () => {
+        setSearch('');
+        setAction('');
+        setEntityType('');
+        setActorEmail('');
+        setStartDate('');
+        setEndDate('');
     };
 
     const getActionBadge = (actionStr: string) => {
@@ -74,34 +107,57 @@ const AuditLogs: React.FC = () => {
                         </p>
                     </div>
                 </div>
-                <button
-                    onClick={fetchLogs}
-                    className="flex items-center gap-2 px-4 py-2 bg-neutral-100 hover:bg-neutral-200 text-neutral-700 rounded-lg text-sm font-bold transition-colors"
-                >
-                    <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} /> Refresh
-                </button>
+                <div className="flex gap-2">
+                    <button
+                        onClick={clearFilters}
+                        className="px-4 py-2 text-neutral-500 hover:text-neutral-800 text-sm font-bold transition-colors"
+                    >
+                        Clear Filters
+                    </button>
+                    <button
+                        onClick={fetchLogs}
+                        className="flex items-center gap-2 px-4 py-2 bg-neutral-100 hover:bg-neutral-200 text-neutral-700 rounded-lg text-sm font-bold transition-colors"
+                    >
+                        <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} /> Refresh
+                    </button>
+                </div>
             </div>
 
             {/* Filters */}
-            <div className="bg-white p-4 rounded-xl border border-neutral-200 flex flex-col md:flex-row gap-4 items-center shadow-sm">
-                <form onSubmit={handleSearch} className="flex-1 relative w-full">
-                    <Search className="w-4 h-4 text-neutral-400 absolute left-4 top-1/2 -translate-y-1/2" />
-                    <input
-                        type="text"
-                        placeholder="Search logs by description or ID..."
-                        className="w-full pl-10 pr-4 py-2.5 bg-neutral-50 border border-neutral-200 rounded-lg text-sm outline-none focus:ring-2 focus:ring-rose-500/20 focus:border-rose-300 transition-all font-medium"
-                        value={search}
-                        onChange={(e) => setSearch(e.target.value)}
-                    />
-                </form>
+            <div className="bg-white p-6 rounded-2xl border border-neutral-200 space-y-4 shadow-sm">
+                <div className="flex flex-col lg:flex-row gap-4">
+                    <form onSubmit={handleSearch} className="flex-grow relative group">
+                        <Search className="w-4 h-4 text-neutral-400 absolute left-4 top-1/2 -translate-y-1/2 group-focus-within:text-rose-500 transition-colors" />
+                        <input
+                            type="text"
+                            placeholder="Search logs by description or ID..."
+                            className="w-full pl-10 pr-4 py-2.5 bg-neutral-50 border border-neutral-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-rose-500/20 focus:border-rose-300 transition-all font-medium"
+                            value={search}
+                            onChange={(e) => setSearch(e.target.value)}
+                        />
+                    </form>
 
-                <div className="h-8 w-px bg-neutral-200 hidden md:block"></div>
-
-                <div className="flex gap-3 w-full md:w-auto">
-                    <div className="relative w-full md:w-48 group">
-                        <Filter className="w-4 h-4 text-neutral-400 absolute left-3 top-1/2 -translate-y-1/2 group-focus-within:text-rose-500 transition-colors" />
+                    <div className="relative w-full lg:w-64 group">
+                        <Mail className="w-4 h-4 text-neutral-400 absolute left-4 top-1/2 -translate-y-1/2 group-focus-within:text-rose-500 transition-colors" />
                         <select
-                            className="w-full pl-9 pr-4 py-2.5 bg-neutral-50 border border-neutral-200 rounded-lg text-sm font-medium outline-none focus:ring-2 focus:ring-rose-500/20 focus:border-rose-300 cursor-pointer appearance-none"
+                            className="w-full pl-10 pr-4 py-2.5 bg-neutral-50 border border-neutral-200 rounded-xl text-sm font-medium outline-none focus:ring-2 focus:ring-rose-500/20 focus:border-rose-300 cursor-pointer appearance-none"
+                            value={actorEmail}
+                            onChange={(e) => setActorEmail(e.target.value)}
+                        >
+                            <option value="">All Administrators</option>
+                            <option value="sudo-admin@gascart.com">Development Admin</option>
+                            {admins.map(admin => (
+                                <option key={admin.id} value={admin.email}>{admin.full_name || admin.email}</option>
+                            ))}
+                        </select>
+                    </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <div className="relative group">
+                        <Filter className="w-4 h-4 text-neutral-400 absolute left-4 top-1/2 -translate-y-1/2 group-focus-within:text-rose-500 transition-colors" />
+                        <select
+                            className="w-full pl-10 pr-4 py-2.5 bg-neutral-50 border border-neutral-200 rounded-xl text-sm font-medium outline-none focus:ring-2 focus:ring-rose-500/20 focus:border-rose-300 cursor-pointer appearance-none"
                             value={action}
                             onChange={(e) => setAction(e.target.value)}
                         >
@@ -115,10 +171,10 @@ const AuditLogs: React.FC = () => {
                         </select>
                     </div>
 
-                    <div className="relative w-full md:w-48 group">
-                        <Filter className="w-4 h-4 text-neutral-400 absolute left-3 top-1/2 -translate-y-1/2 group-focus-within:text-rose-500 transition-colors" />
+                    <div className="relative group">
+                        <Filter className="w-4 h-4 text-neutral-400 absolute left-4 top-1/2 -translate-y-1/2 group-focus-within:text-rose-500 transition-colors" />
                         <select
-                            className="w-full pl-9 pr-4 py-2.5 bg-neutral-50 border border-neutral-200 rounded-lg text-sm font-medium outline-none focus:ring-2 focus:ring-rose-500/20 focus:border-rose-300 cursor-pointer appearance-none"
+                            className="w-full pl-10 pr-4 py-2.5 bg-neutral-50 border border-neutral-200 rounded-xl text-sm font-medium outline-none focus:ring-2 focus:ring-rose-500/20 focus:border-rose-300 cursor-pointer appearance-none"
                             value={entityType}
                             onChange={(e) => setEntityType(e.target.value)}
                         >
@@ -129,6 +185,28 @@ const AuditLogs: React.FC = () => {
                             <option value="order">Order</option>
                             <option value="sys">System</option>
                         </select>
+                    </div>
+
+                    <div className="relative group">
+                        <Calendar className="w-4 h-4 text-neutral-400 absolute left-4 top-1/2 -translate-y-1/2 group-focus-within:text-rose-500 transition-colors" />
+                        <input
+                            type="date"
+                            className="w-full pl-10 pr-4 py-2.5 bg-neutral-50 border border-neutral-200 rounded-xl text-sm font-medium outline-none focus:ring-2 focus:ring-rose-500/20 focus:border-rose-300 transition-all"
+                            value={startDate}
+                            onChange={(e) => setStartDate(e.target.value)}
+                            title="Start Date"
+                        />
+                    </div>
+
+                    <div className="relative group">
+                        <Calendar className="w-4 h-4 text-neutral-400 absolute left-4 top-1/2 -translate-y-1/2 group-focus-within:text-rose-500 transition-colors" />
+                        <input
+                            type="date"
+                            className="w-full pl-10 pr-4 py-2.5 bg-neutral-50 border border-neutral-200 rounded-xl text-sm font-medium outline-none focus:ring-2 focus:ring-rose-500/20 focus:border-rose-300 transition-all"
+                            value={endDate}
+                            onChange={(e) => setEndDate(e.target.value)}
+                            title="End Date"
+                        />
                     </div>
                 </div>
             </div>

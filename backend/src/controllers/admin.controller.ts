@@ -114,11 +114,17 @@ export const getUserOrders = async (req: Request, res: Response, next: NextFunct
 export const updateUser = async (req: Request, res: Response, next: NextFunction) => {
     try {
         const { userId } = req.params;
-        const { role, account_status } = req.body;
+        const { role, account_status, admin_permissions, full_name } = req.body;
 
         const updates: any = {};
         if (role) updates.role = role;
         if (account_status) updates.account_status = account_status;
+        if (admin_permissions) updates.admin_permissions = admin_permissions;
+        if (full_name) updates.full_name = full_name;
+
+        if (Object.keys(updates).length === 0) {
+            return res.status(400).json({ status: 'error', message: 'No fields provided for update' });
+        }
 
         const { data, error } = await supabase
             .from('profiles')
@@ -226,6 +232,7 @@ export const getAuditLogs = async (req: Request, res: Response, next: NextFuncti
             action,
             entity_type,
             actor_id,
+            actor_email,
             search,
             start_date,
             end_date,
@@ -243,6 +250,7 @@ export const getAuditLogs = async (req: Request, res: Response, next: NextFuncti
         if (action) query = query.eq('action', action);
         if (entity_type) query = query.eq('entity_type', entity_type);
         if (actor_id) query = query.eq('actor_id', actor_id);
+        if (actor_email) query = query.eq('actor_email', actor_email);
         if (start_date) query = query.gte('created_at', start_date as string);
         if (end_date) query = query.lte('created_at', `${end_date}T23:59:59Z`);
         if (search) query = query.ilike('description', `%${search}%`);
@@ -301,6 +309,124 @@ export const updateCareerApplicationStatus = async (req: Request, res: Response,
         });
 
         res.json({ status: 'success', data });
+    } catch (err) {
+        next(err);
+    }
+};
+
+export const logAuthEvent = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const { action, description, metadata } = req.body;
+
+        if (!['LOGIN', 'LOGOUT'].includes(action)) {
+            return res.status(400).json({ status: 'fail', message: 'Invalid auth action' });
+        }
+
+        await logAction(req, action as any, description, {
+            entity_type: 'system',
+            metadata
+        });
+
+        res.json({ status: 'success' });
+    } catch (err) {
+        next(err);
+    }
+};
+
+export const createAdmin = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const { email, password, full_name, permissions } = req.body;
+
+        // 1. Create the user in Supabase Auth using Admin API
+        const { data: authData, error: authError } = await supabase.auth.admin.createUser({
+            email,
+            password,
+            email_confirm: true,
+            user_metadata: { full_name }
+        });
+
+        if (authError) throw authError;
+
+        // 2. Profile is auto-created by trigger, but we need to update role and permissions
+        const { data: profile, error: profileError } = await supabase
+            .from('profiles')
+            .update({
+                role: 'admin',
+                admin_permissions: permissions || []
+            })
+            .eq('id', authData.user.id)
+            .select()
+            .single();
+
+        if (profileError) throw profileError;
+
+        // 3. Audit Log
+        await logAction(req, 'CREATE', `Created new admin: ${email}`, {
+            entity_type: 'user',
+            entity_id: profile.id,
+            entity_label: email,
+            metadata: { permissions }
+        });
+
+        res.status(201).json({
+            status: 'success',
+            data: profile
+        });
+    } catch (err) {
+        next(err);
+    }
+};
+
+export const deleteAdmin = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const { userId } = req.params;
+
+        // Prevent self-deletion
+        const currentUser = (req as any).user;
+        if (currentUser.id === userId) {
+            return res.status(403).json({ status: 'error', message: 'You cannot delete your own account' });
+        }
+
+        // 1. Get user details for audit log
+        const { data: profile } = await supabase
+            .from('profiles')
+            .select('email, full_name, role')
+            .eq('id', userId)
+            .single();
+
+        if (!profile) {
+            return res.status(404).json({ status: 'error', message: 'Administrator not found' });
+        }
+
+        if (profile.role !== 'admin') {
+            return res.status(400).json({ status: 'error', message: 'Only administrator accounts can be deleted via this endpoint' });
+        }
+
+        // 2. Delete the user from Supabase Auth (this will trigger profile deletion if FK is cascade, but we'll be explicit)
+        // Note: profiles table FK doesn't have CASCADE in migration 02.
+        // So we delete profile first.
+        const { error: profileDeleteError } = await supabase
+            .from('profiles')
+            .delete()
+            .eq('id', userId);
+
+        if (profileDeleteError) throw profileDeleteError;
+
+        const { error: authDeleteError } = await supabase.auth.admin.deleteUser(userId);
+        if (authDeleteError) throw authDeleteError;
+
+        // 3. Audit Log
+        await logAction(req, 'DELETE', `Deleted administrator: ${profile.email}`, {
+            entity_type: 'user',
+            entity_id: userId,
+            entity_label: profile.email,
+            metadata: { deleted_admin: profile }
+        });
+
+        res.json({
+            status: 'success',
+            message: 'Administrator deleted successfully'
+        });
     } catch (err) {
         next(err);
     }
