@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { authService } from '../services/auth.service';
-import { Leaf, User, Mail, Lock, Phone, ArrowRight, Loader2, CheckCircle2, Building2, FileText } from 'lucide-react';
+import { Leaf, User, Mail, Lock, Phone, ArrowRight, Loader2, Building2, FileText } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 const Signup = () => {
