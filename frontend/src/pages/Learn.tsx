@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react'; // Refresh
 import { motion } from 'framer-motion';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { BookOpen, Search, Video, Lock, Lightbulb, FileText, Download, File, FileCode, CheckCircle2 } from 'lucide-react';
 import { api } from '../services/api';
 
@@ -113,6 +113,34 @@ const Learn: React.FC = () => {
                             </div>
                         </div>
                     </div>
+                </motion.div>
+
+                {/* How It Works CTA Banner */}
+                <motion.div
+                    initial={{ opacity: 0, y: 16 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.15 }}
+                    className="mb-14"
+                >
+                    <Link
+                        to="/our-process"
+                        className="group flex flex-col sm:flex-row items-center justify-between gap-6 w-full bg-gradient-to-r from-primary to-green-500 hover:from-primary/90 hover:to-green-400 rounded-3xl px-8 py-6 shadow-xl shadow-primary/20 hover:shadow-primary/30 transition-all duration-300"
+                    >
+                        <div className="flex items-center gap-5">
+                            <div className="w-14 h-14 rounded-2xl bg-white/20 backdrop-blur-sm flex items-center justify-center shrink-0">
+                                <Lightbulb className="w-7 h-7 text-white" />
+                            </div>
+                            <div className="text-left">
+                                <p className="text-white/80 text-xs font-black uppercase tracking-widest mb-1">Explore GasCart</p>
+                                <h3 className="text-white text-xl font-extrabold leading-tight">How It Works — Our Process</h3>
+                                <p className="text-white/75 text-sm mt-1">From knowledge to installation — see every step of your sourcing journey.</p>
+                            </div>
+                        </div>
+                        <div className="flex items-center gap-3 bg-white/20 hover:bg-white/30 transition-colors rounded-2xl px-6 py-3 shrink-0 group-hover:translate-x-1 duration-300">
+                            <span className="text-white font-extrabold text-sm whitespace-nowrap">Our Process</span>
+                            <svg className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M17 8l4 4m0 0l-4 4m4-4H3" /></svg>
+                        </div>
+                    </Link>
                 </motion.div>
 
                 {/* Level Tabs */}

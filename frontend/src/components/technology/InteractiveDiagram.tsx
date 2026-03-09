@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Leaf, Factory, Droplet, Zap, FlaskConical, Wind, Package, Truck, CheckCircle2, Activity } from 'lucide-react';
+import { BookOpen, Users, Search, MessageSquare, Package, ShoppingCart, Truck, Wrench, Wind, CheckCircle2 } from 'lucide-react';
 
 interface ProcessNode {
     id: string;
@@ -14,74 +14,74 @@ interface ProcessNode {
 
 const processNodes: ProcessNode[] = [
     {
-        id: 'feedstock',
-        title: 'Feedstock Collection',
-        description: 'Organic waste from agriculture including crop residue, grass, and farm waste collected as renewable feedstock.',
-        icon: Leaf,
+        id: 'knowledge',
+        title: 'Gain Knowledge',
+        description: 'Explore those factors which you may need to know. Our ever-updating knowledge base will keep you ahead in the learning curve. Listen to those with practical knowledge.',
+        icon: BookOpen,
         position: { x: 10, y: 20 },
-        color: 'from-emerald-500 to-green-600',
-        gradient: 'bg-gradient-to-br from-emerald-500/10 to-green-600/10'
+        color: 'from-emerald-500 to-teal-600',
+        gradient: 'bg-gradient-to-br from-emerald-500/10 to-teal-600/10'
     },
     {
-        id: 'preprocess',
-        title: 'Pre-Processing',
-        description: 'Shredding and crushing units break down waste to optimal particle size for enhanced digestion efficiency.',
-        icon: Factory,
-        position: { x: 25, y: 50 },
+        id: 'guidance',
+        title: 'Expert Guidance',
+        description: 'Hire an expert for any further guidance. Panel of learned consultants are available to help you. The scope is set by you.',
+        icon: Users,
+        position: { x: 25, y: 55 },
         color: 'from-blue-500 to-cyan-600',
         gradient: 'bg-gradient-to-br from-blue-500/10 to-cyan-600/10'
     },
     {
-        id: 'mixing',
-        title: 'Slurry Mixing',
-        description: 'Waste mixed with water in controlled ratios to create uniform slurry for anaerobic digestion.',
-        icon: Droplet,
-        position: { x: 40, y: 30 },
+        id: 'find',
+        title: 'Find Products',
+        description: 'Be it a new equipment or a spare part. Find those parts listed from pre-audited suppliers. Rest assured there is nothing listed before we verify.',
+        icon: Search,
+        position: { x: 38, y: 28 },
         color: 'from-sky-500 to-blue-600',
         gradient: 'bg-gradient-to-br from-sky-500/10 to-blue-600/10'
     },
     {
-        id: 'digestion',
-        title: 'Anaerobic Digestion',
-        description: 'Sealed oxygen-free bioreactor where specialized microbes convert organic matter into raw biogas.',
-        icon: Activity,
-        position: { x: 50, y: 60 },
+        id: 'enquiry',
+        title: 'Place your Enquiry',
+        description: 'Just like you would do in the real world, enquire about a complex product, or if it is a simple product just place the order.',
+        icon: MessageSquare,
+        position: { x: 52, y: 62 },
         color: 'from-amber-500 to-orange-600',
         gradient: 'bg-gradient-to-br from-amber-500/10 to-orange-600/10'
     },
     {
-        id: 'purification',
-        title: 'Gas Purification',
-        description: 'Multi-stage cleaning removes H₂S, moisture, and CO₂ to upgrade biogas to pipeline-quality biomethane.',
-        icon: FlaskConical,
-        position: { x: 65, y: 40 },
+        id: 'order',
+        title: 'Order Processing',
+        description: 'Our Sourcing specialists curate your order & bring the best offer for you. Those in stock gets packed for shipment. We do volume driven negotiation; our prices will be the best.',
+        icon: Package,
+        position: { x: 64, y: 35 },
         color: 'from-purple-500 to-violet-600',
         gradient: 'bg-gradient-to-br from-purple-500/10 to-violet-600/10'
     },
     {
-        id: 'compression',
-        title: 'Compression',
-        description: 'Purified biomethane compressed to 200-250 bar for efficient storage and transportation.',
-        icon: Zap,
-        position: { x: 75, y: 70 },
+        id: 'purchase',
+        title: 'Purchase Process',
+        description: 'You will get an offer from the manufacturer. Place your order & wait for the lead time to pass. Meanwhile we keep our follow up with the vendor to ensure on-time delivery.',
+        icon: ShoppingCart,
+        position: { x: 75, y: 65 },
         color: 'from-yellow-500 to-amber-600',
         gradient: 'bg-gradient-to-br from-yellow-500/10 to-amber-600/10'
     },
     {
-        id: 'storage',
-        title: 'High-Pressure Storage',
-        description: 'Compressed Bio-CNG stored in specialized high-pressure tanks ensuring continuous supply.',
-        icon: Package,
-        position: { x: 85, y: 50 },
+        id: 'logistics',
+        title: 'Logistics',
+        description: 'Choose a logistic partner right here, or follow your delivery plan. Every documentation happens exactly like an industry buy. Receive the material with statutory compliance.',
+        icon: Truck,
+        position: { x: 85, y: 42 },
         color: 'from-indigo-500 to-blue-600',
         gradient: 'bg-gradient-to-br from-indigo-500/10 to-blue-600/10'
     },
     {
-        id: 'distribution',
-        title: 'Distribution',
-        description: 'Bio-CNG delivered to industries, CNG stations, and commercial customers via specialized transport.',
-        icon: Truck,
-        position: { x: 90, y: 25 },
+        id: 'installation',
+        title: 'Installation',
+        description: 'Choose service providers who install the machinery. Get your warranty & guarantee documents. Get the service & operation manual from the manufacturer (where applicable).',
+        icon: Wrench,
+        position: { x: 92, y: 22 },
         color: 'from-green-500 to-emerald-600',
         gradient: 'bg-gradient-to-br from-green-500/10 to-emerald-600/10'
     }
@@ -92,13 +92,13 @@ const InteractiveDiagram: React.FC = () => {
     const [hoveredNode, setHoveredNode] = useState<string | null>(null);
 
     const connections = [
-        { from: 'feedstock', to: 'preprocess' },
-        { from: 'preprocess', to: 'mixing' },
-        { from: 'mixing', to: 'digestion' },
-        { from: 'digestion', to: 'purification' },
-        { from: 'purification', to: 'compression' },
-        { from: 'compression', to: 'storage' },
-        { from: 'storage', to: 'distribution' }
+        { from: 'knowledge', to: 'guidance' },
+        { from: 'guidance', to: 'find' },
+        { from: 'find', to: 'enquiry' },
+        { from: 'enquiry', to: 'order' },
+        { from: 'order', to: 'purchase' },
+        { from: 'purchase', to: 'logistics' },
+        { from: 'logistics', to: 'installation' }
     ];
 
     const getNodePosition = (nodeId: string) => {
@@ -253,46 +253,77 @@ const InteractiveDiagram: React.FC = () => {
                                 </div>
                             </motion.div>
 
-                            {/* Tooltip Card */}
+                            {/* Tooltip Card — smart positioning to avoid overflow */}
                             <AnimatePresence>
-                                {isNodeActive(node.id) && (
-                                    <motion.div
-                                        initial={{ opacity: 0, scale: 0.9, y: 10 }}
-                                        animate={{ opacity: 1, scale: 1, y: 0 }}
-                                        exit={{ opacity: 0, scale: 0.9, y: 10 }}
-                                        transition={{ type: 'spring', stiffness: 300, damping: 25 }}
-                                        className="absolute left-1/2 top-full mt-6 -translate-x-1/2 z-50 w-72 md:w-80"
-                                    >
-                                        <div className="relative bg-white/95 backdrop-blur-2xl rounded-[28px] shadow-2xl border border-gray-200/50 overflow-hidden">
-                                            {/* Gradient Header */}
-                                            <div className={`h-2 bg-gradient-to-r ${node.color}`} />
+                                {isNodeActive(node.id) && (() => {
+                                    // Determine vertical placement: above node if near bottom
+                                    const showAbove = node.position.y > 55;
+                                    // Determine horizontal alignment based on x position
+                                    const isRightEdge = node.position.x > 65;
+                                    const isLeftEdge = node.position.x < 35;
 
-                                            {/* Content */}
-                                            <div className="p-6">
-                                                <div className="flex items-center gap-4 mb-4">
-                                                    <div className={`w-12 h-12 rounded-2xl bg-gradient-to-br ${node.color} flex items-center justify-center shrink-0 shadow-lg`}>
-                                                        <node.icon className="w-6 h-6 text-white" strokeWidth={2.5} />
-                                                    </div>
-                                                    <div className="flex-grow">
-                                                        <div className="flex items-center gap-2 mb-1">
-                                                            <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Step {idx + 1}</span>
-                                                            <CheckCircle2 className="w-3 h-3 text-emerald-500" />
+                                    const verticalClass = showAbove
+                                        ? 'bottom-full mb-6'
+                                        : 'top-full mt-6';
+
+                                    const horizontalClass = isRightEdge
+                                        ? 'right-0'
+                                        : isLeftEdge
+                                            ? 'left-0'
+                                            : 'left-1/2 -translate-x-1/2';
+
+                                    // Arrow positioning mirrors card placement
+                                    const arrowVerticalClass = showAbove
+                                        ? 'top-full -mt-[1px]'
+                                        : 'bottom-full -mb-[1px]';
+                                    const arrowRotateClass = showAbove
+                                        ? 'rotate-[225deg] border-l border-t border-gray-200/50'
+                                        : 'rotate-45 border-l border-t border-gray-200/50';
+                                    const arrowHorizontalClass = isRightEdge
+                                        ? 'right-6'
+                                        : isLeftEdge
+                                            ? 'left-6'
+                                            : 'left-1/2 -translate-x-1/2';
+
+                                    return (
+                                        <motion.div
+                                            initial={{ opacity: 0, scale: 0.9, y: showAbove ? -10 : 10 }}
+                                            animate={{ opacity: 1, scale: 1, y: 0 }}
+                                            exit={{ opacity: 0, scale: 0.9, y: showAbove ? -10 : 10 }}
+                                            transition={{ type: 'spring', stiffness: 300, damping: 25 }}
+                                            className={`absolute ${verticalClass} ${horizontalClass} z-50 w-72 md:w-80`}
+                                        >
+                                            <div className="relative bg-white/95 backdrop-blur-2xl rounded-[28px] shadow-2xl border border-gray-200/50 overflow-hidden">
+                                                {/* Gradient Header */}
+                                                <div className={`h-2 bg-gradient-to-r ${node.color}`} />
+
+                                                {/* Content */}
+                                                <div className="p-6">
+                                                    <div className="flex items-center gap-4 mb-4">
+                                                        <div className={`w-12 h-12 rounded-2xl bg-gradient-to-br ${node.color} flex items-center justify-center shrink-0 shadow-lg`}>
+                                                            <node.icon className="w-6 h-6 text-white" strokeWidth={2.5} />
                                                         </div>
-                                                        <h4 className="text-base font-black text-gray-900 leading-tight">{node.title}</h4>
+                                                        <div className="flex-grow">
+                                                            <div className="flex items-center gap-2 mb-1">
+                                                                <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Step {idx + 1}</span>
+                                                                <CheckCircle2 className="w-3 h-3 text-emerald-500" />
+                                                            </div>
+                                                            <h4 className="text-base font-black text-gray-900 leading-tight">{node.title}</h4>
+                                                        </div>
                                                     </div>
+                                                    <p className="text-sm text-gray-600 leading-relaxed font-medium">
+                                                        {node.description}
+                                                    </p>
                                                 </div>
-                                                <p className="text-sm text-gray-600 leading-relaxed font-medium">
-                                                    {node.description}
-                                                </p>
-                                            </div>
 
-                                            {/* Tooltip Arrow */}
-                                            <div className="absolute bottom-full left-1/2 -translate-x-1/2 -mb-[1px]">
-                                                <div className="w-4 h-4 bg-white rotate-45 border-l border-t border-gray-200/50" />
+                                                {/* Tooltip Arrow */}
+                                                <div className={`absolute ${arrowVerticalClass} ${arrowHorizontalClass}`}>
+                                                    <div className={`w-4 h-4 bg-white ${arrowRotateClass}`} />
+                                                </div>
                                             </div>
-                                        </div>
-                                    </motion.div>
-                                )}
+                                        </motion.div>
+                                    );
+                                })()}
                             </AnimatePresence>
                         </motion.div>
                     ))}

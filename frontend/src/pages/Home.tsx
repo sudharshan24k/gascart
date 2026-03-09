@@ -2,6 +2,8 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowRight, Leaf, Zap, CheckCircle, TrendingUp, Shield } from 'lucide-react';
 import processGraphic from '../assets/process-graphic.png';
+import biogasHero from '../assets/biogas-plant-hero.png';
+import cngStationCard from '../assets/cng-station-card.png';
 import { motion } from 'framer-motion';
 
 const Home: React.FC = () => {
@@ -11,7 +13,7 @@ const Home: React.FC = () => {
             <section className="relative min-h-[90vh] flex items-center overflow-hidden bg-neutral-900 text-white">
                 {/* Background Gradient & Pattern */}
                 <div className="absolute inset-0 bg-gradient-to-br from-primary-900 via-neutral-900 to-neutral-900 opacity-90 z-0"></div>
-                <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1497435334941-8c899ee9e8e9?ixlib=rb-1.2.1&auto=format&fit=crop&w=1950&q=80')] bg-cover bg-center mix-blend-overlay opacity-40 z-0"></div>
+                <div className="absolute inset-0" style={{ backgroundImage: `url(${biogasHero})`, backgroundSize: 'cover', backgroundPosition: 'center' }}><div className="absolute inset-0 bg-neutral-900/60 mix-blend-multiply" /></div>
                 <div className="absolute inset-0 bg-gradient-to-t from-neutral-900 via-transparent to-transparent z-0"></div>
 
                 {/* Animated Shapes */}
@@ -44,8 +46,8 @@ const Home: React.FC = () => {
                             <Link to="/shop" className="btn btn-primary btn-lg shadow-glow-primary hover:scale-105 active:scale-95">
                                 Explore Products
                             </Link>
-                            <Link to="/technology" className="btn btn-outline border-white/30 text-white hover:bg-white hover:text-neutral-900 hover:border-white transition-all btn-lg">
-                                Our Technology
+                            <Link to="/our-process" className="btn btn-outline border-white/30 text-white hover:bg-white hover:text-neutral-900 hover:border-white transition-all btn-lg">
+                                Our Process
                             </Link>
                         </div>
 
@@ -76,7 +78,7 @@ const Home: React.FC = () => {
                         <div className="relative z-10">
                             <div className="glass-dark p-6 rounded-3xl border border-white/10 shadow-2xl transform -rotate-3 hover:rotate-0 transition-transform duration-500">
                                 <img
-                                    src="https://images.unsplash.com/photo-1532601224476-15c79f2f7a51?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80"
+                                    src={cngStationCard}
                                     alt="Industrial Plant"
                                     className="rounded-2xl w-full h-[400px] object-cover shadow-inner"
                                 />
@@ -177,7 +179,7 @@ const Home: React.FC = () => {
                             </ul>
 
                             <div className="mt-10">
-                                <Link to="/technology" className="btn btn-outline border-neutral-300 hover:border-primary hover:text-primary gap-2">
+                                <Link to="/our-process" className="btn btn-outline border-neutral-300 hover:border-primary hover:text-primary gap-2">
                                     How GasCart Works <ArrowRight className="w-4 h-4" />
                                 </Link>
                             </div>

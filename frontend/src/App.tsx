@@ -57,7 +57,8 @@ function App() {
                                     <Route index element={<Home />} />
                                     <Route path="about" element={<About />} />
                                     <Route path="services" element={<Services />} />
-                                    <Route path="technology" element={<Technology />} />
+                                    <Route path="our-process" element={<Technology />} />
+                                    <Route path="technology" element={<Navigate to="/our-process" replace />} />
                                     <Route path="learn" element={<Learn />} />
                                     <Route path="learn/:slug" element={<ArticleDetail />} />
                                     <Route path="experts" element={<Consultants />} />
