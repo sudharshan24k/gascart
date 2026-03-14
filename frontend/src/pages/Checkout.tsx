@@ -173,11 +173,11 @@ const Checkout: React.FC = () => {
                             showToast('Payment successful! Redirecting...', 'success');
                             navigate(`/order-success?orderId=${orderId}`);
                         } else {
-                            throw new Error('Payment verification failed');
+                            throw new Error(verifyResponse.error || 'Payment verification failed');
                         }
-                    } catch (verifyError) {
+                    } catch (verifyError: any) {
                         console.error('Verification error:', verifyError);
-                        showToast('Payment verification failed. Please contact support.', 'error');
+                        showToast(verifyError.message || 'Payment verification failed. Please contact support.', 'error');
                         setProcessingOrder(false);
                     }
                 },

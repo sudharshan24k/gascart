@@ -186,28 +186,44 @@ export const verifyPayment = async (req: AuthRequest, res: Response) => {
                 status: payment.status === 'captured' ? 'confirmed' : 'pending'
             })
             .eq('id', order_id)
-            .select('*, order_items(*)')
+            .select('*')
             .single();
 
         if (updateError) {
             console.error('[Payment Verification] DB Update Error:', updateError);
-            throw new Error(`Order update failed: ${updateError.message}`);
+            return res.status(500).json({ 
+                success: false,
+                error: `Order update failed: ${updateError.message}. Details: ${updateError.details || 'None'}. Hint: ${updateError.hint || 'None'}` 
+            });
         }
 
-        // 5. Deduct stock if payment is successful
-        if (payment.status === 'captured') {
+        // 5. Fetch order items separately (more robust than join in some cases)
+        const { data: orderItems, error: itemsError } = await supabase
+            .from('order_items')
+            .select('*')
+            .eq('order_id', order.id);
+
+        if (itemsError) {
+            console.error('[Payment Verification] Items Fetch Error:', itemsError);
+            // We don't fail the whole request but we log it
+        }
+
+        // 6. Deduct stock if payment is successful
+        if (payment.status === 'captured' && orderItems) {
             try {
-                for (const item of order.order_items) {
+                for (const item of orderItems) {
                     if (item.selected_variant) {
-                        await supabase.rpc('deduct_variant_stock', {
+                        const { error: rpcError } = await supabase.rpc('deduct_variant_stock', {
                             variant_id: item.selected_variant.id,
                             qty: item.quantity
                         });
+                        if (rpcError) console.error('[Payment Verification] Variant Stock RPC Error:', rpcError);
                     } else {
-                        await supabase.rpc('deduct_product_stock', {
+                        const { error: rpcError } = await supabase.rpc('deduct_product_stock', {
                             prod_id: item.product_id,
                             qty: item.quantity
                         });
+                        if (rpcError) console.error('[Payment Verification] Product Stock RPC Error:', rpcError);
                     }
                 }
 
@@ -215,7 +231,7 @@ export const verifyPayment = async (req: AuthRequest, res: Response) => {
                 const { data: cart } = await supabase
                     .from('carts')
                     .select('id')
-                    .eq('user_id', req.user?.id)
+                    .eq('user_id', userId)
                     .single();
 
                 if (cart) {
@@ -224,10 +240,9 @@ export const verifyPayment = async (req: AuthRequest, res: Response) => {
                         .delete()
                         .eq('cart_id', cart.id);
                 }
-                console.log(`[Payment Verification] Success - Order ${order_id} confirmed.`);
+                console.log(`[Payment Verification] Success - Order ${order_id} confirmed and stock deducted.`);
             } catch (stockError) {
-                console.error('[Payment Verification] Stock deduction failed:', stockError);
-                // Note: We don't rollback payment here, but we should alert admin or retry
+                console.error('[Payment Verification] Stock deduction logic failed:', stockError);
             }
         }
 
@@ -240,7 +255,10 @@ export const verifyPayment = async (req: AuthRequest, res: Response) => {
         });
     } catch (error: any) {
         console.error('[Payment Verification] Critical Error:', error);
-        res.status(500).json({ error: error.message });
+        res.status(500).json({ 
+            success: false,
+            error: error.message || 'An unexpected error occurred during verification' 
+        });
     }
 };
 
