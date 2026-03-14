@@ -149,13 +149,19 @@ export const verifyPayment = async (req: AuthRequest, res: Response) => {
         const payment = paymentResult.payment;
 
         // 3. Idempotency Check: Check if order is already marked as paid
+        console.log(`[Payment Verification] Fetching order ${order_id} from DB...`);
         const { data: existingOrder, error: fetchError } = await supabase
             .from('orders')
             .select('payment_status, status')
             .eq('id', order_id)
             .single();
 
-        if (fetchError) throw fetchError;
+        if (fetchError) {
+            console.error('[Payment Verification] DB Fetch Error:', fetchError);
+            throw new Error(`Order fetch failed: ${fetchError.message}`);
+        }
+
+        console.log(`[Payment Verification] Current status: ${existingOrder.payment_status}, ${existingOrder.status}`);
 
         if (existingOrder.payment_status === 'paid' && existingOrder.status !== 'pending') {
             console.log(`[Payment Verification] Order ${order_id} already processed. Skipping stock deduction.`);
@@ -169,6 +175,7 @@ export const verifyPayment = async (req: AuthRequest, res: Response) => {
         }
 
         // 4. Update order in database
+        console.log(`[Payment Verification] Updating order ${order_id} with payment status ${payment.status}...`);
         const { data: order, error: updateError } = await supabase
             .from('orders')
             .update({
@@ -182,7 +189,10 @@ export const verifyPayment = async (req: AuthRequest, res: Response) => {
             .select('*, order_items(*)')
             .single();
 
-        if (updateError) throw updateError;
+        if (updateError) {
+            console.error('[Payment Verification] DB Update Error:', updateError);
+            throw new Error(`Order update failed: ${updateError.message}`);
+        }
 
         // 5. Deduct stock if payment is successful
         if (payment.status === 'captured') {
