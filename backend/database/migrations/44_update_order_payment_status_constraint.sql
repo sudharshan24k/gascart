@@ -20,3 +20,16 @@ CHECK (status IN ('pending', 'confirmed', 'processing', 'shipped', 'delivered', 
 -- Add comments for clarity
 COMMENT ON COLUMN public.orders.payment_status IS 'Payment status: unpaid, pending (initiated), paid (captured), refunded, refund_pending, failed';
 COMMENT ON COLUMN public.orders.status IS 'Order status: pending, confirmed, processing, shipped, delivered, cancelled';
+
+-- =============================================
+-- RLS FIX: Allow users to update their own orders
+-- Required for updating payment details after success
+-- =============================================
+
+CREATE POLICY "Users can update own orders" 
+    ON public.orders FOR UPDATE 
+    USING (auth.uid() = user_id)
+    WITH CHECK (auth.uid() = user_id);
+
+-- Ensure RLS is enabled (should already be, but safe to re-assert)
+ALTER TABLE public.orders ENABLE ROW LEVEL SECURITY;

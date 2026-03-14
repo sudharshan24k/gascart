@@ -511,7 +511,15 @@ export const api = {
                 },
                 body: JSON.stringify(data)
             });
-            return res.json();
+
+            const result = await res.json();
+            if (!res.ok) {
+                console.error('[API] verifyPayment failed:', {
+                    status: res.status,
+                    result
+                });
+            }
+            return result;
         },
         getPaymentStatus: async (paymentId: string) => {
             const token = (await supabase.auth.getSession()).data.session?.access_token;
