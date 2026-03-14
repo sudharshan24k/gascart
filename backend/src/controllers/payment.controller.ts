@@ -74,7 +74,8 @@ export const createPaymentOrder = async (req: AuthRequest, res: Response) => {
         });
 
         if (!razorpayResult.success || !razorpayResult.order) {
-            throw new Error(razorpayResult.error || 'Failed to create Razorpay order');
+            console.error('[PaymentController] Razorpay call failed:', razorpayResult.error);
+            throw new Error(`Razorpay Error: ${razorpayResult.error || 'Unknown failure'}`);
         }
 
         // 4. Update order with Razorpay order ID
