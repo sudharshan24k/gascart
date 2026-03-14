@@ -173,6 +173,11 @@ const Checkout: React.FC = () => {
                             showToast('Payment successful! Redirecting...', 'success');
                             navigate(`/order-success?orderId=${orderId}`);
                         } else {
+                            if (verifyResponse.diagnostics) {
+                                console.log('--- Backend Diagnostic Logs ---');
+                                verifyResponse.diagnostics.forEach((log: string) => console.log(log));
+                                console.log('------------------------------');
+                            }
                             throw new Error(verifyResponse.error || 'Payment verification failed');
                         }
                     } catch (verifyError: any) {

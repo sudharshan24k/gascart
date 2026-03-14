@@ -115,18 +115,26 @@ export const createPaymentOrder = async (req: AuthRequest, res: Response) => {
  * Verify Payment after user completes payment
  */
 export const verifyPayment = async (req: AuthRequest, res: Response) => {
+    const diagnostics: string[] = [];
+    const addLog = (msg: string) => {
+        const log = `[${new Date().toISOString()}] ${msg}`;
+        diagnostics.push(log);
+        console.log(log);
+    };
+
     try {
         const { razorpay_order_id, razorpay_payment_id, razorpay_signature, order_id } = req.body;
         const userId = req.user?.id;
 
-        console.log(`[Payment Verification] Start - User: ${userId}, Order: ${order_id}, Payment: ${razorpay_payment_id}`);
+        addLog(`Start - User: ${userId}, Order: ${order_id}, Payment: ${razorpay_payment_id}`);
 
         if (!razorpay_order_id || !razorpay_payment_id || !razorpay_signature) {
-            console.error('[Payment Verification] Missing details');
-            return res.status(400).json({ error: 'Missing payment details' });
+            addLog('Error: Missing payment details');
+            return res.status(400).json({ success: false, error: 'Missing payment details', diagnostics });
         }
 
         // 1. Verify signature
+        addLog('Verifying signature...');
         const isValid = verifyPaymentSignature(
             razorpay_order_id,
             razorpay_payment_id,
@@ -134,55 +142,31 @@ export const verifyPayment = async (req: AuthRequest, res: Response) => {
         );
 
         if (!isValid) {
-            console.error('[Payment Verification] Invalid signature');
-            return res.status(400).json({ error: 'Invalid payment signature' });
+            addLog('Error: Invalid signature');
+            return res.status(400).json({ success: false, error: 'Invalid payment signature', diagnostics });
         }
+        addLog('Signature valid.');
 
         // 2. Fetch payment details from Razorpay
+        addLog('Fetching payment details from Razorpay...');
         const paymentResult = await getPaymentDetails(razorpay_payment_id);
 
         if (!paymentResult.success || !paymentResult.payment) {
-            console.error('[Payment Verification] Failed to fetch from Razorpay');
-            return res.status(400).json({ error: 'Payment verification failed' });
+            addLog(`Error: Razorpay fetch failed: ${paymentResult.error}`);
+            return res.status(400).json({ success: false, error: 'Payment verification failed at Razorpay fetch', diagnostics });
         }
-
+        addLog('Payment details fetched successfully.');
         const payment = paymentResult.payment;
 
-        // 3. Idempotency Check: Check if order is already marked as paid
-        console.log(`[Payment Verification] Fetching order ${order_id} from DB...`);
-        const { data: existingOrder, error: fetchError } = await supabase
-            .from('orders')
-            .select('payment_status, status')
-            .eq('id', order_id)
-            .single();
-
-        if (fetchError) {
-            console.error('[Payment Verification] DB Fetch Error:', fetchError);
-            throw new Error(`Order fetch failed: ${fetchError.message}`);
-        }
-
-        console.log(`[Payment Verification] Current status: ${existingOrder.payment_status}, ${existingOrder.status}`);
-
-        if (existingOrder.payment_status === 'paid' && existingOrder.status !== 'pending') {
-            console.log(`[Payment Verification] Order ${order_id} already processed. Skipping stock deduction.`);
-            return res.json({
-                success: true,
-                orderId: order_id,
-                paymentStatus: payment.status,
-                message: 'Payment already processed',
-                invoiceUrl: `/orders/${order_id}/invoice`
-            });
-        }
-
-        // 4. Update order in database
-        console.log(`[Payment Verification] Updating order ${order_id} with payment status ${payment.status}...`);
+        // 3. Update order in database
+        addLog(`Updating order ${order_id} in DB...`);
         const { data: order, error: updateError } = await supabase
             .from('orders')
             .update({
                 razorpay_payment_id: razorpay_payment_id,
                 razorpay_signature: razorpay_signature,
                 payment_status: payment.status === 'captured' ? 'paid' : 'pending',
-                paid_amount: (Number(payment.amount) || 0) / 100, // Convert from paise to rupees
+                paid_amount: (Number(payment.amount) || 0) / 100,
                 status: payment.status === 'captured' ? 'confirmed' : 'pending'
             })
             .eq('id', order_id)
@@ -190,44 +174,53 @@ export const verifyPayment = async (req: AuthRequest, res: Response) => {
             .single();
 
         if (updateError) {
-            console.error('[Payment Verification] DB Update Error:', updateError);
+            addLog(`Error: DB Update failed: ${updateError.message}`);
             return res.status(500).json({ 
-                success: false,
-                error: `Order update failed: ${updateError.message}. Details: ${updateError.details || 'None'}. Hint: ${updateError.hint || 'None'}` 
+                success: false, 
+                error: `Order update failed: ${updateError.message}`, 
+                diagnostics,
+                details: updateError
             });
         }
+        addLog('Order updated successfully.');
 
-        // 5. Fetch order items separately (more robust than join in some cases)
+        // 4. Fetch order items
+        addLog('Fetching order items...');
         const { data: orderItems, error: itemsError } = await supabase
             .from('order_items')
             .select('*')
             .eq('order_id', order.id);
 
         if (itemsError) {
-            console.error('[Payment Verification] Items Fetch Error:', itemsError);
-            // We don't fail the whole request but we log it
+            addLog(`Warning: Items fetch failed: ${itemsError.message}`);
+        } else {
+            addLog(`Fetched ${orderItems?.length || 0} items.`);
         }
 
-        // 6. Deduct stock if payment is successful
+        // 5. Stock deduction logic (wrapped to not crash)
         if (payment.status === 'captured' && orderItems) {
+            addLog('Starting stock deduction...');
             try {
                 for (const item of orderItems) {
+                    addLog(`Deducting stock for item ${item.product_id}...`);
                     if (item.selected_variant) {
                         const { error: rpcError } = await supabase.rpc('deduct_variant_stock', {
                             variant_id: item.selected_variant.id,
                             qty: item.quantity
                         });
-                        if (rpcError) console.error('[Payment Verification] Variant Stock RPC Error:', rpcError);
+                        if (rpcError) addLog(`RPC Error (Variant): ${rpcError.message}`);
                     } else {
                         const { error: rpcError } = await supabase.rpc('deduct_product_stock', {
                             prod_id: item.product_id,
                             qty: item.quantity
                         });
-                        if (rpcError) console.error('[Payment Verification] Product Stock RPC Error:', rpcError);
+                        if (rpcError) addLog(`RPC Error (Product): ${rpcError.message}`);
                     }
                 }
+                addLog('Stock deduction complete.');
 
-                // Clear cart items
+                // Clear cart
+                addLog('Clearing cart...');
                 const { data: cart } = await supabase
                     .from('carts')
                     .select('id')
@@ -235,29 +228,29 @@ export const verifyPayment = async (req: AuthRequest, res: Response) => {
                     .single();
 
                 if (cart) {
-                    await supabase
-                        .from('cart_items')
-                        .delete()
-                        .eq('cart_id', cart.id);
+                    await supabase.from('cart_items').delete().eq('cart_id', cart.id);
+                    addLog('Cart cleared.');
                 }
-                console.log(`[Payment Verification] Success - Order ${order_id} confirmed and stock deducted.`);
-            } catch (stockError) {
-                console.error('[Payment Verification] Stock deduction logic failed:', stockError);
+            } catch (stockError: any) {
+                addLog(`Exception in stock logic: ${stockError.message}`);
             }
         }
 
+        addLog('Verification process complete.');
         res.json({
             success: true,
             orderId: order.id,
             paymentStatus: payment.status,
-            message: payment.status === 'captured' ? 'Payment successful' : 'Payment pending',
-            invoiceUrl: payment.status === 'captured' ? `/orders/${order.id}/invoice` : null
+            message: 'Payment verified successfully',
+            diagnostics
         });
+
     } catch (error: any) {
-        console.error('[Payment Verification] Critical Error:', error);
+        addLog(`CRITICAL ERROR: ${error.message}`);
         res.status(500).json({ 
-            success: false,
-            error: error.message || 'An unexpected error occurred during verification' 
+            success: false, 
+            error: error.message || 'Unexpected error', 
+            diagnostics 
         });
     }
 };
@@ -268,7 +261,6 @@ export const verifyPayment = async (req: AuthRequest, res: Response) => {
 export const getPaymentStatus = async (req: AuthRequest, res: Response) => {
     try {
         const { paymentId } = req.params;
-
         const paymentResult = await getPaymentDetails(paymentId);
 
         if (!paymentResult.success || !paymentResult.payment) {
