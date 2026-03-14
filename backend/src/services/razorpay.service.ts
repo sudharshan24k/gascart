@@ -106,17 +106,3 @@ export const capturePayment = async (paymentId: string, amount: number) => {
     }
 };
 
-/**
- * Create refund
- */
-export const createRefund = async (paymentId: string, amount?: number) => {
-    try {
-        const refund = await razorpayInstance.payments.refund(paymentId, {
-            amount: amount, // If not provided, full refund
-        });
-        return { success: true, refund };
-    } catch (error: any) {
-        console.error('Refund error:', error);
-        return { success: false, error: error.message };
-    }
-};

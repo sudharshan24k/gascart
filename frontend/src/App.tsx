@@ -32,8 +32,6 @@ import Cart from './pages/Cart';
 import Checkout from './pages/Checkout';
 import OrderSuccess from './pages/OrderSuccess';
 import Profile from './pages/Profile';
-import PaymentSuccess from './pages/PaymentSuccess';
-import PaymentCancel from './pages/PaymentCancel';
 import AdminProducts from './pages/Admin/Products';
 import VendorManager from './pages/Admin/VendorManager';
 import PrivacyPolicy from './pages/PrivacyPolicy';
@@ -87,8 +85,7 @@ function App() {
                                     <Route path="profile" element={<Profile />} />
                                     <Route path="my-orders" element={<MyOrders />} />
                                     <Route path="order-tracking/:id" element={<OrderTracking />} />
-                                    <Route path="payment-success" element={<PaymentSuccess />} />
-                                    <Route path="payment-cancel" element={<PaymentCancel />} />
+
 
                                     {/* Admin Routes */}
                                     <Route path="admin/products" element={<AdminProducts />} />

@@ -38,7 +38,8 @@ export const handleRazorpayWebhook = async (req: Request, res: Response) => {
                 break;
 
             case 'refund.created':
-                await handleRefundCreated(payload);
+            case 'refund.processed':
+                await handleRefundEvent(payload);
                 break;
 
             case 'order.paid':
@@ -160,9 +161,9 @@ async function handlePaymentFailed(payload: any) {
 }
 
 /**
- * Handle refund.created event
+ * Handle refund events (created, processed)
  */
-async function handleRefundCreated(payload: any) {
+async function handleRefundEvent(payload: any) {
     const refund = payload.refund.entity;
     const paymentId = refund.payment_id;
 
