@@ -112,29 +112,43 @@ export const createPaymentOrder = async (req: AuthRequest, res: Response) => {
  * Verify Payment after user completes payment
  */
 /**
- * Verify Payment after user completes payment
+ * Bulletproof Verify Payment
  */
 export const verifyPayment = async (req: AuthRequest, res: Response) => {
     const diagnostics: string[] = [];
     const addLog = (msg: string) => {
-        const log = `[${new Date().toISOString()}] ${msg}`;
-        diagnostics.push(log);
-        console.log(log);
+        const timestamp = new Date().toISOString();
+        diagnostics.push(`[${timestamp}] ${msg}`);
+        console.log(`[PaymentVerify] ${msg}`);
     };
 
     try {
         const { razorpay_order_id, razorpay_payment_id, razorpay_signature, order_id } = req.body;
         const userId = req.user?.id;
 
-        addLog(`Start - User: ${userId}, Order: ${order_id}, Payment: ${razorpay_payment_id}`);
+        addLog(`Initiating verification for Order: ${order_id}, User: ${userId}`);
 
-        if (!razorpay_order_id || !razorpay_payment_id || !razorpay_signature) {
-            addLog('Error: Missing payment details');
-            return res.status(400).json({ success: false, error: 'Missing payment details', diagnostics });
+        if (!razorpay_order_id || !razorpay_payment_id || !razorpay_signature || !order_id) {
+            addLog('Missing Parameters: ' + JSON.stringify({ 
+                hasOrder: !!order_id, 
+                hasRzpOrder: !!razorpay_order_id, 
+                hasRzpPayment: !!razorpay_payment_id, 
+                hasSignature: !!razorpay_signature 
+            }));
+            return res.status(400).json({ 
+                success: false, 
+                error: 'Missing required payment details', 
+                diagnostics 
+            });
         }
 
-        // 1. Verify signature
-        addLog('Verifying signature...');
+        // 1. Signature Verification
+        addLog('Step 1: Checking Signature...');
+        if (!config.razorpay.keySecret) {
+            addLog('CRITICAL: RAZORPAY_KEY_SECRET is missing from environment!');
+            throw new Error('Server configuration error: Razorpay secret missing');
+        }
+
         const isValid = verifyPaymentSignature(
             razorpay_order_id,
             razorpay_payment_id,
@@ -142,24 +156,33 @@ export const verifyPayment = async (req: AuthRequest, res: Response) => {
         );
 
         if (!isValid) {
-            addLog('Error: Invalid signature');
-            return res.status(400).json({ success: false, error: 'Invalid payment signature', diagnostics });
+            addLog('FAIL: Signature Mismatch');
+            return res.status(400).json({ 
+                success: false, 
+                error: 'Invalid payment signature', 
+                diagnostics 
+            });
         }
-        addLog('Signature valid.');
+        addLog('SUCCESS: Signature Verified');
 
-        // 2. Fetch payment details from Razorpay
-        addLog('Fetching payment details from Razorpay...');
+        // 2. Razorpay Status Fetch
+        addLog('Step 2: Fetching payment from Razorpay...');
         const paymentResult = await getPaymentDetails(razorpay_payment_id);
-
         if (!paymentResult.success || !paymentResult.payment) {
-            addLog(`Error: Razorpay fetch failed: ${paymentResult.error}`);
-            return res.status(400).json({ success: false, error: 'Payment verification failed at Razorpay fetch', diagnostics });
+            addLog(`FAIL: Razorpay Fetch - ${paymentResult.error}`);
+            return res.status(400).json({ 
+                success: false, 
+                error: `Razorpay Error: ${paymentResult.error}`, 
+                diagnostics 
+            });
         }
-        addLog('Payment details fetched successfully.');
         const payment = paymentResult.payment;
+        addLog(`SUCCESS: Payment Status is [${payment.status}]`);
 
-        // 3. Update order in database
-        addLog(`Updating order ${order_id} in DB...`);
+        // 3. Database Update (Bypassing RLS with service role if possible)
+        addLog('Step 3: Updating order in database...');
+        
+        // Note: The 'supabase' client exported in config/supabase already tries to use serviceKey
         const { data: order, error: updateError } = await supabase
             .from('orders')
             .update({
@@ -174,82 +197,72 @@ export const verifyPayment = async (req: AuthRequest, res: Response) => {
             .single();
 
         if (updateError) {
-            addLog(`Error: DB Update failed: ${updateError.message}`);
+            addLog(`FAIL: DB Update - ${updateError.message} (${updateError.code})`);
+            addLog(`HINT: ${updateError.hint || 'No hint'}`);
             return res.status(500).json({ 
                 success: false, 
-                error: `Order update failed: ${updateError.message}`, 
+                error: `Database Error: ${updateError.message}`, 
                 diagnostics,
-                details: updateError
+                db_code: updateError.code
             });
         }
-        addLog('Order updated successfully.');
+        addLog('SUCCESS: Database Order Updated');
 
-        // 4. Fetch order items
-        addLog('Fetching order items...');
-        const { data: orderItems, error: itemsError } = await supabase
-            .from('order_items')
-            .select('*')
-            .eq('order_id', order.id);
+        // 4. Post-Update Tasks (Stock following, clearing cart)
+        addLog('Step 4: Running post-payment logic...');
+        try {
+            // Fetch items
+            const { data: items, error: itemsError } = await supabase
+                .from('order_items')
+                .select('*')
+                .eq('order_id', order.id);
 
-        if (itemsError) {
-            addLog(`Warning: Items fetch failed: ${itemsError.message}`);
-        } else {
-            addLog(`Fetched ${orderItems?.length || 0} items.`);
-        }
-
-        // 5. Stock deduction logic (wrapped to not crash)
-        if (payment.status === 'captured' && orderItems) {
-            addLog('Starting stock deduction...');
-            try {
-                for (const item of orderItems) {
-                    addLog(`Deducting stock for item ${item.product_id}...`);
+            if (itemsError) {
+                addLog(`Warning: Failed to fetch order items - ${itemsError.message}`);
+            } else if (payment.status === 'captured' && items) {
+                addLog(`Deducting stock for ${items.length} items...`);
+                for (const item of items) {
                     if (item.selected_variant) {
-                        const { error: rpcError } = await supabase.rpc('deduct_variant_stock', {
+                        await supabase.rpc('deduct_variant_stock', {
                             variant_id: item.selected_variant.id,
                             qty: item.quantity
                         });
-                        if (rpcError) addLog(`RPC Error (Variant): ${rpcError.message}`);
                     } else {
-                        const { error: rpcError } = await supabase.rpc('deduct_product_stock', {
+                        await supabase.rpc('deduct_product_stock', {
                             prod_id: item.product_id,
                             qty: item.quantity
                         });
-                        if (rpcError) addLog(`RPC Error (Product): ${rpcError.message}`);
                     }
                 }
                 addLog('Stock deduction complete.');
 
-                // Clear cart
-                addLog('Clearing cart...');
-                const { data: cart } = await supabase
-                    .from('carts')
-                    .select('id')
-                    .eq('user_id', userId)
-                    .single();
-
-                if (cart) {
-                    await supabase.from('cart_items').delete().eq('cart_id', cart.id);
-                    addLog('Cart cleared.');
+                // Clear cart only if this is a logged in user
+                if (userId) {
+                    const { data: cart } = await supabase.from('carts').select('id').eq('user_id', userId).single();
+                    if (cart) {
+                        await supabase.from('cart_items').delete().eq('cart_id', cart.id);
+                        addLog('User cart cleared.');
+                    }
                 }
-            } catch (stockError: any) {
-                addLog(`Exception in stock logic: ${stockError.message}`);
             }
+        } catch (postError: any) {
+            addLog(`Warning: Post-payment logic error (Non-fatal) - ${postError.message}`);
         }
 
-        addLog('Verification process complete.');
-        res.json({
+        addLog('Verification Finished Successfully');
+        return res.json({
             success: true,
             orderId: order.id,
             paymentStatus: payment.status,
-            message: 'Payment verified successfully',
             diagnostics
         });
 
     } catch (error: any) {
-        addLog(`CRITICAL ERROR: ${error.message}`);
-        res.status(500).json({ 
+        const stack = error.stack?.split('\n').slice(0, 3).join(' | ');
+        addLog(`CRITICAL CRASH: ${error.message} (Stack: ${stack})`);
+        return res.status(500).json({ 
             success: false, 
-            error: error.message || 'Unexpected error', 
+            error: error.message || 'Unknown internal crash', 
             diagnostics 
         });
     }
