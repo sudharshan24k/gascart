@@ -2,15 +2,20 @@ import Razorpay from 'razorpay';
 import crypto from 'crypto';
 import { config } from '../config/env';
 
-// Initialize Razorpay instance safely (prevents Vercel startup crash if env vars are missing)
-const RZP_KEY = config.razorpay.keyId || 'rzp_test_dummy_key';
-const RZP_SECRET = config.razorpay.keySecret || 'dummy_secret';
+// Initialize Razorpay instance safely
+const RZP_KEY = config.razorpay.keyId;
+const RZP_SECRET = config.razorpay.keySecret;
 
-console.log('[RazorpayService] Initializing Razorpay with key:', RZP_KEY ? 'Present' : 'Missing');
+if (!RZP_KEY || !RZP_SECRET) {
+    console.error('[RazorpayService] CRITICAL: Razorpay credentials missing from environment variables!');
+} else {
+    const maskedKey = `${RZP_KEY.substring(0, 8)}...`;
+    console.log('[RazorpayService] Initializing Razorpay with key prefix:', maskedKey);
+}
 
 export const razorpayInstance = new Razorpay({
-    key_id: String(RZP_KEY),
-    key_secret: String(RZP_SECRET),
+    key_id: String(RZP_KEY || 'MISSING_KEY'),
+    key_secret: String(RZP_SECRET || 'MISSING_SECRET'),
 });
 
 /**
