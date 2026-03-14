@@ -23,24 +23,31 @@ export const createRazorpayOrder = async (options: {
     notes?: Record<string, any>;
 }) => {
     try {
-        const order = await razorpayInstance.orders.create({
+        console.log('[RazorpayService] Creating order with options:', {
             amount: options.amount,
+            currency: options.currency || 'INR',
+            receipt: options.receipt,
+            notesCount: Object.keys(options.notes || {}).length
+        });
+
+        const order = await razorpayInstance.orders.create({
+            amount: Math.round(options.amount),
             currency: options.currency || 'INR',
             receipt: options.receipt,
             notes: options.notes || {},
         });
 
+        console.log('[RazorpayService] Order created successfully:', order.id);
         return { success: true, order };
     } catch (error: any) {
-        console.error('[RazorpayService] Order creation failure:', {
-            message: error.message,
-            description: error.description,
-            code: error.code,
-            metadata: error.metadata
-        });
+        console.error('[RazorpayService] Order creation failure (Full Error):', JSON.stringify(error, null, 2));
+        console.error('[RazorpayService] Error stack:', error.stack);
+        
+        const detailedError = error.description || error.message || (typeof error === 'object' ? JSON.stringify(error) : String(error));
+        
         return { 
             success: false, 
-            error: error.description || error.message || 'Razorpay SDK error'
+            error: detailedError
         };
     }
 };

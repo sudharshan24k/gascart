@@ -17,7 +17,13 @@ export const createPaymentOrder = async (req: AuthRequest, res: Response) => {
         }
 
         // Calculate totals
-        const totalAmount = items.reduce((sum: number, item: any) => sum + (item.price * item.quantity), 0);
+        const totalAmount = items.reduce((sum: number, item: any) => sum + (Number(item.price) * Number(item.quantity)), 0);
+        
+        if (isNaN(totalAmount) || totalAmount <= 0) {
+            console.error('[PaymentController] Invalid total amount calculated:', totalAmount, items);
+            return res.status(400).json({ error: 'Invalid checkout amount' });
+        }
+
         const advanceAmount = totalAmount * 0.5; // 50% advance
         const balanceDue = totalAmount - advanceAmount;
 
