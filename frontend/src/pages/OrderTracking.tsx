@@ -81,6 +81,26 @@ const OrderTracking: React.FC = () => {
         );
     }
 
+    const renderAddress = (address: any) => {
+        if (!address) return 'No address provided';
+        if (typeof address === 'string') return address;
+
+        const parts = [
+            address.address_line1,
+            address.address_line2,
+            `${address.city}, ${address.state} ${address.zip_code || address.postal_code}`,
+            address.country
+        ].filter(Boolean);
+
+        return (
+            <div className="space-y-1">
+                <p className="font-bold text-neutral-900">{address.full_name}</p>
+                <p>{parts.join(', ')}</p>
+                {address.phone && <p className="text-neutral-500 text-xs">Ph: {address.phone}</p>}
+            </div>
+        );
+    };
+
     return (
         <div className="min-h-screen pt-28 pb-24 bg-neutral-50">
             <div className="container mx-auto px-4 max-w-5xl">
@@ -226,7 +246,9 @@ const OrderTracking: React.FC = () => {
                                         </div>
                                         <div>
                                             <h4 className="font-black text-xs uppercase tracking-widest text-neutral-400 mb-2">Shipping Address</h4>
-                                            <p className="text-neutral-900 font-medium leading-relaxed">{order.shipping_address || 'No address provided'}</p>
+                                            <div className="text-neutral-900 font-medium leading-relaxed">
+                                                {renderAddress(order.shipping_address)}
+                                            </div>
                                         </div>
                                     </div>
 
