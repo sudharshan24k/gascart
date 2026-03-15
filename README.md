@@ -35,6 +35,7 @@ Run frontend:
 cd frontend
 npm run dev
 ```
+1
 
 Run backend:
 ```bash
