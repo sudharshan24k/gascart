@@ -4,7 +4,7 @@ import {
     LayoutDashboard, Package, ShoppingCart, Users, LogOut,
     ClipboardCheck, BookOpen, FolderTree, Building2, ShieldCheck,
     Settings2, Menu, X, Search, Bell, ChevronRight, User,
-    Database, MessageSquare, ImageIcon, Activity, FileText
+    Database, MessageSquare, ImageIcon, Activity, FileText, PanelLeftClose, PanelLeftOpen
 } from 'lucide-react';
 import { authService } from '../services/auth.service';
 import { supabase } from '../services/api';
@@ -14,6 +14,7 @@ const AdminLayout = () => {
     const location = useLocation();
     const navigate = useNavigate();
     const [sidebarOpen, setSidebarOpen] = useState(false);
+    const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
     const [scrolled, setScrolled] = useState(false);
     const [userProfile, setUserProfile] = useState<any>(null);
     const { permissions, isSuperAdmin } = useAuth();
@@ -131,66 +132,111 @@ const AdminLayout = () => {
             <aside
                 className={`
                     fixed inset-y-0 left-0 z-[60]
-                    w-[280px] bg-[#0F172A] text-slate-300 flex flex-col
+                    bg-[#0F172A] text-slate-300 flex flex-col
                     transition-all duration-300 ease-in-out border-r border-slate-800
+                    ${sidebarCollapsed ? 'w-[72px]' : 'w-[280px]'}
                     ${sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
                 `}
             >
-                <div className="p-8 flex items-center gap-3">
-                    <div className="w-10 h-10 bg-indigo-600 rounded-xl flex items-center justify-center shadow-lg shadow-indigo-600/20">
-                        <ShieldCheck className="w-6 h-6 text-white" />
+                {/* Logo */}
+                <div className={`flex items-center gap-3 border-b border-slate-800/50 h-[72px] ${sidebarCollapsed ? 'justify-center px-0' : 'px-6'}`}>
+                    <div className="w-9 h-9 bg-indigo-600 rounded-xl flex items-center justify-center shadow-lg shadow-indigo-600/20 flex-shrink-0">
+                        <ShieldCheck className="w-5 h-5 text-white" />
                     </div>
-                    <div>
-                        <h1 className="text-xl font-black text-white tracking-tight">GASCART</h1>
-                        <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Admin Control</p>
-                    </div>
+                    {!sidebarCollapsed && (
+                        <div className="overflow-hidden">
+                            <h1 className="text-xl font-black text-white tracking-tight whitespace-nowrap">GASCART</h1>
+                            <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Admin Control</p>
+                        </div>
+                    )}
                 </div>
 
-                <nav className="flex-grow p-4 space-y-8 overflow-y-auto custom-scrollbar">
+                <nav className="flex-grow py-4 overflow-y-auto custom-scrollbar">
                     {visibleGroups.map((group) => (
-                        <div key={group.title}>
-                            <h3 className="px-4 text-[10px] font-black uppercase tracking-[0.2em] text-slate-500 mb-4">
-                                {group.title}
-                            </h3>
+                        <div key={group.title} className={`mb-6 ${sidebarCollapsed ? 'px-2' : 'px-4'}`}>
+                            {!sidebarCollapsed && (
+                                <h3 className="px-3 text-[10px] font-black uppercase tracking-[0.2em] text-slate-500 mb-3">
+                                    {group.title}
+                                </h3>
+                            )}
+                            {sidebarCollapsed && <div className="h-px bg-slate-800/60 mb-3 mx-1" />}
                             <div className="space-y-1">
                                 {group.items.map((item: any) => (
-                                    <Link
-                                        key={item.path}
-                                        to={item.path}
-                                        onClick={() => setSidebarOpen(false)}
-                                        className={`
-                                            flex items-center justify-between px-4 py-3 rounded-xl transition-all duration-200 group
-                                            ${isActive(item.path)
-                                                ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/20'
-                                                : 'text-slate-400 hover:bg-slate-800/50 hover:text-slate-100'
-                                            }
-                                        `}
-                                    >
-                                        <div className="flex items-center gap-3">
-                                            <item.icon className={`w-5 h-5 transition-colors ${isActive(item.path) ? 'text-white' : 'text-slate-500 group-hover:text-slate-300'}`} />
-                                            <span className="text-sm font-bold">{item.name}</span>
-                                        </div>
-                                        {isActive(item.path) && <ChevronRight className="w-4 h-4 text-white/50" />}
-                                    </Link>
+                                    <div key={item.path} className="relative group/tip">
+                                        <Link
+                                            to={item.path}
+                                            onClick={() => setSidebarOpen(false)}
+                                            className={`
+                                                flex items-center transition-all duration-200 group rounded-xl
+                                                ${sidebarCollapsed ? 'justify-center px-0 py-3' : 'justify-between px-3 py-2.5'}
+                                                ${isActive(item.path)
+                                                    ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/20'
+                                                    : 'text-slate-400 hover:bg-slate-800/50 hover:text-slate-100'
+                                                }
+                                            `}
+                                        >
+                                            <div className={`flex items-center ${sidebarCollapsed ? '' : 'gap-3'}`}>
+                                                <item.icon className={`w-5 h-5 flex-shrink-0 transition-colors ${isActive(item.path) ? 'text-white' : 'text-slate-500 group-hover:text-slate-300'}`} />
+                                                {!sidebarCollapsed && <span className="text-sm font-bold whitespace-nowrap">{item.name}</span>}
+                                            </div>
+                                            {!sidebarCollapsed && isActive(item.path) && <ChevronRight className="w-4 h-4 text-white/50" />}
+                                        </Link>
+                                        {/* Tooltip when collapsed */}
+                                        {sidebarCollapsed && (
+                                            <div className="pointer-events-none absolute left-full top-1/2 -translate-y-1/2 ml-3 z-[100]
+                                                opacity-0 group-hover/tip:opacity-100 transition-opacity duration-150">
+                                                <div className="bg-slate-900 text-white text-xs font-semibold px-3 py-1.5 rounded-lg shadow-xl whitespace-nowrap border border-slate-700">
+                                                    {item.name}
+                                                </div>
+                                            </div>
+                                        )}
+                                    </div>
                                 ))}
                             </div>
                         </div>
                     ))}
                 </nav>
 
-                <div className="p-4 border-t border-slate-800/50">
+                <div className={`border-t border-slate-800/50 ${sidebarCollapsed ? 'px-2 py-3' : 'px-4 py-3'}`}>
+                    {/* Collapse toggle */}
                     <button
-                        onClick={handleLogout}
-                        className="flex items-center gap-3 px-4 py-3 text-slate-400 hover:text-red-400 hover:bg-red-400/5 w-full rounded-xl transition-all font-bold text-sm"
+                        onClick={() => setSidebarCollapsed(c => !c)}
+                        title={sidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+                        className={`hidden lg:flex items-center gap-3 w-full rounded-xl transition-all duration-200 font-bold text-sm
+                            text-slate-500 hover:text-slate-200 hover:bg-slate-800/60 mb-2
+                            ${sidebarCollapsed ? 'justify-center px-0 py-3' : 'px-3 py-2.5'}`}
                     >
-                        <LogOut className="w-5 h-5" />
-                        <span>Logout System</span>
+                        {sidebarCollapsed
+                            ? <PanelLeftOpen className="w-5 h-5 flex-shrink-0" />
+                            : <>
+                                <PanelLeftClose className="w-5 h-5 flex-shrink-0" />
+                                <span>Collapse</span>
+                              </>
+                        }
                     </button>
+                    <div className="relative group/tip">
+                        <button
+                            onClick={handleLogout}
+                            className={`flex items-center gap-3 text-slate-400 hover:text-red-400 hover:bg-red-400/5 w-full rounded-xl transition-all font-bold text-sm
+                                ${sidebarCollapsed ? 'justify-center px-0 py-3' : 'px-3 py-2.5'}`}
+                        >
+                            <LogOut className="w-5 h-5 flex-shrink-0" />
+                            {!sidebarCollapsed && <span>Logout System</span>}
+                        </button>
+                        {sidebarCollapsed && (
+                            <div className="pointer-events-none absolute left-full top-1/2 -translate-y-1/2 ml-3 z-[100]
+                                opacity-0 group-hover/tip:opacity-100 transition-opacity duration-150">
+                                <div className="bg-slate-900 text-white text-xs font-semibold px-3 py-1.5 rounded-lg shadow-xl whitespace-nowrap border border-slate-700">
+                                    Logout
+                                </div>
+                            </div>
+                        )}
+                    </div>
                 </div>
             </aside>
 
             {/* Main Content Area */}
-            <div className="flex-grow flex flex-col min-h-screen lg:pl-[280px]">
+            <div className={`flex-grow flex flex-col min-h-screen transition-all duration-300 ${sidebarCollapsed ? 'lg:pl-[72px]' : 'lg:pl-[280px]'}`}>
                 {/* Top Header */}
                 <header
                     className={`

@@ -143,7 +143,7 @@ const Checkout: React.FC = () => {
                 fetchAddresses(); // Keep it synced just in case
             } catch (err) {
                 console.error('Failed to save address', err);
-                showToast('Address could not be saved to profile, but proceeding to payment...', 'warning');
+                showToast('Address could not be saved to profile, but proceeding to payment...', 'info');
             }
         }
         setStep(2);
