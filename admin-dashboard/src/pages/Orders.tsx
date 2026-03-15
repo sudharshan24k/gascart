@@ -118,6 +118,23 @@ const AdminOrders = () => {
         }
     };
 
+    const getButtonColor = (status: string, isActive: boolean) => {
+        const base = "px-5 py-3 rounded-2xl text-[10px] font-black uppercase tracking-wider transition-all border-2 flex-grow sm:flex-grow-0 text-center outline-none ";
+        if (!isActive) return base + "bg-white text-gray-400 border-gray-100 hover:border-gray-300 hover:bg-gray-50 hover:text-gray-700 shadow-sm";
+        
+        switch (status?.toLowerCase()) {
+            case 'delivered': return base + 'bg-green-500 text-white border-green-600 shadow-lg shadow-green-500/30 scale-105';
+            case 'sent':
+            case 'shipped': return base + 'bg-blue-500 text-white border-blue-600 shadow-lg shadow-blue-500/30 scale-105';
+            case 'processing': return base + 'bg-indigo-500 text-white border-indigo-600 shadow-lg shadow-indigo-500/30 scale-105';
+            case 'advanced': return base + 'bg-purple-500 text-white border-purple-600 shadow-lg shadow-purple-500/30 scale-105';
+            case 'pending': return base + 'bg-amber-500 text-white border-amber-600 shadow-lg shadow-amber-500/30 scale-105';
+            case 'rejected':
+            case 'cancelled': return base + 'bg-red-500 text-white border-red-600 shadow-lg shadow-red-500/30 scale-105';
+            default: return base + 'bg-gray-900 text-white border-gray-900 shadow-lg scale-105';
+        }
+    };
+
     const getInitials = (name: string) => {
         return name ? name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2) : '??';
     };
@@ -493,10 +510,7 @@ const AdminOrders = () => {
                                                 <button
                                                     key={status}
                                                     onClick={() => handleStatusUpdate(selectedOrder.id, status)}
-                                                    className={`px-4 py-3 rounded-2xl text-[9px] font-black uppercase tracking-widest transition-all ${selectedOrder.status === status
-                                                        ? getStatusColor(status) + ' ring-2 ring-inset ring-current'
-                                                        : 'bg-white text-gray-400 hover:bg-gray-100 border border-gray-100'
-                                                        }`}
+                                                    className={getButtonColor(status, selectedOrder.status === status)}
                                                 >
                                                     {status}
                                                 </button>
