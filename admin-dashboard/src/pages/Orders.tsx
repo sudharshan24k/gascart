@@ -102,11 +102,14 @@ const AdminOrders = () => {
 
 
     const getStatusColor = (status: string) => {
-        switch (status.toLowerCase()) {
+        switch (status?.toLowerCase()) {
             case 'delivered': return 'bg-green-100 text-green-700 border-green-200';
+            case 'sent':
             case 'shipped': return 'bg-blue-100 text-blue-700 border-blue-200';
             case 'processing': return 'bg-indigo-100 text-indigo-700 border-indigo-200';
+            case 'advanced': return 'bg-purple-100 text-purple-700 border-purple-200';
             case 'pending': return 'bg-amber-100 text-amber-700 border-amber-200';
+            case 'rejected':
             case 'cancelled': return 'bg-red-100 text-red-700 border-red-200';
             default: return 'bg-gray-100 text-gray-700 border-gray-200';
         }
@@ -221,9 +224,12 @@ const AdminOrders = () => {
                     >
                         <option value="All">All Statuses</option>
                         <option value="pending">Pending</option>
+                        <option value="advanced">Advanced</option>
                         <option value="processing">Processing</option>
+                        <option value="sent">Sent</option>
                         <option value="shipped">Shipped</option>
                         <option value="delivered">Delivered</option>
+                        <option value="rejected">Rejected</option>
                         <option value="cancelled">Cancelled</option>
                     </select>
                 </div>
@@ -418,9 +424,9 @@ const AdminOrders = () => {
                                 {/* Right: Controls & Summary */}
                                 <div className="space-y-8">
                                     <section className="bg-primary/5 p-8 rounded-[32px] border border-primary/10">
-                                        <h4 className="text-[11px] font-black uppercase tracking-[0.2em] text-primary mb-6">Fulfillment Ops</h4>
-                                        <div className="grid grid-cols-2 gap-3 mb-8">
-                                            {['pending', 'processing', 'shipped', 'delivered', 'cancelled'].map((status) => (
+                                        <h4 className="text-[11px] font-black uppercase tracking-[0.2em] text-primary mb-6">Fulfillment Ops (Order State)</h4>
+                                        <div className="flex flex-wrap gap-3 mb-8">
+                                            {['pending', 'advanced', 'processing', 'sent', 'shipped', 'delivered', 'rejected', 'cancelled'].map((status) => (
                                                 <button
                                                     key={status}
                                                     onClick={() => handleStatusUpdate(selectedOrder.id, status)}
