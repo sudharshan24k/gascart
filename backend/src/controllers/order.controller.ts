@@ -300,59 +300,119 @@ export const downloadInvoice = async (req: Request, res: Response, next: NextFun
 
         order.profiles = profile;
 
-        const doc = new PDFDocument({ margin: 50 });
+        // --- PDF Generation ---
+        const doc = new PDFDocument({ margin: 50, size: 'A4' });
 
         // Set response headers
         res.setHeader('Content-Type', 'application/pdf');
-        res.setHeader('Content-Disposition', `attachment; filename=invoice-${order.id.slice(0, 8)}.pdf`);
+        res.setHeader('Content-Disposition', `attachment; filename=GASCART-INV-${order.id.slice(0, 8)}.pdf`);
 
         doc.pipe(res);
 
-        // Header
-        doc.fontSize(20).text('INVOICE', { align: 'right' });
-        doc.fontSize(10).text('GASCART - Industrial E-commerce', { align: 'left' });
-        doc.moveDown();
+        // 1. Header Section
+        doc.fillColor('#0F172A').fontSize(28).font('Helvetica-Bold').text('GASCART', 50, 50);
+        doc.fillColor('#64748B').fontSize(10).font('Helvetica').text('Industrial Ecommerce Solutions', 50, 80);
+        doc.text('123 Industrial Ave, Tech City, 560001', 50, 95);
+        doc.text('support@gascart.in | +91 234 567 8900', 50, 110);
 
-        // Order Info
-        doc.text(`Invoice Number: INV-${order.id.slice(0, 8)}`);
-        doc.text(`Date: ${new Date(order.created_at).toLocaleDateString()}`);
-        doc.text(`Status: ${order.status.toUpperCase()}`);
-        doc.moveDown();
+        // Invoice Details (Right Aligned)
+        doc.fillColor('#0F172A').fontSize(24).font('Helvetica-Bold').text('INVOICE', 0, 50, { align: 'right', width: 545 });
+        doc.fillColor('#64748B').fontSize(10).font('Helvetica');
+        doc.text(`Invoice #: INV-${order.id.slice(0, 8).toUpperCase()}`, 0, 80, { align: 'right', width: 545 });
+        doc.text(`Date: ${new Date(order.created_at).toLocaleDateString('en-IN')}`, 0, 95, { align: 'right', width: 545 });
+        doc.text(`Status: ${order.payment_status.toUpperCase()}`, 0, 110, { align: 'right', width: 545 });
+        
+        if (order.razorpay_payment_id) {
+            doc.text(`Payment ID: ${order.razorpay_payment_id}`, 0, 125, { align: 'right', width: 545 });
+        }
 
-        // Customer Info
-        doc.fontSize(12).text('Bill To:', { underline: true });
-        doc.fontSize(10).text(order.profiles?.full_name || 'Customer');
-        doc.text(order.profiles?.email || '');
-        doc.text(order.billing_address || order.shipping_address);
-        doc.moveDown();
+        // Horizontal Line
+        doc.moveTo(50, 150).lineTo(545, 150).strokeColor('#E2E8F0').lineWidth(2).stroke();
 
-        // Table Header
-        const tableTop = 250;
-        doc.font('Helvetica-Bold');
-        doc.text('Item', 50, tableTop);
-        doc.text('Quantity', 300, tableTop, { width: 90, align: 'right' });
-        doc.text('Price', 400, tableTop, { width: 90, align: 'right' });
-        doc.text('Total', 500, tableTop, { align: 'right' });
+        // 2. Billing & Shipping Section
+        const topBill = 170;
+        doc.fillColor('#0F172A').fontSize(12).font('Helvetica-Bold').text('Bill To:', 50, topBill);
+        doc.fillColor('#475569').fontSize(10).font('Helvetica');
+        doc.text(order.profiles?.full_name || 'Customer', 50, topBill + 20);
+        doc.text(order.profiles?.email || 'N/A', 50, topBill + 35);
+        doc.text(order.billing_address || 'Address not provided', 50, topBill + 50, { width: 200 });
 
-        doc.moveTo(50, tableTop + 15).lineTo(550, tableTop + 15).stroke();
-        doc.font('Helvetica');
+        doc.fillColor('#0F172A').fontSize(12).font('Helvetica-Bold').text('Ship To:', 300, topBill);
+        doc.fillColor('#475569').fontSize(10).font('Helvetica');
+        doc.text(order.profiles?.full_name || 'Customer', 300, topBill + 20);
+        doc.text(order.shipping_address || 'Address not provided', 300, topBill + 35, { width: 200 });
 
-        // Table Rows
+        // Horizontal Line
+        doc.moveTo(50, 260).lineTo(545, 260).strokeColor('#E2E8F0').lineWidth(2).stroke();
+
+        // 3. Table Header
+        const tableTop = 280;
+        doc.fillColor('#0F172A').fontSize(10).font('Helvetica-Bold');
+        doc.text('Item Description', 50, tableTop);
+        doc.text('Qty', 350, tableTop, { width: 50, align: 'center' });
+        doc.text('Unit Price', 400, tableTop, { width: 70, align: 'right' });
+        doc.text('Total', 470, tableTop, { width: 75, align: 'right' });
+
+        doc.moveTo(50, tableTop + 15).lineTo(545, tableTop + 15).strokeColor('#CBD5E1').lineWidth(1).stroke();
+
+        // 4. Table Rows
         let currentHeight = tableTop + 25;
+        doc.fillColor('#334155').font('Helvetica');
+
         order.order_items.forEach((item: any) => {
-            doc.text(item.product?.name || 'Product', 50, currentHeight);
-            doc.text(item.quantity.toString(), 300, currentHeight, { width: 90, align: 'right' });
-            doc.text(`$${item.price_at_purchase.toFixed(2)}`, 400, currentHeight, { width: 90, align: 'right' });
-            doc.text(`$${(item.quantity * item.price_at_purchase).toFixed(2)}`, 500, currentHeight, { align: 'right' });
-            currentHeight += 20;
+            // Prevent overflowing page, though unlikely for most orders
+            if (currentHeight > 650) {
+                doc.addPage();
+                currentHeight = 50;
+            }
+
+            const itemName = item.product?.name || 'Industrial Asset';
+            const qty = Number(item.quantity || 1);
+            const price = Number(item.price_at_purchase || 0);
+            const lineTotal = qty * price;
+
+            doc.text(itemName, 50, currentHeight, { width: 290, lineBreak: false });
+            doc.text(qty.toString(), 350, currentHeight, { width: 50, align: 'center' });
+            doc.text(`₹${price.toLocaleString('en-IN')}`, 400, currentHeight, { width: 70, align: 'right' });
+            doc.text(`₹${lineTotal.toLocaleString('en-IN')}`, 470, currentHeight, { width: 75, align: 'right' });
+
+            currentHeight += 25;
         });
 
-        // Summary
-        doc.moveTo(50, currentHeight + 10).lineTo(550, currentHeight + 10).stroke();
-        doc.font('Helvetica-Bold');
-        doc.text('Total Amount:', 400, currentHeight + 25);
-        doc.text(`$${order.total_amount.toFixed(2)}`, 500, currentHeight + 25, { align: 'right' });
+        // Horizontal Line (Bottom of table)
+        doc.moveTo(50, currentHeight + 10).lineTo(545, currentHeight + 10).strokeColor('#E2E8F0').lineWidth(2).stroke();
 
+        // 5. Total Calculations
+        currentHeight += 30;
+        const totalAmount = Number(order.total_amount || 0);
+        const paidAmount = Number(order.paid_amount || totalAmount); // Fallback to full for old orders
+        const balanceDue = Number(order.balance_due || 0);
+
+        doc.fontSize(10).font('Helvetica-Bold').fillColor('#64748B').text('Subtotal:', 350, currentHeight);
+        doc.fillColor('#0F172A').text(`₹${totalAmount.toLocaleString('en-IN', {minimumFractionDigits: 2})}`, 450, currentHeight, { width: 95, align: 'right' });
+
+        currentHeight += 20;
+        doc.fillColor('#64748B').text('Paid Amount:', 350, currentHeight);
+        doc.fillColor('#10B981').text(`₹${paidAmount.toLocaleString('en-IN', {minimumFractionDigits: 2})}`, 450, currentHeight, { width: 95, align: 'right' });
+
+        if (balanceDue > 0) {
+            currentHeight += 20;
+            doc.fillColor('#EF4444').text('Balance Due:', 350, currentHeight);
+            doc.fillColor('#EF4444').text(`₹${balanceDue.toLocaleString('en-IN', {minimumFractionDigits: 2})}`, 450, currentHeight, { width: 95, align: 'right' });
+        }
+
+        currentHeight += 30;
+        // Final Total Block
+        doc.rect(340, currentHeight - 10, 205, 35).fill('#F8FAFC');
+        doc.fillColor('#0F172A').fontSize(14).font('Helvetica-Bold').text('Total Amount:', 350, currentHeight);
+        doc.text(`₹${totalAmount.toLocaleString('en-IN', {minimumFractionDigits: 2})}`, 450, currentHeight, { width: 95, align: 'right' });
+
+        // 6. Footer (Pinned to bottom of page 1)
+        doc.fontSize(9).font('Helvetica').fillColor('#94A3B8');
+        doc.text('Thank you for choosing GASCART for your industrial needs.', 50, 750, { align: 'center', width: 495 });
+        doc.text('Terms & Conditions apply. This is an electronically generated invoice.', 50, 765, { align: 'center', width: 495 });
+
+        // Finalize
         doc.end();
 
     } catch (err) {
