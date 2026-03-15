@@ -84,6 +84,7 @@ function App() {
                                     <Route path="order-success" element={<OrderSuccess />} />
                                     <Route path="profile" element={<Profile />} />
                                     <Route path="my-orders" element={<MyOrders />} />
+                                    <Route path="orders" element={<Navigate to="/my-orders" replace />} />
                                     <Route path="order-tracking/:id" element={<OrderTracking />} />
 
 

@@ -205,7 +205,7 @@ const MyOrders: React.FC = () => {
                                         <div className="flex flex-wrap items-center gap-8">
                                             <div>
                                                 <p className="text-[10px] font-black text-neutral-400 uppercase tracking-widest mb-1">Total Amount</p>
-                                                <p className="font-bold text-neutral-900 text-lg">₹{order.total_amount.toFixed(2)}</p>
+                                                <p className="font-bold text-neutral-900 text-lg">₹{Number(order.total_amount || 0).toFixed(2)}</p>
                                             </div>
                                             <div>
                                                 <p className="text-[10px] font-black text-neutral-400 uppercase tracking-widest mb-1">Status</p>
@@ -217,7 +217,7 @@ const MyOrders: React.FC = () => {
                                     </div>
 
                                     <div className="space-y-4 mb-8">
-                                        {order.order_items.slice(0, 2).map((item: any) => (
+                                        {(order.order_items || []).slice(0, 2).map((item: any) => (
                                             <div key={item.id} className="flex items-center gap-5 p-4 bg-neutral-50 rounded-2xl border border-neutral-100 transition-colors group-hover:bg-neutral-50/80">
                                                 <div className="h-20 w-20 bg-white rounded-xl flex-shrink-0 flex items-center justify-center overflow-hidden border border-neutral-200">
                                                     {item.product?.image ? (
@@ -235,9 +235,9 @@ const MyOrders: React.FC = () => {
                                                 </div>
                                             </div>
                                         ))}
-                                        {order.order_items.length > 2 && (
+                                        {(order.order_items || []).length > 2 && (
                                             <div className="pl-4">
-                                                <p className="text-sm font-bold text-neutral-400">+ {order.order_items.length - 2} more items in this order</p>
+                                                <p className="text-sm font-bold text-neutral-400">+ {(order.order_items || []).length - 2} more items in this order</p>
                                             </div>
                                         )}
                                     </div>

@@ -14,7 +14,7 @@ const AdminOrders = () => {
 
     // Stats
     const stats = {
-        totalRevenue: orders.reduce((sum, o) => sum + (o.total_amount || 0), 0),
+        totalRevenue: orders.reduce((sum, o) => sum + Number(o.total_amount || 0), 0),
         pendingCount: orders.filter(o => o.status === 'pending').length,
         processingCount: orders.filter(o => o.status === 'processing').length,
         totalOrders: orders.length
@@ -288,7 +288,7 @@ const AdminOrders = () => {
                                         </div>
                                     </td>
                                     <td className="py-8 px-10">
-                                        <div className="font-black text-lg text-gray-900 tracking-tight">₹{(order.total_amount || 0).toLocaleString()}</div>
+                                        <div className="font-black text-lg text-gray-900 tracking-tight">₹{Number(order.total_amount || 0).toLocaleString()}</div>
                                         {order.balance_due > 0 ? (
                                             <div className="text-[10px] uppercase tracking-wide mt-1">
                                                 <span className="text-emerald-600 font-bold">Paid: ₹{order.paid_amount?.toLocaleString() || '0'}</span>
@@ -407,7 +407,7 @@ const AdminOrders = () => {
                                                         </div>
                                                     </div>
                                                     <div className="text-right">
-                                                        <p className="font-black text-gray-900 text-xl">₹{(item.price_at_purchase * item.quantity).toLocaleString()}</p>
+                                                        <p className="font-black text-gray-900 text-xl">₹{(Number(item.price_at_purchase || 0) * Number(item.quantity || 1)).toLocaleString()}</p>
                                                     </div>
                                                 </div>
                                             ))}
@@ -437,7 +437,7 @@ const AdminOrders = () => {
                                         <div className="space-y-4 pt-6 border-t border-primary/10">
                                             <div className="flex justify-between items-end">
                                                 <p className="text-[10px] font-black text-primary uppercase tracking-widest">Gross Total</p>
-                                                <p className="text-4xl font-black text-gray-900 tabular-nums">₹{(selectedOrder.total_amount || 0).toLocaleString()}</p>
+                                                <p className="text-4xl font-black text-gray-900 tabular-nums">₹{Number(selectedOrder.total_amount || 0).toLocaleString()}</p>
                                             </div>
 
                                             {selectedOrder.balance_due > 0 && (
