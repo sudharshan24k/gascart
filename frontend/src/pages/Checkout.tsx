@@ -40,9 +40,9 @@ const Checkout: React.FC = () => {
 
     // Calculate Totals
     const subtotal = cartTotal;
-    const shippingCost = subtotal > 50000 ? 0 : 500;
     const tax = subtotal * 0.18;
-    const total = subtotal + shippingCost + tax;
+    const grandTotal = subtotal + tax;
+    const advancePayable = grandTotal * 0.5;
 
     useEffect(() => {
         if (!session) {
@@ -418,7 +418,7 @@ const Checkout: React.FC = () => {
                                             size="lg"
                                             className="text-lg py-6"
                                         >
-                                            Pay ₹{total.toLocaleString()} & Place Order
+                                            Pay Advance ₹{advancePayable.toLocaleString()} & Place Order
                                         </Button>
                                     </motion.div>
                                 )}
@@ -458,10 +458,6 @@ const Checkout: React.FC = () => {
                                     <span className="font-bold text-neutral-900">₹{subtotal.toLocaleString()}</span>
                                 </div>
                                 <div className="flex justify-between text-sm">
-                                    <span className="text-neutral-500 font-medium">Shipping</span>
-                                    <span className="font-bold text-neutral-900">{shippingCost === 0 ? 'Free' : `₹${shippingCost.toLocaleString()}`}</span>
-                                </div>
-                                <div className="flex justify-between text-sm">
                                     <span className="text-neutral-500 font-medium">Tax (18%)</span>
                                     <span className="font-bold text-neutral-900">₹{tax.toLocaleString()}</span>
                                 </div>
@@ -469,10 +465,21 @@ const Checkout: React.FC = () => {
 
                             <div className="mt-8 pt-6 border-t border-dashed border-neutral-200">
                                 <div className="flex justify-between items-end mb-2">
-                                    <span className="font-black text-neutral-900 text-lg">Total</span>
-                                    <span className="font-black text-neutral-900 text-3xl">₹{total.toLocaleString()}</span>
+                                    <span className="font-black text-neutral-500 text-sm">Grand Total (excl. Shipping)</span>
+                                    <span className="font-black text-neutral-900 text-lg">₹{grandTotal.toLocaleString()}</span>
                                 </div>
-                                <p className="text-xs text-neutral-400 text-right font-medium">Inclusive of all taxes</p>
+                                
+                                <div className="flex justify-between items-center mt-4 p-4 bg-primary/5 rounded-2xl border border-primary/20">
+                                    <div>
+                                        <span className="font-black text-primary text-lg block">Advance Payable Now</span>
+                                        <span className="text-xs text-primary/70 font-bold block mt-1">50% of Grand Total</span>
+                                    </div>
+                                    <span className="font-black text-primary text-3xl">₹{advancePayable.toLocaleString()}</span>
+                                </div>
+                                
+                                <p className="text-xs text-neutral-400 font-medium text-center mt-4">
+                                    * Shipping will be calculated based on delivery location and volumetric weight, then added to your remaining balance.
+                                </p>
                             </div>
                         </div>
                     </div>

@@ -12,10 +12,9 @@ const Cart = () => {
 
     // Calculate totals
     const subtotal = cartTotal;
-    // Example logic for shipping/tax - can be dynamic based on backend later
-    const shipping = subtotal > 50000 ? 0 : 500;
     const tax = subtotal * 0.18; // 18% GST example
-    const total = subtotal + shipping + tax;
+    const grandTotal = subtotal + tax;
+    const advancePayable = grandTotal * 0.5;
 
     if (loading && items.length === 0) {
         return (
@@ -152,8 +151,8 @@ const Cart = () => {
                                 <Truck className="w-6 h-6 text-blue-600" />
                             </div>
                             <div>
-                                <h4 className="font-bold text-sm">Free Shipping Available</h4>
-                                <p className="text-xs opacity-80">On orders above ₹50,000 via registered logistics partners.</p>
+                                <h4 className="font-bold text-sm">Flexible Logistics Handling</h4>
+                                <p className="text-xs opacity-80">Final shipping cost will be expertly calculated post-checkout based on destination address and specific asset volumetric requirements.</p>
                             </div>
                         </div>
                     </div>
@@ -171,20 +170,26 @@ const Cart = () => {
                                     <dd className="font-bold text-neutral-900">₹{subtotal.toLocaleString()}</dd>
                                 </div>
                                 <div className="flex justify-between text-neutral-600">
-                                    <dt className="text-sm font-medium">Shipping Estimate</dt>
-                                    <dd className="font-bold text-neutral-900">{shipping === 0 ? 'Free' : `₹${shipping.toLocaleString()}`}</dd>
-                                </div>
-                                <div className="flex justify-between text-neutral-600">
                                     <dt className="text-sm font-medium">Tax (18% GST)</dt>
                                     <dd className="font-bold text-neutral-900">₹{tax.toLocaleString()}</dd>
                                 </div>
 
                                 <div className="border-t border-dashed border-neutral-200 my-4 pt-4">
-                                    <div className="flex justify-between items-end">
-                                        <dt className="text-lg font-black text-neutral-900">Total</dt>
-                                        <dd className="text-2xl font-black text-neutral-900">₹{total.toLocaleString()}</dd>
+                                    <div className="flex justify-between items-end mb-4">
+                                        <dt className="text-sm font-bold text-neutral-500">Grand Total (excl. Shipping)</dt>
+                                        <dd className="text-lg font-bold text-neutral-900">₹{grandTotal.toLocaleString()}</dd>
                                     </div>
-                                    <p className="text-xs text-neutral-400 font-medium text-right mt-1">Inclusive of all taxes</p>
+                                    
+                                    <div className="flex justify-between items-center p-4 bg-primary/5 rounded-2xl border border-primary/20">
+                                        <div>
+                                            <dt className="text-sm font-black text-primary">Advance (50%)</dt>
+                                        </div>
+                                        <dd className="text-2xl font-black text-primary">₹{advancePayable.toLocaleString()}</dd>
+                                    </div>
+                                    
+                                    <p className="text-[10px] text-neutral-400 font-medium text-center mt-4">
+                                        * Required to initiate order processing. Shipping is calculated post-order and billed with the remaining balance.
+                                    </p>
                                 </div>
                             </dl>
 
