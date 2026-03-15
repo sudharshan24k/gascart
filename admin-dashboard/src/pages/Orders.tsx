@@ -436,7 +436,20 @@ const AdminOrders = () => {
                                             </div>
                                             <div>
                                                 <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1">Shipping Destination</p>
-                                                <p className="text-gray-900 font-bold text-sm leading-relaxed">{selectedOrder.shipping_address}</p>
+                                                <div className="text-gray-900 font-bold text-sm leading-relaxed">
+                                                    {typeof selectedOrder.shipping_address === 'object' && selectedOrder.shipping_address !== null ? (
+                                                        <>
+                                                            {selectedOrder.shipping_address.full_name && <div>{selectedOrder.shipping_address.full_name}</div>}
+                                                            <div>{selectedOrder.shipping_address.address_line1}</div>
+                                                            {selectedOrder.shipping_address.address_line2 && <div>{selectedOrder.shipping_address.address_line2}</div>}
+                                                            <div>{selectedOrder.shipping_address.city}, {selectedOrder.shipping_address.state} {selectedOrder.shipping_address.zip_code}</div>
+                                                            {selectedOrder.shipping_address.country && <div>{selectedOrder.shipping_address.country}</div>}
+                                                            {selectedOrder.shipping_address.phone && <div className="mt-1 text-gray-500">Phone: {selectedOrder.shipping_address.phone}</div>}
+                                                        </>
+                                                    ) : (
+                                                        <p>{String(selectedOrder.shipping_address || '')}</p>
+                                                    )}
+                                                </div>
                                             </div>
                                         </div>
                                     </section>
