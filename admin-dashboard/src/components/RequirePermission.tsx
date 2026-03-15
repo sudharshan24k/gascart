@@ -27,7 +27,7 @@ const RequirePermission: React.FC<RequirePermissionProps> = ({
         return <>{fallback}</>;
     }
 
-    if (permission && !permissions.includes(permission)) {
+    if (permission && !(permissions || []).includes(permission)) {
         return <>{fallback}</>;
     }
 
@@ -49,7 +49,7 @@ export const ProtectedRoute: React.FC<{ permission?: string; requireSuperAdmin?:
         return <Navigate to="/" replace />;
     }
 
-    if (permission && !isSuperAdmin && !permissions.includes(permission)) {
+    if (permission && !isSuperAdmin && !(permissions || []).includes(permission)) {
         return <Navigate to="/" replace />;
     }
 

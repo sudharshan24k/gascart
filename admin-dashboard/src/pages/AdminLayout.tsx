@@ -88,7 +88,7 @@ const AdminLayout = () => {
         if (isSuperAdmin) return true;
         if (item.requireSuperAdmin) return false;
         if (!item.permission) return true;
-        return permissions.includes(item.permission);
+        return (permissions || []).includes(item.permission);
     };
 
     const visibleGroups = navigationGroups.map(group => ({
