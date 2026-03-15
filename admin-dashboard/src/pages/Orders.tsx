@@ -9,6 +9,9 @@ const AdminOrders = () => {
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
     const [statusFilter, setStatusFilter] = useState('All');
+    const [paymentFilter, setPaymentFilter] = useState('All');
+    const [startDate, setStartDate] = useState('');
+    const [endDate, setEndDate] = useState('');
     const [selectedOrder, setSelectedOrder] = useState<any>(null);
     const [trackingForm, setTrackingForm] = useState({ carrier: '', tracking_number: '' });
 
@@ -156,11 +159,25 @@ const AdminOrders = () => {
         }
     };
 
-    const filteredOrders = orders.filter(order =>
-        order.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        order.profiles?.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        order.profiles?.full_name?.toLowerCase().includes(searchTerm.toLowerCase())
-    );
+    const filteredOrders = orders.filter(order => {
+        const matchesSearch = order.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            order.profiles?.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            order.profiles?.full_name?.toLowerCase().includes(searchTerm.toLowerCase());
+            
+        const matchesPayment = paymentFilter === 'All' || order.payment_status === paymentFilter || (!order.payment_status && paymentFilter === 'pending');
+        
+        let matchesDate = true;
+        if (startDate) {
+            matchesDate = matchesDate && new Date(order.created_at) >= new Date(startDate);
+        }
+        if (endDate) {
+            const end = new Date(endDate);
+            end.setHours(23, 59, 59, 999);
+            matchesDate = matchesDate && new Date(order.created_at) <= end;
+        }
+
+        return matchesSearch && matchesPayment && matchesDate;
+    });
 
     return (
         <div className="max-w-7xl mx-auto pb-20">
@@ -206,32 +223,65 @@ const AdminOrders = () => {
 
             <div className="bg-white rounded-[40px] shadow-sm border border-gray-100 overflow-hidden flex flex-col min-h-[600px]">
                 {/* Filters & Search */}
-                <div className="p-8 border-b border-gray-50 flex flex-col md:flex-row gap-6 bg-gray-50/30">
-                    <div className="flex-grow relative">
+                <div className="p-8 border-b border-gray-50 flex flex-col xl:flex-row gap-6 bg-gray-50/30 xl:items-center">
+                    <div className="flex-grow min-w-[300px] relative">
                         <Search className="absolute left-6 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
                         <input
                             type="text"
                             placeholder="Search by Order ID, Name or Email..."
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
-                            className="w-full pl-16 pr-6 py-5 bg-white border-none rounded-2xl outline-none focus:ring-4 focus:ring-primary/5 shadow-inner transition-all font-bold"
+                            className="w-full pl-16 pr-6 py-5 bg-white border border-gray-200 rounded-2xl outline-none focus:ring-4 focus:ring-primary/5 shadow-inner transition-all font-bold"
                         />
                     </div>
-                    <select
-                        value={statusFilter}
-                        onChange={(e) => setStatusFilter(e.target.value)}
-                        className="px-8 py-5 bg-white rounded-2xl border-none outline-none font-black text-gray-700 shadow-inner flex items-center gap-2 cursor-pointer hover:bg-gray-50 transition-colors"
-                    >
-                        <option value="All">All Statuses</option>
-                        <option value="pending">Pending</option>
-                        <option value="advanced">Advanced</option>
-                        <option value="processing">Processing</option>
-                        <option value="sent">Sent</option>
-                        <option value="shipped">Shipped</option>
-                        <option value="delivered">Delivered</option>
-                        <option value="rejected">Rejected</option>
-                        <option value="cancelled">Cancelled</option>
-                    </select>
+                    
+                    <div className="flex flex-wrap md:flex-nowrap items-center gap-4">
+                        <div className="flex items-center gap-2 bg-white px-4 py-2 rounded-2xl border border-gray-200 shadow-inner">
+                            <span className="text-[10px] font-black uppercase text-gray-400">From</span>
+                            <input 
+                                type="date" 
+                                value={startDate}
+                                onChange={(e) => setStartDate(e.target.value)}
+                                className="bg-transparent border-none outline-none font-bold text-sm text-gray-700 cursor-pointer"
+                            />
+                        </div>
+                        <div className="flex items-center gap-2 bg-white px-4 py-2 rounded-2xl border border-gray-200 shadow-inner">
+                            <span className="text-[10px] font-black uppercase text-gray-400">To</span>
+                            <input 
+                                type="date" 
+                                value={endDate}
+                                onChange={(e) => setEndDate(e.target.value)}
+                                className="bg-transparent border-none outline-none font-bold text-sm text-gray-700 cursor-pointer"
+                            />
+                        </div>
+
+                        <select
+                            value={paymentFilter}
+                            onChange={(e) => setPaymentFilter(e.target.value)}
+                            className="px-6 py-5 bg-white rounded-2xl border border-gray-200 outline-none font-black text-gray-700 shadow-inner flex items-center gap-2 cursor-pointer hover:bg-gray-50 transition-colors"
+                        >
+                            <option value="All">All Payments</option>
+                            <option value="paid">Paid</option>
+                            <option value="pending">Pending</option>
+                            <option value="failed">Failed</option>
+                        </select>
+
+                        <select
+                            value={statusFilter}
+                            onChange={(e) => setStatusFilter(e.target.value)}
+                            className="px-6 py-5 bg-white rounded-2xl border border-gray-200 outline-none font-black text-primary shadow-inner flex items-center gap-2 cursor-pointer hover:bg-primary/5 transition-colors"
+                        >
+                            <option value="All">All Statuses</option>
+                            <option value="pending">Pending</option>
+                            <option value="advanced">Advanced</option>
+                            <option value="processing">Processing</option>
+                            <option value="sent">Sent</option>
+                            <option value="shipped">Shipped</option>
+                            <option value="delivered">Delivered</option>
+                            <option value="rejected">Rejected</option>
+                            <option value="cancelled">Cancelled</option>
+                        </select>
+                    </div>
                 </div>
 
                 {/* Table */}
