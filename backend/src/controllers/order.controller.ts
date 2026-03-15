@@ -135,7 +135,7 @@ export const getMyOrders = async (req: Request, res: Response, next: NextFunctio
 
         let query = supabase
             .from('orders')
-            .select('*, order_items(*, product:products(name, image))')
+            .select('*, order_items(*, product:products(name, images, description))')
             .eq('user_id', userId);
 
         // Filter by Status
@@ -189,7 +189,7 @@ export const getAllOrders = async (req: Request, res: Response, next: NextFuncti
         const { status } = req.query;
         let query = supabase
             .from('orders')
-            .select('*, order_items(*, product:products(name, images))')
+            .select('*, order_items(*, product:products(name, images, description))')
             .order('created_at', { ascending: false });
 
         if (status && status !== 'All') {

@@ -170,8 +170,8 @@ const OrderTracking: React.FC = () => {
                                         {(order.order_items || []).map((item: any) => (
                                             <div key={item.id} className="flex gap-6 p-6 bg-neutral-50 rounded-[24px] border border-neutral-100 group hover:bg-neutral-100/50 transition-colors">
                                                 <div className="h-24 w-24 bg-white rounded-2xl flex-shrink-0 overflow-hidden shadow-sm border border-neutral-200">
-                                                    {item.product?.image_url ? (
-                                                        <img src={item.product.image_url} alt={item.product.name} className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                                                    {(item.product?.images && item.product.images.length > 0) ? (
+                                                        <img src={item.product.images[0]} alt={item.product.name} className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-500" />
                                                     ) : (
                                                         <div className="h-full w-full flex items-center justify-center text-neutral-300">
                                                             <Package className="h-10 w-10" />

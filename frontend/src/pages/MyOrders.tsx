@@ -220,8 +220,8 @@ const MyOrders: React.FC = () => {
                                         {(order.order_items || []).slice(0, 2).map((item: any) => (
                                             <div key={item.id} className="flex items-center gap-5 p-4 bg-neutral-50 rounded-2xl border border-neutral-100 transition-colors group-hover:bg-neutral-50/80">
                                                 <div className="h-20 w-20 bg-white rounded-xl flex-shrink-0 flex items-center justify-center overflow-hidden border border-neutral-200">
-                                                    {item.product?.image ? (
-                                                        <img src={item.product.image} alt={item.product.name} className="h-full w-full object-cover transition-transform group-hover:scale-105 duration-500" />
+                                                    {(item.product?.images && item.product.images.length > 0) ? (
+                                                        <img src={item.product.images[0]} alt={item.product.name} className="h-full w-full object-cover transition-transform group-hover:scale-105 duration-500" />
                                                     ) : (
                                                         <Package className="h-8 w-8 text-neutral-300" />
                                                     )}
