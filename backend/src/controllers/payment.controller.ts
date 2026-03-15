@@ -16,15 +16,17 @@ export const createPaymentOrder = async (req: AuthRequest, res: Response) => {
             return res.status(400).json({ error: 'No items in checkout' });
         }
 
-        // Calculate totals
-        const totalAmount = items.reduce((sum: number, item: any) => sum + (Number(item.price) * Number(item.quantity)), 0);
+        // Calculate totals (must match frontend: subtotal + 18% tax = grandTotal, 50% advance)
+        const subtotal = items.reduce((sum: number, item: any) => sum + (Number(item.price) * Number(item.quantity)), 0);
         
-        if (isNaN(totalAmount) || totalAmount <= 0) {
-            console.error('[PaymentController] Invalid total amount calculated:', totalAmount, items);
+        if (isNaN(subtotal) || subtotal <= 0) {
+            console.error('[PaymentController] Invalid subtotal calculated:', subtotal, items);
             return res.status(400).json({ error: 'Invalid checkout amount' });
         }
 
-        const advanceAmount = totalAmount * 0.5; // 50% advance
+        const tax = subtotal * 0.18;
+        const totalAmount = subtotal + tax;          // Grand total (tax-inclusive) — matches frontend
+        const advanceAmount = totalAmount * 0.5;     // 50% advance
         const balanceDue = totalAmount - advanceAmount;
 
         // 1. Create a draft order in database first

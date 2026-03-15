@@ -39,6 +39,10 @@ const Checkout: React.FC = () => {
     const [saveAddress, setSaveAddress] = useState(true); // Default to saving new addresses
     const [processingOrder, setProcessingOrder] = useState(false);
 
+    // Validation helpers
+    const isValidZip = (v: string) => /^[1-9][0-9]{5}$/.test(v.trim());
+    const isValidPhone = (v: string) => /^(\+91)?[6-9][0-9]{9}$/.test(v.replace(/\s/g, ''));
+
     // Calculate Totals
     const subtotal = cartTotal;
     const tax = subtotal * 0.18;
@@ -125,6 +129,14 @@ const Checkout: React.FC = () => {
     const handleContinueToPayment = async () => {
         if (!formData.address_line1 || !formData.city || !formData.state || !formData.zip_code || !formData.phone) {
             showToast('Please complete all shipping details.', 'error');
+            return;
+        }
+        if (!isValidZip(formData.zip_code)) {
+            showToast('Please enter a valid 6-digit PIN code.', 'error');
+            return;
+        }
+        if (!isValidPhone(formData.phone)) {
+            showToast('Please enter a valid 10-digit mobile number.', 'error');
             return;
         }
 
@@ -381,6 +393,9 @@ const Checkout: React.FC = () => {
                                                         onChange={handleInputChange}
                                                         placeholder="Pin Code"
                                                     />
+                                                    {formData.zip_code && !isValidZip(formData.zip_code) && (
+                                                        <p className="text-xs text-red-500 font-semibold mt-1.5 ml-1">Enter a valid 6-digit PIN code</p>
+                                                    )}
                                                 </div>
                                                 <div>
                                                     <Input
@@ -391,6 +406,9 @@ const Checkout: React.FC = () => {
                                                         onChange={handleInputChange}
                                                         placeholder="+91 00000 00000"
                                                     />
+                                                    {formData.phone && !isValidPhone(formData.phone) && (
+                                                        <p className="text-xs text-red-500 font-semibold mt-1.5 ml-1">Enter a valid 10-digit mobile number</p>
+                                                    )}
                                                 </div>
                                             </div>
                                         )}
@@ -398,7 +416,11 @@ const Checkout: React.FC = () => {
                                         <div className="pt-6 border-t border-dashed border-neutral-200">
                                             <Button
                                                 onClick={handleContinueToPayment}
-                                                disabled={!formData.address_line1 || !formData.city || !formData.state || !formData.zip_code || !formData.phone}
+                                                disabled={
+                                                    !formData.address_line1 || !formData.city || !formData.state ||
+                                                    !formData.zip_code || !isValidZip(formData.zip_code) ||
+                                                    !formData.phone || !isValidPhone(formData.phone)
+                                                }
                                                 size="lg"
                                                 icon={<ArrowRight className="w-5 h-5" />}
                                                 iconPosition="right"
