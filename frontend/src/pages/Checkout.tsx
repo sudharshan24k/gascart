@@ -175,7 +175,8 @@ const Checkout: React.FC = () => {
                 items: items.map(item => ({
                     id: item.product_id,
                     name: item.product?.name || 'Product',
-                    price: item.vendor_price || item.product?.price || 0,
+                    // Must match display formula exactly: vendor_price ?? variant price ?? product price
+                    price: item.vendor_price ?? item.selected_variant?.price ?? item.product?.price ?? 0,
                     quantity: item.quantity,
                     image: item.product?.image_url || '',
                     selected_variant: item.selected_variant,
