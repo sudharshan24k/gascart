@@ -1,4 +1,4 @@
-# Razorpay Integration - Environment Variables
+# Razorpay Integration - Environment Variables.
 
 ## Backend Environment Variables
 
