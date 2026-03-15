@@ -14,10 +14,10 @@ const AdminOrders = () => {
 
     // Stats
     const stats = {
-        totalRevenue: orders.reduce((sum, o) => sum + Number(o.total_amount || 0), 0),
-        pendingCount: orders.filter(o => o.status === 'pending').length,
-        processingCount: orders.filter(o => o.status === 'processing').length,
-        totalOrders: orders.length
+        totalRevenue: (orders || []).reduce((sum, o) => sum + Number(o.total_amount || 0), 0),
+        pendingCount: (orders || []).filter(o => o.status === 'pending').length,
+        processingCount: (orders || []).filter(o => o.status === 'processing').length,
+        totalOrders: (orders || []).length
     };
 
     useEffect(() => {

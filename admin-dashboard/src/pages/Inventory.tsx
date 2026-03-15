@@ -89,12 +89,12 @@ const Inventory = () => {
     };
 
     const stats = {
-        total: products.length,
-        lowStock: products.filter(p => (p.stock_quantity || 0) <= (p.low_stock_threshold || 10) && (p.stock_quantity || 0) > 0).length,
-        outOfStock: products.filter(p => (p.stock_quantity || 0) === 0).length
+        total: (products || []).length,
+        lowStock: (products || []).filter(p => (p.stock_quantity || 0) <= (p.low_stock_threshold || 10) && (p.stock_quantity || 0) > 0).length,
+        outOfStock: (products || []).filter(p => (p.stock_quantity || 0) === 0).length
     };
 
-    const filteredProducts = products.filter(p => {
+    const filteredProducts = (products || []).filter(p => {
         const matchesSearch = p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
             p.id.toLowerCase().includes(searchQuery.toLowerCase());
         if (!matchesSearch) return false;
@@ -453,8 +453,10 @@ const Inventory = () => {
                                                             className="w-20 text-center py-2 bg-slate-50 rounded-xl font-black text-sm outline-none border-2 border-transparent focus:border-indigo-600/20"
                                                             value={variant.stock || 0}
                                                             onChange={(e) => {
-                                                                const newVariants = [...selectedProduct.variants];
-                                                                newVariants[idx].stock = parseInt(e.target.value) || 0;
+                                                                const newVariants = [...(selectedProduct.variants || [])];
+                                                                if (newVariants[idx]) {
+                                                                    newVariants[idx].stock = parseInt(e.target.value) || 0;
+                                                                }
                                                                 const totalStock = newVariants.reduce((sum: number, v: any) => sum + (v.stock || 0), 0);
                                                                 handleStockUpdate(selectedProduct.id, {
                                                                     absolute: totalStock,

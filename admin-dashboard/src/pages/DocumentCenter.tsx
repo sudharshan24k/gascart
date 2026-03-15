@@ -130,9 +130,9 @@ const DocumentCenter = () => {
         }
     };
 
-    const filteredDocs = docs.filter(d => d.title.toLowerCase().includes(searchTerm.toLowerCase()));
+    const filteredDocs = (docs || []).filter(d => d.title.toLowerCase().includes(searchTerm.toLowerCase()));
 
-    const totalSize = docs.reduce((acc, doc) => {
+    const totalSize = (docs || []).reduce((acc, doc) => {
         if (doc.file_size) {
             const match = doc.file_size.match(/(\d+\.?\d*)\s*(KB|MB|GB)/i);
             if (match) {
