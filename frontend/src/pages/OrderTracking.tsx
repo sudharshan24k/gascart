@@ -56,7 +56,7 @@ const OrderTracking: React.FC = () => {
         { key: 'delivered', label: 'Delivered', icon: CheckCircle },
     ];
 
-    const currentStatus = order?.status.toLowerCase() || 'pending';
+    const currentStatus = order?.status?.toLowerCase() || 'pending';
     let currentStepIndex = steps.findIndex(step => step.key === currentStatus);
     if (currentStatus === 'cancelled') currentStepIndex = -1; // Handle cancelled state separately
 
@@ -167,7 +167,7 @@ const OrderTracking: React.FC = () => {
                                         <Package className="w-6 h-6 text-primary" /> Order Items
                                     </h3>
                                     <div className="space-y-4">
-                                        {order.order_items.map((item: any) => (
+                                        {(order.order_items || []).map((item: any) => (
                                             <div key={item.id} className="flex gap-6 p-6 bg-neutral-50 rounded-[24px] border border-neutral-100 group hover:bg-neutral-100/50 transition-colors">
                                                 <div className="h-24 w-24 bg-white rounded-2xl flex-shrink-0 overflow-hidden shadow-sm border border-neutral-200">
                                                     {item.product?.image_url ? (
@@ -183,7 +183,7 @@ const OrderTracking: React.FC = () => {
                                                     <p className="text-neutral-500 text-sm mb-4 line-clamp-1">{item.product?.description}</p>
                                                     <div className="flex justify-between items-center bg-white p-3 rounded-xl border border-neutral-100 shadow-sm">
                                                         <span className="text-xs font-black uppercase tracking-widest text-neutral-500">Qty: {item.quantity}</span>
-                                                        <span className="font-bold text-neutral-900">₹{item.price_at_purchase.toLocaleString()}</span>
+                                                        <span className="font-bold text-neutral-900">₹{Number(item.price_at_purchase || 0).toLocaleString()}</span>
                                                     </div>
                                                 </div>
                                             </div>
@@ -199,7 +199,7 @@ const OrderTracking: React.FC = () => {
                                     <div className="space-y-4 mb-8">
                                         <div className="flex justify-between text-neutral-600 font-medium">
                                             <span>Subtotal</span>
-                                            <span className="text-neutral-900 font-bold">₹{order.total_amount.toFixed(2)}</span>
+                                            <span className="text-neutral-900 font-bold">₹{Number(order.total_amount || 0).toFixed(2)}</span>
                                         </div>
                                         <div className="flex justify-between text-neutral-600 font-medium">
                                             <span>Shipping</span>
@@ -207,7 +207,7 @@ const OrderTracking: React.FC = () => {
                                         </div>
                                         <div className="pt-6 border-t border-dashed border-neutral-200 flex justify-between items-end">
                                             <span className="font-bold text-xl text-neutral-900">Total</span>
-                                            <span className="font-black text-3xl text-neutral-900">₹{order.total_amount.toLocaleString()}</span>
+                                            <span className="font-black text-3xl text-neutral-900">₹{Number(order.total_amount || 0).toLocaleString()}</span>
                                         </div>
                                     </div>
                                     <button
