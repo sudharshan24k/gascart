@@ -110,7 +110,7 @@ const Cart = () => {
                                                         )}
                                                     </div>
                                                     <div className="text-2xl font-bold text-neutral-900 mt-2">
-                                                        ₹{(item.product.price * item.quantity).toLocaleString()}
+                                                        ₹{((item.vendor_price ?? item.selected_variant?.price ?? item.product.price) * item.quantity).toLocaleString()}
                                                     </div>
                                                 </div>
 

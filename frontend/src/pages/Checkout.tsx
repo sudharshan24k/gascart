@@ -445,7 +445,7 @@ const Checkout: React.FC = () => {
                                             <h4 className="font-bold text-sm text-neutral-900 line-clamp-2 leading-tight mb-1">{item.product?.name}</h4>
                                             <div className="flex justify-between items-end">
                                                 <span className="text-[10px] font-black text-neutral-400 uppercase tracking-wider">Qty: {item.quantity}</span>
-                                                <span className="text-sm font-bold text-neutral-900">₹{(item.product?.price * item.quantity).toLocaleString()}</span>
+                                                <span className="text-sm font-bold text-neutral-900">₹{((item.vendor_price ?? item.selected_variant?.price ?? item.product?.price ?? 0) * item.quantity).toLocaleString()}</span>
                                             </div>
                                         </div>
                                     </div>
