@@ -36,6 +36,7 @@ const Checkout: React.FC = () => {
     const [loadingAddresses, setLoadingAddresses] = useState(true);
     const [selectedAddressId, setSelectedAddressId] = useState<string | null>(null);
     const [showNewAddressForm, setShowNewAddressForm] = useState(false);
+    const [saveAddress, setSaveAddress] = useState(true); // Default to saving new addresses
     const [processingOrder, setProcessingOrder] = useState(false);
 
     // Calculate Totals
@@ -119,6 +120,33 @@ const Checkout: React.FC = () => {
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
         setFormData({ ...formData, [e.target.name]: e.target.value });
+    };
+
+    const handleContinueToPayment = async () => {
+        if (!formData.address_line1 || !formData.city || !formData.state || !formData.zip_code || !formData.phone) {
+            showToast('Please complete all shipping details.', 'error');
+            return;
+        }
+
+        if (showNewAddressForm && saveAddress) {
+            try {
+                // Determine label if not provided
+                const label = formData.full_name ? `${formData.full_name}'s Address` : 'Shipping Address';
+                await api.users.addresses.add({
+                    ...formData,
+                    country: 'India', // Ensure country is set
+                    label: label
+                });
+                showToast('Address saved successfully for future use.', 'success');
+                // Could refresh addresses here, but since we are moving to payment, not strictly necessary 
+                // unless user goes back.
+                fetchAddresses(); // Keep it synced just in case
+            } catch (err) {
+                console.error('Failed to save address', err);
+                showToast('Address could not be saved to profile, but proceeding to payment...', 'warning');
+            }
+        }
+        setStep(2);
     };
 
     const handlePlaceOrder = async () => {
@@ -281,9 +309,19 @@ const Checkout: React.FC = () => {
                                         </div>
 
                                         {(showNewAddressForm || addresses.length === 0) && (
-                                            <div className="grid md:grid-cols-2 gap-6 bg-neutral-50 p-6 rounded-3xl border border-neutral-100 mb-6">
-                                                <div className="md:col-span-2 flex items-center gap-2 mb-2">
+                                            <div className="grid md:grid-cols-2 gap-6 bg-neutral-50 p-6 rounded-3xl border border-neutral-100 mb-6 relative overflow-hidden">
+                                                <div className="md:col-span-2 flex items-center justify-between mb-2">
                                                     <span className="text-sm font-bold text-neutral-900">Enter Address Details</span>
+                                                    <div className="flex items-center gap-2">
+                                                        <input 
+                                                            type="checkbox" 
+                                                            id="saveAddress" 
+                                                            checked={saveAddress} 
+                                                            onChange={(e) => setSaveAddress(e.target.checked)}
+                                                            className="w-4 h-4 text-primary bg-white border-neutral-300 rounded focus:ring-primary/50"
+                                                        />
+                                                        <label htmlFor="saveAddress" className="text-xs font-bold text-neutral-600 cursor-pointer select-none">Save this address</label>
+                                                    </div>
                                                 </div>
                                                 <div className="md:col-span-2">
                                                     <Input
@@ -359,7 +397,7 @@ const Checkout: React.FC = () => {
 
                                         <div className="pt-6 border-t border-dashed border-neutral-200">
                                             <Button
-                                                onClick={() => setStep(2)}
+                                                onClick={handleContinueToPayment}
                                                 disabled={!formData.address_line1 || !formData.city || !formData.state || !formData.zip_code || !formData.phone}
                                                 size="lg"
                                                 icon={<ArrowRight className="w-5 h-5" />}
