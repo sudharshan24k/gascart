@@ -1,4 +1,4 @@
-# E-commerce Platform .
+# E-commerce Platform 
 
 A fully custom, production-ready e-commerce platform built with React, Node.js, and Supabase.
 
