@@ -201,15 +201,18 @@ export const getAllOrders = async (req: Request, res: Response, next: NextFuncti
         if (error) throw error;
 
         // Manually fetch profiles
-        const userIds = [...new Set(orders.map((o: any) => o.user_id))];
-        const { data: profiles, error: profileError } = await supabase
-            .from('profiles')
-            .select('id, full_name, email')
-            .in('id', userIds);
+        const userIds = [...new Set(orders.map((o: any) => o.user_id))].filter(id => id != null);
+        let profileMap = new Map();
+        if (userIds.length > 0) {
+            const { data: profiles, error: profileError } = await supabase
+                .from('profiles')
+                .select('id, full_name, email')
+                .in('id', userIds);
 
-        if (profileError) throw profileError;
+            if (profileError) throw profileError;
+            profileMap = new Map(profiles.map((p: any) => [p.id, p]));
+        }
 
-        const profileMap = new Map(profiles.map((p: any) => [p.id, p]));
         const data = orders.map((o: any) => ({
             ...o,
             profiles: profileMap.get(o.user_id) || { full_name: 'Unknown', email: 'Unknown' }
@@ -512,14 +515,17 @@ export const exportOrdersCSV = async (req: Request, res: Response, next: NextFun
         if (error) throw error;
 
         // Manually fetch profiles
-        const userIds = [...new Set(orders.map((o: any) => o.user_id))];
-        const { data: profiles, error: profileError } = await supabase
-            .from('profiles')
-            .select('id, full_name, email')
-            .in('id', userIds);
+        const userIds = [...new Set(orders.map((o: any) => o.user_id))].filter(id => id != null);
+        let profileMap = new Map();
+        if (userIds.length > 0) {
+            const { data: profiles, error: profileError } = await supabase
+                .from('profiles')
+                .select('id, full_name, email')
+                .in('id', userIds);
 
-        if (profileError) throw profileError;
-        const profileMap = new Map(profiles.map((p: any) => [p.id, p]));
+            if (profileError) throw profileError;
+            profileMap = new Map(profiles.map((p: any) => [p.id, p]));
+        }
 
         // Simple CSV generation
         const headers = 'Order ID,Date,Customer,Email,Amount,Status,Payment Status\n';

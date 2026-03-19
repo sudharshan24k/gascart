@@ -1,4 +1,4 @@
-import { createContext, useContext, useReducer, ReactNode } from 'react';
+import { createContext, useContext, useReducer, useEffect, ReactNode } from 'react';
 
 // Industrial Types
 export type EnquiryItem = {
@@ -102,11 +102,31 @@ const enquiryReducer = (state: EnquiryState, action: EnquiryAction): EnquiryStat
 };
 
 export const EnquiryProvider = ({ children }: { children: ReactNode }) => {
-    const [state, dispatch] = useReducer(enquiryReducer, {
-        items: [],
-        comparisonItems: [],
-        total: 0
+    // Lazily initialize state from localStorage
+    const [state, dispatch] = useReducer(enquiryReducer, undefined, () => {
+        try {
+            const storedState = localStorage.getItem('gascart_enquiry_state');
+            if (storedState) {
+                return JSON.parse(storedState);
+            }
+        } catch (e) {
+            console.error('Failed to load enquiry state from localStorage', e);
+        }
+        return {
+            items: [],
+            comparisonItems: [],
+            total: 0
+        };
     });
+
+    // Save state to localStorage whenever it changes
+    useEffect(() => {
+        try {
+            localStorage.setItem('gascart_enquiry_state', JSON.stringify(state));
+        } catch (e) {
+            console.error('Failed to save enquiry state to localStorage', e);
+        }
+    }, [state]);
 
     return (
         <EnquiryContext.Provider value={{ state, dispatch }}>

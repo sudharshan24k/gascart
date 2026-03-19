@@ -1,11 +1,12 @@
 import { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate, Link, useSearchParams } from 'react-router-dom';
 import { authService } from '../services/auth.service';
 import { Leaf, Mail, Lock, ArrowRight, Loader2 } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 const Login = () => {
     const navigate = useNavigate();
+    const [searchParams] = useSearchParams();
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
@@ -20,7 +21,8 @@ const Login = () => {
 
         try {
             await authService.signIn(email, password);
-            navigate('/');
+            const redirectTo = searchParams.get('redirect') || '/';
+            navigate(redirectTo);
         } catch (err: any) {
             setError(err.message || 'Failed to login');
             setLoading(false);

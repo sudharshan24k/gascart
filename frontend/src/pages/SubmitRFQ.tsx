@@ -1,13 +1,25 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useEnquiry } from '../context/EnquiryContext';
+import { useAuth } from '../context/AuthContext';
 import { motion } from 'framer-motion';
 import { ShieldCheck, Building2, Send, FileCheck, Info } from 'lucide-react';
 
 const SubmitRFQ = () => {
     const { state, dispatch } = useEnquiry();
+    const { session, loading } = useAuth();
     const [submitted, setSubmitted] = useState(false);
     const navigate = useNavigate();
+
+    React.useEffect(() => {
+        if (!loading && !session) {
+            navigate('/login?redirect=/submit-rfq', { replace: true });
+        }
+    }, [session, loading, navigate]);
+
+    if (loading || !session) {
+        return <div className="min-h-screen pt-32 flex justify-center text-primary font-bold animate-pulse">Checking authentication...</div>;
+    }
 
     if (state.items.length === 0 && !submitted) {
         return (

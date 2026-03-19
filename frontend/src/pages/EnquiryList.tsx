@@ -1,11 +1,13 @@
 
 import { useEnquiry } from '../context/EnquiryContext';
+import { useAuth } from '../context/AuthContext';
 import { Trash2, ArrowRight, ClipboardList, PackageCheck } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 
 const EnquiryList = () => {
     const { state, dispatch } = useEnquiry();
+    const { session } = useAuth();
 
     if (state.items.length === 0) {
         return (
@@ -98,7 +100,7 @@ const EnquiryList = () => {
                             </div>
 
                             <Link
-                                to="/submit-rfq"
+                                to={session ? "/submit-rfq" : "/login?redirect=/submit-rfq"}
                                 className="w-full bg-gray-900 hover:bg-primary text-white py-5 rounded-2xl font-bold transition-all flex items-center justify-center gap-3 shadow-xl group"
                             >
                                 <span>Proceed to RFQ Submission</span>

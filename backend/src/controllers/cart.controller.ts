@@ -91,6 +91,60 @@ export const getCart = async (req: AuthRequest, res: Response, next: NextFunctio
         const userId = req.user?.id;
         const sessionId = req.headers['x-session-id'] as string;
 
+        // Auto-merge guest cart with user cart if both are provided
+        if (userId && sessionId) {
+            const { data: sessionCart } = await supabase
+                .from('carts')
+                .select('id')
+                .eq('session_id', sessionId)
+                .is('user_id', null)
+                .maybeSingle();
+
+            if (sessionCart) {
+                const { data: userCart } = await supabase
+                    .from('carts')
+                    .select('id')
+                    .eq('user_id', userId)
+                    .maybeSingle();
+
+                if (userCart) {
+                    // Fetch session cart items
+                    const { data: sessionItems } = await supabase
+                        .from('cart_items')
+                        .select('*')
+                        .eq('cart_id', sessionCart.id);
+
+                    if (sessionItems && sessionItems.length > 0) {
+                        for (const item of sessionItems) {
+                            let checkQuery = supabase.from('cart_items')
+                                .select('id, quantity')
+                                .eq('cart_id', userCart.id)
+                                .eq('product_id', item.product_id);
+                            
+                            if (item.selected_variant) checkQuery = checkQuery.contains('selected_variant', item.selected_variant);
+                            else checkQuery = checkQuery.is('selected_variant', null);
+                            
+                            if (item.vendor_id) checkQuery = checkQuery.eq('vendor_id', item.vendor_id);
+                            else checkQuery = checkQuery.is('vendor_id', null);
+
+                            const { data: existingItems } = await checkQuery;
+                            const existing = existingItems && existingItems.length > 0 ? existingItems[0] : null;
+
+                            if (existing) {
+                                await supabase.from('cart_items').update({ quantity: existing.quantity + item.quantity }).eq('id', existing.id);
+                                await supabase.from('cart_items').delete().eq('id', item.id);
+                            } else {
+                                await supabase.from('cart_items').update({ cart_id: userCart.id }).eq('id', item.id);
+                            }
+                        }
+                    }
+                    await supabase.from('carts').delete().eq('id', sessionCart.id);
+                } else {
+                    await supabase.from('carts').update({ user_id: userId }).eq('id', sessionCart.id);
+                }
+            }
+        }
+
         let query = supabase.from('carts').select('*, cart_items(*, product:products(*))');
 
         if (userId) query = query.eq('user_id', userId);

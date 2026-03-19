@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useNavigate } from 'react-router-dom';
 import {
     ShoppingCart, Send, ShieldCheck, Truck, FileText,
     ChevronRight, Minus, Plus, GitCompare, Share2,
@@ -13,7 +13,7 @@ import { useEnquiry } from '../context/EnquiryContext';
 
 const ProductDetail: React.FC = () => {
     const { id } = useParams();
-    // const navigate = useNavigate();
+    const navigate = useNavigate();
     const [product, setProduct] = useState<any>(null);
     const [loading, setLoading] = useState(true);
     const [selectedVariant, setSelectedVariant] = useState<any>(null);
@@ -312,7 +312,7 @@ const ProductDetail: React.FC = () => {
                                         <button
                                             onClick={async () => {
                                                 await addToCart(product.id, quantity, selectedVariant, selectedVendor);
-                                                window.location.href = '/cart';
+                                                navigate('/cart');
                                             }}
                                             disabled={(selectedVendor ? (selectedVendor.vendor_stock_quantity || product.stock_quantity || 0) : (product.stock_quantity || 0)) === 0}
                                             className="flex-1 py-4 bg-primary text-white rounded-2xl font-black text-lg shadow-lg shadow-primary/30 hover:bg-primary-dark transition-all flex items-center justify-center gap-3 group disabled:opacity-50 disabled:cursor-not-allowed"

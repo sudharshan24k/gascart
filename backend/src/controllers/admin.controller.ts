@@ -33,7 +33,7 @@ export const getDashboardStats = async (req: Request, res: Response, next: NextF
         const totalRevenue = revenueData?.reduce((sum, order) => sum + (order.total_amount || 0), 0) || 0;
 
         // Fetch profiles for recent orders to get customer names
-        const userIds = [...new Set(recentOrdersData?.map((o: any) => o.user_id) || [])];
+        const userIds = [...new Set(recentOrdersData?.map((o: any) => o.user_id) || [])].filter(id => id != null);
         let profileMap = new Map();
         if (userIds.length > 0) {
             const { data: profiles } = await supabase.from('profiles').select('id, full_name').in('id', userIds);
