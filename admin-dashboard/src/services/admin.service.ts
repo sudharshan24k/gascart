@@ -374,3 +374,12 @@ export const deleteAdmin = async (userId: string) => {
     const response = await adminApi.delete(`/admin/users/${userId}`);
     return response.data;
 };
+
+export const logAuthEvent = async (action: 'LOGIN' | 'LOGOUT', description: string, metadata: any = {}) => {
+    const response = await adminApi.post('/admin/audit/log-auth', {
+        action,
+        description,
+        metadata
+    });
+    return response.data;
+};

@@ -7,6 +7,7 @@ import {
     Database, MessageSquare, ImageIcon, Activity, FileText, PanelLeftClose, PanelLeftOpen
 } from 'lucide-react';
 import { authService } from '../services/auth.service';
+import { logAuthEvent } from '../services/admin.service';
 import { supabase } from '../services/api';
 import { useAuth } from '../context/AuthContext';
 
@@ -100,24 +101,7 @@ const AdminLayout = () => {
     const handleLogout = async () => {
         // Log logout before clearing session
         try {
-            const { data: { session } } = await supabase.auth.getSession();
-
-            const response = await fetch(`${import.meta.env.VITE_API_URL}/admin/audit/log-auth`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${session?.access_token}`
-                },
-                body: JSON.stringify({
-                    action: 'LOGOUT',
-                    description: `User logged out from Admin Dashboard`,
-                    metadata: {}
-                })
-            });
-
-            if (!response.ok) {
-                console.error('[Audit] Failed to log logout. Status:', response.status);
-            }
+            await logAuthEvent('LOGOUT', 'User logged out from Admin Dashboard');
         } catch (logErr) {
             console.warn('[Audit] Failed to log logout:', logErr);
         }

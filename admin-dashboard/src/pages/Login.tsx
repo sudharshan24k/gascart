@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useLocation, Navigate } from 'react-router-dom';
 import { authService } from '../services/auth.service';
+import { logAuthEvent } from '../services/admin.service';
 import { useAuth } from '../context/AuthContext';
 
 const AdminWarningBanner = () => (
@@ -138,26 +139,7 @@ const Login = () => {
             await refreshAuth();
 
             // Log successful login
-            const session = await authService.getSession();
-
-            const response = await fetch(`${import.meta.env.VITE_API_URL}/admin/audit/log-auth`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${session?.access_token}`
-                },
-                body: JSON.stringify({
-                    action: 'LOGIN',
-                    description: `User logged in to Admin Dashboard`,
-                    metadata: {}
-                })
-            });
-
-            if (!response.ok) {
-                console.error('[Audit] Failed to log login. Status:', response.status);
-                const errorData = await response.json().catch(() => ({}));
-                console.error('[Audit] Error details:', errorData);
-            }
+            await logAuthEvent('LOGIN', 'User logged in to Admin Dashboard');
         } catch (logErr) {
             console.warn('[Audit] Failed to log login:', logErr);
         } finally {
