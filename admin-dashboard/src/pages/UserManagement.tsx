@@ -154,7 +154,7 @@ const UserManagement: React.FC = () => {
         }
     };
 
-    const filteredUsers = users.filter(user =>
+    const filteredUsers = (users || []).filter(user =>
         user.full_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
         user.email?.toLowerCase().includes(searchTerm.toLowerCase())
     ).sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());

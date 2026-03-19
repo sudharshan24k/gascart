@@ -265,13 +265,13 @@ const AdminProducts = () => {
     };
 
     const stats = {
-        total: products.length,
-        published: products.filter(p => p.visibility_status === 'published').length,
-        lowStock: products.filter(p => p.stock_quantity > 0 && p.stock_quantity < 10).length,
-        outOfStock: products.filter(p => p.stock_quantity === 0).length
+        total: (products || []).length,
+        published: (products || []).filter(p => p.visibility_status === 'published').length,
+        lowStock: (products || []).filter(p => p.stock_quantity > 0 && p.stock_quantity < 10).length,
+        outOfStock: (products || []).filter(p => p.stock_quantity === 0).length
     };
 
-    const filteredProducts = products.filter(p => {
+    const filteredProducts = (products || []).filter(p => {
         const matchesSearch = p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
             p.id.toLowerCase().includes(searchQuery.toLowerCase());
 

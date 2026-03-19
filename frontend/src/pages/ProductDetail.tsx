@@ -10,6 +10,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { api, supabase } from '../services/api';
 import { useCart } from '../context/CartContext';
 import { useEnquiry } from '../context/EnquiryContext';
+import { useAuth } from '../context/AuthContext';
 
 const ProductDetail: React.FC = () => {
     const { id } = useParams();
@@ -32,6 +33,7 @@ const ProductDetail: React.FC = () => {
     // Contexts
     const { addToCart } = useCart();
     const { state: enquiryState, dispatch: enquiryDispatch } = useEnquiry();
+    const { session } = useAuth();
 
     useEffect(() => {
         loadProduct();
@@ -325,7 +327,13 @@ const ProductDetail: React.FC = () => {
 
                                 {(isRFQ || isBoth) && (
                                     <button
-                                        onClick={() => setShowRFQModal(true)}
+                                        onClick={() => {
+                                            if (!session) {
+                                                navigate(`/login?redirect=/product/${product.id}`);
+                                                return;
+                                            }
+                                            setShowRFQModal(true);
+                                        }}
                                         className="w-full py-5 bg-neutral-900 text-white rounded-2xl font-black text-lg shadow-lg shadow-neutral-900/30 hover:bg-black transition-all flex items-center justify-center gap-3 group"
                                     >
                                         <Send className="w-5 h-5 group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" />
@@ -336,6 +344,10 @@ const ProductDetail: React.FC = () => {
                                 <div className="grid grid-cols-2 gap-4 mt-2">
                                     <button
                                         onClick={() => {
+                                            if (!session) {
+                                                navigate(`/login?redirect=/product/${product.id}`);
+                                                return;
+                                            }
                                             enquiryDispatch({
                                                 type: 'ADD_ITEM',
                                                 payload: {

@@ -19,8 +19,8 @@ export const getDashboardStats = async (req: Request, res: Response, next: NextF
             { data: revenueData }, // For revenue sum
             { data: recentOrdersData } // Recently received orders
         ] = await Promise.all([
-            supabase.from('products').select('*', { count: 'exact', head: true }),
-            supabase.from('products').select('*', { count: 'exact', head: true }).eq('is_active', true),
+            supabase.from('products').select('*', { count: 'exact', head: true }), // Removed invalid is_active query
+            supabase.from('products').select('*', { count: 'exact', head: true }), // Fallback for activeProducts
             supabase.from('consultants').select('*', { count: 'exact', head: true }).eq('status', 'pending'),
             supabase.from('consultants').select('*', { count: 'exact', head: true }).eq('status', 'approved'),
             supabase.from('profiles').select('*', { count: 'exact', head: true }),

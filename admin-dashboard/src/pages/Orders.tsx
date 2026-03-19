@@ -176,7 +176,7 @@ const AdminOrders = () => {
         }
     };
 
-    const filteredOrders = orders.filter(order => {
+    const filteredOrders = (orders || []).filter(order => {
         const matchesSearch = order.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
             order.profiles?.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
             order.profiles?.full_name?.toLowerCase().includes(searchTerm.toLowerCase());

@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { Link, useSearchParams } from 'react-router-dom';
+import { Link, useSearchParams, useNavigate } from 'react-router-dom';
 import { Filter, ClipboardList, Building2, ShieldCheck, GitCompare, Plus, Loader2, Search, X, LayoutGrid, List } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useEnquiry } from '../context/EnquiryContext';
 import { api } from '../services/api';
+import { useAuth } from '../context/AuthContext';
 
 const ProductListing: React.FC = () => {
     const [products, setProducts] = useState<any[]>([]);
@@ -15,6 +16,8 @@ const ProductListing: React.FC = () => {
     const [loading, setLoading] = useState(true);
     const [searchParams, setSearchParams] = useSearchParams();
     const { state, dispatch } = useEnquiry();
+    const { session } = useAuth();
+    const navigate = useNavigate();
 
     const activeCategory = searchParams.get('category') || 'All';
     const activeVendor = searchParams.get('vendor') || 'All';
@@ -328,10 +331,16 @@ const ProductListing: React.FC = () => {
                                                 </div>
                                                 <div className="flex gap-2">
                                                     <button
-                                                        onClick={() => dispatch({
-                                                            type: 'ADD_ITEM',
-                                                            payload: { id: product.id, name: product.name, price: Number(product.price), quantity: 1, image: mainImage, vendor: vendorName }
-                                                        })}
+                                                        onClick={() => {
+                                                            if (!session) {
+                                                                navigate(`/login?redirect=/shop`);
+                                                                return;
+                                                            }
+                                                            dispatch({
+                                                                type: 'ADD_ITEM',
+                                                                payload: { id: product.id, name: product.name, price: Number(product.price), quantity: 1, image: mainImage, vendor: vendorName }
+                                                            });
+                                                        }}
                                                         className="px-6 py-3 bg-neutral-900 text-white rounded-xl font-bold text-sm hover:bg-primary transition-colors"
                                                     >
                                                         Add to Enquiry
@@ -398,10 +407,16 @@ const ProductListing: React.FC = () => {
                                                         <p className="text-xl font-bold text-neutral-900 font-display">₹{Number(product.price).toLocaleString()}</p>
                                                     </div>
                                                     <button
-                                                        onClick={() => dispatch({
-                                                            type: 'ADD_ITEM',
-                                                            payload: { id: product.id, name: product.name, price: Number(product.price), quantity: 1, image: mainImage, vendor: vendorName }
-                                                        })}
+                                                        onClick={() => {
+                                                            if (!session) {
+                                                                navigate(`/login?redirect=/shop`);
+                                                                return;
+                                                            }
+                                                            dispatch({
+                                                                type: 'ADD_ITEM',
+                                                                payload: { id: product.id, name: product.name, price: Number(product.price), quantity: 1, image: mainImage, vendor: vendorName }
+                                                            });
+                                                        }}
                                                         className="w-10 h-10 bg-neutral-900 rounded-xl flex items-center justify-center text-white hover:bg-primary transition-colors shadow-lg shadow-neutral-900/20 group-hover:scale-110"
                                                     >
                                                         <Plus className="w-5 h-5" />

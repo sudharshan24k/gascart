@@ -36,7 +36,7 @@ const SoftDeleteModal = ({
     onConfirm: () => void;
     onCancel: () => void;
 }) => {
-    const otherCategories = allCategories.filter(c => c.id !== category.id && c.status === 'active');
+    const otherCategories = (allCategories || []).filter(c => c.id !== category.id && c.status === 'active');
 
     return (
         <div className="fixed inset-0 z-[200] flex items-center justify-center p-6">
@@ -319,7 +319,7 @@ const CategoryManagement = () => {
         }
     };
 
-    const applyFilters = (list: any[]) => list.filter(c => {
+    const applyFilters = (list: any[]) => (list || []).filter(c => {
         const query = searchTerm.toLowerCase();
         const matchesSearch = c.name.toLowerCase().includes(query) ||
             (c.slug && c.slug.toLowerCase().includes(query)) ||

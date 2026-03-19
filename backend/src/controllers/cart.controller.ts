@@ -10,9 +10,8 @@ const getOrCreateCart = async (userId: string | undefined, sessionId: string | u
     if (userId) query = query.eq('user_id', userId);
     else query = query.eq('session_id', sessionId);
 
-    const { data: existingCart } = await query.single();
-
-    if (existingCart) return existingCart.id;
+    const { data: existingCarts } = await query;
+    if (existingCarts && existingCarts.length > 0) return existingCarts[0].id;
 
     // Create new
     const { data: newCart, error } = await supabase
@@ -151,11 +150,11 @@ export const getCart = async (req: AuthRequest, res: Response, next: NextFunctio
         else if (sessionId) query = query.eq('session_id', sessionId);
         else return res.status(400).json({ message: 'Identification required' });
 
-        const { data, error } = await query.single();
+        const { data, error } = await query;
 
-        if (error && error.code !== 'PGRST116') throw error; // PGRST116 is "no rows returns"
+        if (error) throw error;
 
-        res.json({ status: 'success', data: data || { cart_items: [] } });
+        res.json({ status: 'success', data: data && data.length > 0 ? data[0] : { cart_items: [] } });
     } catch (err) {
         next(err);
     }

@@ -79,7 +79,7 @@ const ConsultantManagement = () => {
         }
     };
 
-    const filteredConsultants = consultants.filter(c => {
+    const filteredConsultants = (consultants || []).filter(c => {
         const matchesSearch = (c.first_name || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
             (c.last_name || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
             (c.email || '').toLowerCase().includes(searchQuery.toLowerCase()) ||

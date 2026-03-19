@@ -123,7 +123,7 @@ const KnowledgeHubManagement = () => {
         }
     };
 
-    const filteredArticles = articles.filter(a => {
+    const filteredArticles = (articles || []).filter(a => {
         const matchesSearch = a.title.toLowerCase().includes(searchQuery.toLowerCase());
         const matchesLevel = levelFilter === 'all' || a.level === levelFilter;
         const matchesCategory = categoryFilter === 'all' || a.category_id === categoryFilter;

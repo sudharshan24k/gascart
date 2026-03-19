@@ -65,7 +65,7 @@ const ConsultantInquiries: React.FC = () => {
         }
     };
 
-    const filteredInquiries = inquiries
+    const filteredInquiries = (inquiries || [])
         .filter(inq => {
             if (startDate && new Date(inq.created_at) < new Date(startDate)) return false;
             if (endDate) {

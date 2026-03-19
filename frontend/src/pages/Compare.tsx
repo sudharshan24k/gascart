@@ -2,11 +2,14 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { GitCompare, ClipboardList, ArrowRight, X, ShieldCheck } from 'lucide-react';
 import { useEnquiry } from '../context/EnquiryContext';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 
 const Compare: React.FC = () => {
     const { state, dispatch } = useEnquiry();
     const items = state.comparisonItems;
+    const { session } = useAuth();
+    const navigate = useNavigate();
 
     if (items.length === 0) {
         return (
@@ -53,6 +56,10 @@ const Compare: React.FC = () => {
                     <div className="flex flex-col sm:flex-row gap-3">
                         <button
                             onClick={() => {
+                                if (!session) {
+                                    navigate('/login?redirect=/compare');
+                                    return;
+                                }
                                 items.forEach(i => dispatch({
                                     type: 'ADD_ITEM',
                                     payload: {
@@ -65,6 +72,7 @@ const Compare: React.FC = () => {
                                         vendor: 'Various'
                                     }
                                 }));
+                                alert("Added all items to Enquiry List");
                             }}
                             className="bg-gray-900 text-white px-10 py-5 rounded-2xl font-black shadow-2xl flex items-center gap-3 hover:bg-primary transition-all active:scale-95"
                         >

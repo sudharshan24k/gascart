@@ -132,7 +132,7 @@ const VendorManagement = () => {
         }
     };
 
-    const filteredVendors = vendors
+    const filteredVendors = (vendors || [])
         .filter(v => {
             const matchesSearch = v.company_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
                 v.email?.toLowerCase().includes(searchTerm.toLowerCase());
@@ -151,7 +151,7 @@ const VendorManagement = () => {
         })
         .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
 
-    const pendingEnquiries = enquiries.filter(e => e.status === 'pending');
+    const pendingEnquiries = (enquiries || []).filter(e => e.status === 'pending');
 
     const handleExportExcel = () => {
         const headers = ['ID', 'Partner Entity', 'Contact Full Name', 'Contact Email', 'Contact Phone', 'Visibility Status', 'Joined Date'];
@@ -224,9 +224,9 @@ const VendorManagement = () => {
             {/* Premium Intelligence Grid */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-16">
                 {[
-                    { label: 'Active Matrix', count: vendors.filter(v => v.visibility_status === 'active').length, icon: ShieldCheck, color: 'text-emerald-500', bg: 'bg-emerald-50' },
+                    { label: 'Active Matrix', count: (vendors || []).filter(v => v.visibility_status === 'active').length, icon: ShieldCheck, color: 'text-emerald-500', bg: 'bg-emerald-50' },
                     { label: 'Inbound Review', count: pendingEnquiries.length, icon: Activity, color: 'text-amber-500', bg: 'bg-amber-50' },
-                    { label: 'Global Directory', count: vendors.length, icon: Globe, color: 'text-blue-500', bg: 'bg-blue-50' }
+                    { label: 'Global Directory', count: (vendors || []).length, icon: Globe, color: 'text-blue-500', bg: 'bg-blue-50' }
                 ].map((stat, i) => (
                     <motion.div
                         initial={{ opacity: 0, y: 20 }}
