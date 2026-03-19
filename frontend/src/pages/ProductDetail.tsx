@@ -11,6 +11,7 @@ import { api, supabase } from '../services/api';
 import { useCart } from '../context/CartContext';
 import { useEnquiry } from '../context/EnquiryContext';
 import { useAuth } from '../context/AuthContext';
+import { useToast } from '../context/ToastContext';
 
 const ProductDetail: React.FC = () => {
     const { id } = useParams();
@@ -34,6 +35,7 @@ const ProductDetail: React.FC = () => {
     const { addToCart } = useCart();
     const { state: enquiryState, dispatch: enquiryDispatch } = useEnquiry();
     const { session } = useAuth();
+    const { success } = useToast();
 
     useEffect(() => {
         loadProduct();
@@ -361,7 +363,7 @@ const ProductDetail: React.FC = () => {
                                                         : { id: product.vendor_id, company_name: product.profiles?.company_name || 'Authorized Vendor' }
                                                 }
                                             });
-                                            alert("Added to Enquiry List");
+                                            success("Added to Enquiry List");
                                         }}
                                         className="py-3 bg-white border-2 border-neutral-100 text-neutral-900 rounded-xl font-bold text-sm hover:border-neutral-300 transition-all flex items-center justify-center gap-2"
                                     >

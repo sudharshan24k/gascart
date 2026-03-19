@@ -1,9 +1,13 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { CheckCircle, Home, ClipboardList, Mail, Settings2 } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 const OrderConfirmation: React.FC = () => {
+    const location = useLocation();
+    const { enquiryId } = location.state || {};
+    const displayId = enquiryId || `#ENQ-${(Math.floor(Math.random() * 90000) + 10000)}`;
+
     return (
         <div className="min-h-screen flex items-center justify-center bg-gray-50 pt-32 pb-24">
             <div className="container mx-auto px-4 text-center max-w-2xl">
@@ -22,7 +26,7 @@ const OrderConfirmation: React.FC = () => {
                     </h1>
 
                     <p className="text-xl text-gray-500 mb-10 leading-relaxed font-medium">
-                        Your technical enquiry <strong>#ENQ-{(Math.floor(Math.random() * 90000) + 10000)}</strong> has been successfully recorded in our industrial database.
+                        Your technical enquiry <strong>{displayId}</strong> has been successfully recorded in our industrial database.
                     </p>
 
                     <div className="bg-gray-50 p-8 rounded-[32px] border border-gray-100 mb-12 flex flex-col items-center">

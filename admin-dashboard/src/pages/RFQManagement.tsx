@@ -57,7 +57,8 @@ const RFQManagement: React.FC = () => {
             r.products?.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
             r.profiles?.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
             r.profiles?.full_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            r.profiles?.phone?.toLowerCase().includes(searchTerm.toLowerCase());
+            r.profiles?.phone?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            r.submitted_fields?.enquiry_id?.toLowerCase().includes(searchTerm.toLowerCase());
         const matchesStatus = statusFilter === 'all' || r.status === statusFilter;
         return matchesSearch && matchesStatus;
     });
@@ -109,6 +110,7 @@ const RFQManagement: React.FC = () => {
                         <thead>
                             <tr className="bg-white text-gray-400 text-[10px] font-black uppercase tracking-[0.2em] border-b border-gray-50">
                                 <th className="px-10 py-6">Requisition Asset</th>
+                                <th className="px-10 py-6">Enquiry ID</th>
                                 <th className="px-10 py-6 text-center">Protocol Status</th>
                                 <th className="px-10 py-6">Preferred Vendor</th>
                                 <th className="px-10 py-6">Technical Payload</th>
@@ -134,6 +136,11 @@ const RFQManagement: React.FC = () => {
                                                 {rfq.profiles?.phone && rfq.profiles.phone !== 'N/A' && <span className="flex items-center gap-1">📞 {rfq.profiles.phone}</span>}
                                             </span>
                                         </div>
+                                    </td>
+                                    <td className="px-10 py-8">
+                                        <span className="font-mono font-black text-xs text-primary bg-primary/5 px-3 py-1.5 rounded-lg border border-primary/20">
+                                            {rfq.submitted_fields?.enquiry_id || 'N/A'}
+                                        </span>
                                     </td>
                                     <td className="px-10 py-8">
                                         <div className="flex justify-center">
@@ -215,7 +222,11 @@ const RFQManagement: React.FC = () => {
                         <div className="p-10 border-b border-gray-50 flex justify-between items-center bg-gray-50/30">
                             <div>
                                 <h3 className="text-3xl font-black text-gray-900 leading-tight">Technical Spec Report</h3>
-                                <p className="text-gray-500 font-bold uppercase text-[10px] tracking-widest mt-2">Asset: {selectedRFQ.products?.name}</p>
+                                <div className="flex items-center gap-3 mt-2">
+                                    <p className="text-gray-500 font-bold uppercase text-[10px] tracking-widest">Asset: {selectedRFQ.products?.name}</p>
+                                    <span className="w-1.5 h-1.5 bg-gray-300 rounded-full"></span>
+                                    <p className="text-primary font-black uppercase text-[10px] tracking-widest">Enquiry ID: {selectedRFQ.submitted_fields?.enquiry_id || 'N/A'}</p>
+                                </div>
                             </div>
                         </div>
                         <div className="p-6 bg-blue-50/50 border-b border-gray-100">

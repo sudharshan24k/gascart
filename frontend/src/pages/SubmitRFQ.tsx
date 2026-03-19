@@ -39,6 +39,7 @@ const SubmitRFQ = () => {
         setError(null);
 
         try {
+            const enquiryId = `ENQ-${Math.floor(Math.random() * 90000) + 10000}`;
             const formData = new FormData(e.target as HTMLFormElement);
             const corporateInfo = {
                 company_name: formData.get('company_name'),
@@ -59,6 +60,7 @@ const SubmitRFQ = () => {
                     vendor_id: vendorId,
                     submitted_fields: {
                         ...corporateInfo,
+                        enquiry_id: enquiryId,
                         item_quantity: item.quantity,
                         item_price: item.price,
                     }
@@ -76,7 +78,7 @@ const SubmitRFQ = () => {
             setSubmitted(true);
             dispatch({ type: 'CLEAR_ENQUIRY' });
             setTimeout(() => {
-                navigate('/order-confirmation');
+                navigate('/order-confirmation', { state: { enquiryId } });
             }, 1000);
         } catch (err: any) {
             console.error('RFQ Submission failed:', err);
