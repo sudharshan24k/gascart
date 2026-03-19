@@ -69,7 +69,7 @@ const Compare: React.FC = () => {
                                         quantity: 1,
                                         image: i.image,
                                         category: i.category,
-                                        vendor: 'Various'
+                                        vendor: i.vendor // Now a vendor object if set
                                     }
                                 }));
                                 alert("Added all items to Enquiry List");

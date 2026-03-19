@@ -338,7 +338,7 @@ const ProductListing: React.FC = () => {
                                                             }
                                                             dispatch({
                                                                 type: 'ADD_ITEM',
-                                                                payload: { id: product.id, name: product.name, price: Number(product.price), quantity: 1, image: mainImage, vendor: vendorName }
+                                                                payload: { id: product.id, name: product.name, price: Number(product.price), quantity: 1, image: mainImage, vendor: { id: product.vendor_id, company_name: vendorName } }
                                                             });
                                                         }}
                                                         className="px-6 py-3 bg-neutral-900 text-white rounded-xl font-bold text-sm hover:bg-primary transition-colors"
@@ -383,7 +383,8 @@ const ProductListing: React.FC = () => {
                                                             image: mainImage,
                                                             category: product.category || product.categories?.name,
                                                             price: Number(product.price),
-                                                            attributes: product.attributes
+                                                            attributes: product.attributes,
+                                                            vendor: { id: product.vendor_id, company_name: vendorName }
                                                         }
                                                     })}
                                                     className={`absolute top-4 right-4 p-2 rounded-xl backdrop-blur-md transition-all ${isInComparison ? 'bg-primary text-white' : 'bg-white/80 text-neutral-600 hover:bg-white'}`}
@@ -414,7 +415,7 @@ const ProductListing: React.FC = () => {
                                                             }
                                                             dispatch({
                                                                 type: 'ADD_ITEM',
-                                                                payload: { id: product.id, name: product.name, price: Number(product.price), quantity: 1, image: mainImage, vendor: vendorName }
+                                                                payload: { id: product.id, name: product.name, price: Number(product.price), quantity: 1, image: mainImage, vendor: { id: product.vendor_id, company_name: vendorName } }
                                                             });
                                                         }}
                                                         className="w-10 h-10 bg-neutral-900 rounded-xl flex items-center justify-center text-white hover:bg-primary transition-colors shadow-lg shadow-neutral-900/20 group-hover:scale-110"

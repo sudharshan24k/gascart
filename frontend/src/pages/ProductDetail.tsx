@@ -356,7 +356,9 @@ const ProductDetail: React.FC = () => {
                                                     price: Number(activePrice),
                                                     quantity: 1,
                                                     image: activeImage,
-                                                    vendor: product.vendor
+                                                    vendor: selectedVendor 
+                                                        ? { id: selectedVendor.vendor_id, company_name: selectedVendor.profiles?.company_name || 'Vendor' }
+                                                        : { id: product.vendor_id, company_name: product.profiles?.company_name || 'Authorized Vendor' }
                                                 }
                                             });
                                             alert("Added to Enquiry List");
@@ -369,7 +371,14 @@ const ProductDetail: React.FC = () => {
                                         onClick={() => {
                                             enquiryDispatch({
                                                 type: 'TOGGLE_COMPARISON',
-                                                payload: { id: product.id, name: product.name, image: activeImage, category: product.category || product.categories?.name, attributes: product.attributes }
+                                                payload: { 
+                                                    id: product.id, 
+                                                    name: product.name, 
+                                                    image: activeImage, 
+                                                    category: product.category || product.categories?.name, 
+                                                    attributes: product.attributes,
+                                                    vendor: { id: product.vendor_id, company_name: product.profiles?.company_name || 'Authorized Vendor' }
+                                                }
                                             });
                                         }}
                                         className={`py-3 rounded-xl font-bold text-sm transition-all flex items-center justify-center gap-2 border-2 ${isInComparison ? 'bg-secondary/10 border-secondary text-secondary' : 'bg-white border-neutral-100 text-neutral-900 hover:border-neutral-300'}`}

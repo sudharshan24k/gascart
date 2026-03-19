@@ -17,20 +17,26 @@ const getBaseUrl = () => {
     return url.endsWith('/') ? url.slice(0, -1) : url;
 };
 
+export interface ApiResponse<T = any> {
+    status: 'success' | 'error';
+    message?: string;
+    data?: T;
+}
+
 export const api = {
     products: {
-        list: async (params: Record<string, string>) => {
+        list: async (params: Record<string, string>): Promise<ApiResponse> => {
             const query = new URLSearchParams(params).toString();
             const apiUrl = getBaseUrl();
             const res = await fetch(`${apiUrl}/products?${query}`);
             return res.json();
         },
-        get: async (id: string) => {
+        get: async (id: string): Promise<ApiResponse> => {
             const apiUrl = getBaseUrl();
             const res = await fetch(`${apiUrl}/products/${id}`);
             return res.json();
         },
-        create: async (token: string, data: any) => {
+        create: async (token: string, data: any): Promise<ApiResponse> => {
             const apiUrl = getBaseUrl();
             const res = await fetch(`${apiUrl}/products`, {
                 method: 'POST',
@@ -44,7 +50,7 @@ export const api = {
         }
     },
     cart: {
-        get: async (token: string | null, sessionId: string) => {
+        get: async (token: string | null, sessionId: string): Promise<ApiResponse> => {
             const apiUrl = getBaseUrl();
             const headers: any = { 'x-session-id': sessionId };
             if (token) headers['Authorization'] = `Bearer ${token}`;
@@ -52,7 +58,7 @@ export const api = {
             const res = await fetch(`${apiUrl}/cart`, { headers });
             return res.json();
         },
-        add: async (token: string | null, sessionId: string, data: { productId: string; quantity: number, variant?: any }) => {
+        add: async (token: string | null, sessionId: string, data: { productId: string; quantity: number, variant?: any }): Promise<ApiResponse> => {
             const apiUrl = getBaseUrl();
             const headers: any = {
                 'x-session-id': sessionId,
@@ -67,7 +73,7 @@ export const api = {
             });
             return res.json();
         },
-        update: async (token: string | null, sessionId: string, itemId: string, quantity: number) => {
+        update: async (token: string | null, sessionId: string, itemId: string, quantity: number): Promise<ApiResponse> => {
             const apiUrl = getBaseUrl();
             const headers: any = {
                 'x-session-id': sessionId,
@@ -82,7 +88,7 @@ export const api = {
             });
             return res.json();
         },
-        remove: async (token: string | null, sessionId: string, itemId: string) => {
+        remove: async (token: string | null, sessionId: string, itemId: string): Promise<ApiResponse> => {
             const apiUrl = getBaseUrl();
             const headers: any = { 'x-session-id': sessionId };
             if (token) headers['Authorization'] = `Bearer ${token}`;
@@ -95,7 +101,7 @@ export const api = {
         }
     },
     orders: {
-        create: async (data: any) => {
+        create: async (data: any): Promise<ApiResponse> => {
             const token = (await supabase.auth.getSession()).data.session?.access_token;
             if (!token) throw new Error('Not authenticated');
             const apiUrl = getBaseUrl();
@@ -109,7 +115,7 @@ export const api = {
             });
             return res.json();
         },
-        list: async (params?: { status?: string, search?: string, days?: string }) => {
+        list: async (params?: { status?: string, search?: string, days?: string }): Promise<ApiResponse> => {
             const token = (await supabase.auth.getSession()).data.session?.access_token;
             if (!token) throw new Error('Not authenticated');
             const apiUrl = getBaseUrl();
@@ -119,7 +125,7 @@ export const api = {
             });
             return res.json();
         },
-        get: async (id: string) => {
+        get: async (id: string): Promise<ApiResponse> => {
             const token = (await supabase.auth.getSession()).data.session?.access_token;
             if (!token) throw new Error('Not authenticated');
             const apiUrl = getBaseUrl();
@@ -128,7 +134,7 @@ export const api = {
             });
             return res.json();
         },
-        cancel: async (id: string) => {
+        cancel: async (id: string): Promise<ApiResponse> => {
             const token = (await supabase.auth.getSession()).data.session?.access_token;
             if (!token) throw new Error('Not authenticated');
             const apiUrl = getBaseUrl();
@@ -144,7 +150,7 @@ export const api = {
         }
     },
     rfqs: {
-        submit: async (token: string, data: any) => {
+        submit: async (token: string, data: any): Promise<ApiResponse> => {
             const apiUrl = getBaseUrl();
             const res = await fetch(`${apiUrl}/rfqs`, {
                 method: 'POST',
@@ -156,7 +162,7 @@ export const api = {
             });
             return res.json();
         },
-        my: async (token: string) => {
+        my: async (token: string): Promise<ApiResponse> => {
             const apiUrl = getBaseUrl();
             const res = await fetch(`${apiUrl}/rfqs/my`, {
                 headers: { 'Authorization': `Bearer ${token}` }
@@ -165,7 +171,7 @@ export const api = {
         }
     },
     users: {
-        getProfile: async () => {
+        getProfile: async (): Promise<ApiResponse> => {
             const token = (await supabase.auth.getSession()).data.session?.access_token;
             if (!token) throw new Error('Not authenticated');
             const apiUrl = getBaseUrl();
@@ -174,7 +180,7 @@ export const api = {
             });
             return res.json();
         },
-        updateProfile: async (data: { full_name?: string; phone?: string }) => {
+        updateProfile: async (data: { full_name?: string; phone?: string }): Promise<ApiResponse> => {
             const token = (await supabase.auth.getSession()).data.session?.access_token;
             if (!token) throw new Error('Not authenticated');
             const apiUrl = getBaseUrl();
@@ -189,7 +195,7 @@ export const api = {
             return res.json();
         },
         addresses: {
-            list: async () => {
+            list: async (): Promise<ApiResponse> => {
                 const token = (await supabase.auth.getSession()).data.session?.access_token;
                 if (!token) throw new Error('Not authenticated');
                 const apiUrl = getBaseUrl();
@@ -198,7 +204,7 @@ export const api = {
                 });
                 return res.json();
             },
-            add: async (data: any) => {
+            add: async (data: any): Promise<ApiResponse> => {
                 const token = (await supabase.auth.getSession()).data.session?.access_token;
                 if (!token) throw new Error('Not authenticated');
                 const apiUrl = getBaseUrl();
@@ -212,7 +218,7 @@ export const api = {
                 });
                 return res.json();
             },
-            update: async (id: string, data: any) => {
+            update: async (id: string, data: any): Promise<ApiResponse> => {
                 const token = (await supabase.auth.getSession()).data.session?.access_token;
                 if (!token) throw new Error('Not authenticated');
                 const apiUrl = getBaseUrl();
@@ -226,7 +232,7 @@ export const api = {
                 });
                 return res.json();
             },
-            delete: async (id: string) => {
+            delete: async (id: string): Promise<ApiResponse> => {
                 const token = (await supabase.auth.getSession()).data.session?.access_token;
                 if (!token) throw new Error('Not authenticated');
                 const apiUrl = getBaseUrl();
@@ -239,7 +245,7 @@ export const api = {
         }
     },
     vendors: {
-        submitEnquiry: async (data: any) => {
+        submitEnquiry: async (data: any): Promise<ApiResponse> => {
             const apiUrl = getBaseUrl();
             const res = await fetch(`${apiUrl}/vendors/enquiry`, {
                 method: 'POST',
@@ -254,7 +260,7 @@ export const api = {
             }
             return res.json();
         },
-        uploadDocument: async (file: File) => {
+        uploadDocument: async (file: File): Promise<ApiResponse> => {
             const apiUrl = getBaseUrl();
             const formData = new FormData();
             formData.append('document', file);
@@ -269,7 +275,7 @@ export const api = {
             }
             return res.json();
         },
-        getEnquiries: async (status?: string) => {
+        getEnquiries: async (status?: string): Promise<ApiResponse> => {
             const token = (await supabase.auth.getSession()).data.session?.access_token;
             if (!token) throw new Error('Not authenticated');
             const apiUrl = getBaseUrl();
@@ -280,7 +286,7 @@ export const api = {
             if (!res.ok) throw new Error('Failed to fetch enquiries');
             return res.json();
         },
-        updateEnquiryStatus: async (id: string, status: string) => {
+        updateEnquiryStatus: async (id: string, status: string): Promise<ApiResponse> => {
             const token = (await supabase.auth.getSession()).data.session?.access_token;
             if (!token) throw new Error('Not authenticated');
             const apiUrl = getBaseUrl();
@@ -295,7 +301,7 @@ export const api = {
             if (!res.ok) throw new Error('Failed to update status');
             return res.json();
         },
-        list: async (visibility_status?: string) => {
+        list: async (visibility_status?: string): Promise<ApiResponse> => {
             const token = (await supabase.auth.getSession()).data.session?.access_token;
             if (!token) throw new Error('Not authenticated');
             const apiUrl = getBaseUrl();
@@ -305,7 +311,7 @@ export const api = {
             });
             return res.json();
         },
-        update: async (id: string, data: any) => {
+        update: async (id: string, data: any): Promise<ApiResponse> => {
             const token = (await supabase.auth.getSession()).data.session?.access_token;
             if (!token) throw new Error('Not authenticated');
             const apiUrl = getBaseUrl();
@@ -319,7 +325,7 @@ export const api = {
             });
             return res.json();
         },
-        getProductVendors: async (productId: string) => {
+        getProductVendors: async (productId: string): Promise<ApiResponse> => {
             const token = (await supabase.auth.getSession()).data.session?.access_token;
             if (!token) throw new Error('Not authenticated');
             const apiUrl = getBaseUrl();
@@ -328,7 +334,7 @@ export const api = {
             });
             return res.json();
         },
-        assignProduct: async (data: any) => {
+        assignProduct: async (data: any): Promise<ApiResponse> => {
             const token = (await supabase.auth.getSession()).data.session?.access_token;
             if (!token) throw new Error('Not authenticated');
             const apiUrl = getBaseUrl();
@@ -342,7 +348,7 @@ export const api = {
             });
             return res.json();
         },
-        updateProductVendor: async (productId: string, vendorId: string, data: any) => {
+        updateProductVendor: async (productId: string, vendorId: string, data: any): Promise<ApiResponse> => {
             const token = (await supabase.auth.getSession()).data.session?.access_token;
             if (!token) throw new Error('Not authenticated');
             const apiUrl = getBaseUrl();
@@ -356,7 +362,7 @@ export const api = {
             });
             return res.json();
         },
-        removeProductVendor: async (productId: string, vendorId: string) => {
+        removeProductVendor: async (productId: string, vendorId: string): Promise<ApiResponse> => {
             const token = (await supabase.auth.getSession()).data.session?.access_token;
             if (!token) throw new Error('Not authenticated');
             const apiUrl = getBaseUrl();
@@ -372,7 +378,7 @@ export const api = {
         }
     },
     admin: {
-        updateUser: async (userId: string, data: { role?: string, account_status?: string }) => {
+        updateUser: async (userId: string, data: { role?: string, account_status?: string }): Promise<ApiResponse> => {
             const token = (await supabase.auth.getSession()).data.session?.access_token;
             if (!token) throw new Error('Not authenticated');
             const apiUrl = getBaseUrl();
@@ -386,7 +392,7 @@ export const api = {
             });
             return res.json();
         },
-        getUsers: async () => {
+        getUsers: async (): Promise<ApiResponse> => {
             const token = (await supabase.auth.getSession()).data.session?.access_token;
             if (!token) throw new Error('Not authenticated');
             const apiUrl = getBaseUrl();
@@ -397,7 +403,7 @@ export const api = {
         }
     },
     documents: {
-        list: async (params?: Record<string, string>) => {
+        list: async (params?: Record<string, string>): Promise<ApiResponse> => {
             const query = new URLSearchParams(params as Record<string, string>).toString();
             const apiUrl = getBaseUrl();
             const res = await fetch(`${apiUrl}/documents?${query}`);
@@ -405,20 +411,20 @@ export const api = {
         }
     },
     articles: {
-        list: async (params: Record<string, string>) => {
+        list: async (params: Record<string, string>): Promise<ApiResponse> => {
             const query = new URLSearchParams(params).toString();
             const apiUrl = getBaseUrl();
             const res = await fetch(`${apiUrl}/articles?${query}`);
             return res.json();
         },
-        get: async (slug: string) => {
+        get: async (slug: string): Promise<ApiResponse> => {
             const apiUrl = getBaseUrl();
             const res = await fetch(`${apiUrl}/articles/${slug}`);
             return res.json();
         }
     },
     consultants: {
-        register: async (data: any) => {
+        register: async (data: any): Promise<ApiResponse> => {
             const apiUrl = getBaseUrl();
             const res = await fetch(`${apiUrl}/consultants/register`, {
                 method: 'POST',
@@ -427,18 +433,18 @@ export const api = {
             });
             return res.json();
         },
-        list: async (params: Record<string, string> = {}) => {
+        list: async (params: Record<string, string> = {}): Promise<ApiResponse> => {
             const query = new URLSearchParams(params).toString();
             const apiUrl = getBaseUrl();
             const res = await fetch(`${apiUrl}/consultants?${query}`);
             return res.json();
         },
-        get: async (id: string) => {
+        get: async (id: string): Promise<ApiResponse> => {
             const apiUrl = getBaseUrl();
             const res = await fetch(`${apiUrl}/consultants/${id}`);
             return res.json();
         },
-        getMyProfile: async () => {
+        getMyProfile: async (): Promise<ApiResponse> => {
             const token = (await supabase.auth.getSession()).data.session?.access_token;
             const apiUrl = getBaseUrl();
             const res = await fetch(`${apiUrl}/consultants/my-profile`, {
@@ -452,7 +458,7 @@ export const api = {
             timeline_preference?: string;
             guest_email?: string;
             consultant_id?: string | null;
-        }) => {
+        }): Promise<ApiResponse> => {
             const token = (await supabase.auth.getSession()).data.session?.access_token;
             const apiUrl = getBaseUrl();
             const res = await fetch(`${apiUrl}/consultants/inquiries`, {
@@ -467,7 +473,7 @@ export const api = {
         }
     },
     careers: {
-        submitApplication: async (data: any) => {
+        submitApplication: async (data: any): Promise<ApiResponse> => {
             const apiUrl = getBaseUrl();
             const res = await fetch(`${apiUrl}/careers`, {
                 method: 'POST',
@@ -478,14 +484,14 @@ export const api = {
         }
     },
     categories: {
-        list: async () => {
+        list: async (): Promise<ApiResponse> => {
             const apiUrl = getBaseUrl();
             const res = await fetch(`${apiUrl}/categories`);
             return res.json();
         }
     },
     payments: {
-        createOrder: async (data: { items: any[], shippingDetails: any, billingDetails: any }) => {
+        createOrder: async (data: { items: any[], shippingDetails: any, billingDetails: any }): Promise<ApiResponse> => {
             const token = (await supabase.auth.getSession()).data.session?.access_token;
             if (!token) throw new Error('Not authenticated');
             const apiUrl = getBaseUrl();
@@ -499,7 +505,7 @@ export const api = {
             });
             return res.json();
         },
-        verifyPayment: async (data: { razorpay_order_id: string, razorpay_payment_id: string, razorpay_signature: string, order_id: string }) => {
+        verifyPayment: async (data: { razorpay_order_id: string, razorpay_payment_id: string, razorpay_signature: string, order_id: string }): Promise<ApiResponse> => {
             const token = (await supabase.auth.getSession()).data.session?.access_token;
             if (!token) throw new Error('Not authenticated');
             const apiUrl = getBaseUrl();
@@ -521,7 +527,7 @@ export const api = {
             }
             return result;
         },
-        getPaymentStatus: async (paymentId: string) => {
+        getPaymentStatus: async (paymentId: string): Promise<ApiResponse> => {
             const token = (await supabase.auth.getSession()).data.session?.access_token;
             if (!token) throw new Error('Not authenticated');
             const apiUrl = getBaseUrl();
@@ -530,7 +536,7 @@ export const api = {
             });
             return res.json();
         },
-        getSessionStatus: async (sessionId: string) => {
+        getSessionStatus: async (sessionId: string): Promise<ApiResponse> => {
             const token = (await supabase.auth.getSession()).data.session?.access_token;
             if (!token) throw new Error('Not authenticated');
             const apiUrl = getBaseUrl();

@@ -51,7 +51,7 @@ const EnquiryList = () => {
                                     <div className="flex justify-between items-start mb-2">
                                         <div>
                                             <span className="text-[10px] font-black text-primary uppercase tracking-[0.2em] mb-1 block">
-                                                {item.vendor || 'Authorized Supplier'}
+                                                {typeof item.vendor === 'object' ? item.vendor.company_name : (item.vendor || 'Authorized Supplier')}
                                             </span>
                                             <h3 className="font-bold text-xl text-gray-900">{item.name}</h3>
                                         </div>

@@ -4,11 +4,14 @@ import { useEnquiry } from '../context/EnquiryContext';
 import { useAuth } from '../context/AuthContext';
 import { motion } from 'framer-motion';
 import { ShieldCheck, Building2, Send, FileCheck, Info } from 'lucide-react';
+import { api } from '../services/api';
 
 const SubmitRFQ = () => {
     const { state, dispatch } = useEnquiry();
     const { session, loading } = useAuth();
     const [submitted, setSubmitted] = useState(false);
+    const [submitting, setSubmitting] = useState(false);
+    const [error, setError] = useState<string | null>(null);
     const navigate = useNavigate();
 
     React.useEffect(() => {
@@ -30,14 +33,57 @@ const SubmitRFQ = () => {
         );
     }
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        setSubmitted(true);
-        // In a real app, this would hit the `/rfqs` endpoint
-        setTimeout(() => {
+        setSubmitting(true);
+        setError(null);
+
+        try {
+            const formData = new FormData(e.target as HTMLFormElement);
+            const corporateInfo = {
+                company_name: formData.get('company_name'),
+                industry_type: formData.get('industry_type'),
+                gst_id: formData.get('gst_id'),
+                site_location: formData.get('site_location'),
+                requirements: formData.get('requirements'),
+            };
+
+            const token = session?.access_token;
+            if (!token) throw new Error("Authentication token missing. Please log in again.");
+
+            // Submit individual RFQs for each item in the enquiry list
+            const promises = state.items.map(item => {
+                const vendorId = typeof item.vendor === 'object' ? item.vendor?.id : undefined;
+                return api.rfqs.submit(token, {
+                    product_id: item.id,
+                    vendor_id: vendorId,
+                    submitted_fields: {
+                        ...corporateInfo,
+                        item_quantity: item.quantity,
+                        item_price: item.price,
+                    }
+                });
+            });
+
+            const results = await Promise.all(promises);
+            const failures = results.filter(r => r.status !== 'success');
+
+            if (failures.length > 0) {
+                console.error('Partial RFQ failures:', failures);
+                throw new Error(`Failed to submit ${failures.length} out of ${state.items.length} enquiries. Please try again.`);
+            }
+
+            setSubmitted(true);
             dispatch({ type: 'CLEAR_ENQUIRY' });
-            navigate('/order-confirmation'); // Keep this but UI will call it "Enquiry Confirmed"
-        }, 1500);
+            setTimeout(() => {
+                navigate('/order-confirmation');
+            }, 1000);
+        } catch (err: any) {
+            console.error('RFQ Submission failed:', err);
+            setError(err.message || 'Failed to submit enquiry. Please try again.');
+        } finally {
+            setSubmitting(false);
+        }
     };
 
     return (
@@ -58,6 +104,12 @@ const SubmitRFQ = () => {
                         className="bg-white p-12 rounded-[40px] shadow-xl border border-gray-100"
                     >
                         <form onSubmit={handleSubmit} className="space-y-8">
+                            {error && (
+                                <div className="p-4 bg-red-50 text-red-600 rounded-2xl text-sm font-bold flex items-center gap-2 mb-6">
+                                    <Info className="w-4 h-4" /> {error}
+                                </div>
+                            )}
+
                             <div className="space-y-6">
                                 <h3 className="text-xl font-bold text-gray-900 flex items-center gap-2">
                                     <Building2 className="w-5 h-5 text-primary" /> Corporate Information
@@ -65,11 +117,21 @@ const SubmitRFQ = () => {
                                 <div className="grid grid-cols-2 gap-6">
                                     <div className="col-span-2">
                                         <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">Company Name</label>
-                                        <input required type="text" className="w-full bg-gray-50 border-none rounded-xl p-4 font-medium outline-none focus:ring-2 focus:ring-primary/20" placeholder="e.g. BioEnergy Solutions Pvt Ltd" />
+                                        <input 
+                                            required 
+                                            name="company_name"
+                                            type="text" 
+                                            className="w-full bg-gray-50 border-none rounded-xl p-4 font-medium outline-none focus:ring-2 focus:ring-primary/20" 
+                                            placeholder="e.g. BioEnergy Solutions Pvt Ltd" 
+                                        />
                                     </div>
                                     <div>
                                         <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">Industry Type</label>
-                                        <select required className="w-full bg-gray-50 border-none rounded-xl p-4 font-bold outline-none focus:ring-2 focus:ring-primary/20">
+                                        <select 
+                                            required 
+                                            name="industry_type"
+                                            className="w-full bg-gray-50 border-none rounded-xl p-4 font-bold outline-none focus:ring-2 focus:ring-primary/20"
+                                        >
                                             <option>Industrial Manufacturing</option>
                                             <option>Renewable Energy Developer</option>
                                             <option>Municipal Body</option>
@@ -78,7 +140,12 @@ const SubmitRFQ = () => {
                                     </div>
                                     <div>
                                         <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">GST / Tax ID (Optional)</label>
-                                        <input type="text" className="w-full bg-gray-50 border-none rounded-xl p-4 font-medium outline-none focus:ring-2 focus:ring-primary/20" placeholder="Registration Number" />
+                                        <input 
+                                            name="gst_id"
+                                            type="text" 
+                                            className="w-full bg-gray-50 border-none rounded-xl p-4 font-medium outline-none focus:ring-2 focus:ring-primary/20" 
+                                            placeholder="Registration Number" 
+                                        />
                                     </div>
                                 </div>
                             </div>
@@ -89,19 +156,34 @@ const SubmitRFQ = () => {
                                 </h3>
                                 <div>
                                     <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">Site Location / Installation City</label>
-                                    <input required type="text" className="w-full bg-gray-50 border-none rounded-xl p-4 font-medium outline-none focus:ring-2 focus:ring-primary/20" placeholder="City, State" />
+                                    <input 
+                                        required 
+                                        name="site_location"
+                                        type="text" 
+                                        className="w-full bg-gray-50 border-none rounded-xl p-4 font-medium outline-none focus:ring-2 focus:ring-primary/20" 
+                                        placeholder="City, State" 
+                                    />
                                 </div>
                                 <div>
                                     <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">Specific Requirements or Deadlines</label>
-                                    <textarea className="w-full bg-gray-50 border-none rounded-xl p-4 font-medium outline-none focus:ring-2 focus:ring-primary/20 h-32" placeholder="Tell us about your project scale, feedstock type, or any customization required..."></textarea>
+                                    <textarea 
+                                        name="requirements"
+                                        className="w-full bg-gray-50 border-none rounded-xl p-4 font-medium outline-none focus:ring-2 focus:ring-primary/20 h-32" 
+                                        placeholder="Tell us about your project scale, feedstock type, or any customization required..."
+                                    ></textarea>
                                 </div>
                             </div>
 
                             <button
                                 type="submit"
-                                className="w-full bg-primary hover:bg-primary-dark text-white py-6 rounded-2xl font-black text-lg transition-all shadow-2xl shadow-primary/30 flex items-center justify-center gap-3 active:scale-95"
+                                disabled={submitting}
+                                className="w-full bg-primary hover:bg-primary-dark text-white py-6 rounded-2xl font-black text-lg transition-all shadow-2xl shadow-primary/30 flex items-center justify-center gap-3 active:scale-95 disabled:opacity-70 disabled:cursor-not-allowed"
                             >
-                                <Send className="w-5 h-5" /> Submit Combined Technical Enquiry
+                                {submitting ? (
+                                    <div className="w-6 h-6 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                                ) : (
+                                    <><Send className="w-5 h-5" /> Submit Combined Technical Enquiry</>
+                                )}
                             </button>
 
                             <p className="text-center text-[10px] text-gray-400 font-bold uppercase tracking-widest">

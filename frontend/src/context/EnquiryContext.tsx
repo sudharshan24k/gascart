@@ -8,7 +8,10 @@ export type EnquiryItem = {
     quantity: number;
     image?: string;
     category?: string;
-    vendor?: string;
+    vendor?: {
+        id: string;
+        company_name: string;
+    } | string;
     attributes?: any;
 };
 
@@ -19,6 +22,10 @@ export type ComparisonItem = {
     category?: string;
     price?: number;
     attributes?: any;
+    vendor?: {
+        id: string;
+        company_name: string;
+    } | string;
 };
 
 type EnquiryState = {
