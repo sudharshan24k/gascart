@@ -1,4 +1,4 @@
-# Deployment Guide
+# Deployment Guide.
 
 ## 1. Prerequisites
 - **GitHub Account**: Push this code to a GitHub repository.
