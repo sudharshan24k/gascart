@@ -416,7 +416,7 @@ const UserManagement: React.FC = () => {
                                         <p>No orders found for this user.</p>
                                     </div>
                                 ) : (
-                                    userOrders.map((order) => (
+                                    (userOrders || []).map((order) => (
                                         <div key={order.id} className="bg-white border border-gray-200 rounded-2xl p-5 hover:shadow-md transition-shadow">
                                             <div className="flex items-center justify-between mb-4 pb-4 border-b border-gray-100">
                                                 <div>
@@ -433,7 +433,7 @@ const UserManagement: React.FC = () => {
                                             </div>
 
                                             <div className="space-y-3 mb-6">
-                                                {order.order_items.map((item: any) => (
+                                                {(order.order_items || []).map((item: any) => (
                                                     <div key={item.id} className="flex justify-between text-sm">
                                                         <span className="text-gray-600">{item.product?.name} x {item.quantity}</span>
                                                         <span className="font-medium">₹{(item.price_at_purchase * item.quantity).toFixed(2)}</span>

@@ -203,7 +203,7 @@ const ConsultantManagement = () => {
                     [1, 2, 3, 4, 5, 6].map(i => (
                         <div key={i} className="h-[420px] bg-white rounded-[40px] border border-gray-50 animate-pulse shadow-sm" />
                     ))
-                ) : consultants.length === 0 ? (
+                ) : (consultants || []).length === 0 ? (
                     <div className="col-span-full py-32 text-center bg-white rounded-[40px] border border-gray-100 shadow-sm">
                         <div className="w-24 h-24 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-8">
                             <Briefcase className="w-10 h-10 text-gray-200" />
@@ -374,11 +374,14 @@ const ConsultantManagement = () => {
                                         <ShieldCheck className="w-4 h-4" /> Intellectual Assets
                                     </h4>
                                     <div className="flex flex-wrap gap-3">
-                                        {selectedConsultant.service_categories?.map((cat: string) => (
+                                        {(selectedConsultant.service_categories || []).map((cat: string) => (
                                             <span key={cat} className="px-6 py-3 bg-white border-2 border-gray-100 rounded-2xl text-[10px] font-black uppercase tracking-widest text-gray-600 hover:border-primary/20 hover:text-primary transition-all cursor-default shadow-sm lowercase">
                                                 {cat}
                                             </span>
-                                        )) || <p className="text-gray-400 italic">No specific service domains categorized.</p>}
+                                        ))}
+                                        {(!selectedConsultant.service_categories || selectedConsultant.service_categories.length === 0) && (
+                                            <p className="text-gray-400 italic">No specific service domains categorized.</p>
+                                        )}
                                     </div>
                                 </section>
                             </div>

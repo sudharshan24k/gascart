@@ -403,7 +403,7 @@ const AdminProducts = () => {
                                         onChange={(e) => setFilters({ ...filters, category: e.target.value })}
                                     >
                                         <option value="">All Categories</option>
-                                        {categories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+                                        {(categories || []).map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
                                     </select>
                                 </div>
                                 <div>
@@ -652,7 +652,7 @@ const AdminProducts = () => {
                                             onChange={(e) => setVendorFormData({ ...vendorFormData, vendor_id: e.target.value })}
                                         >
                                             <option value="">Choose a vendor</option>
-                                            {vendors
+                                            {(vendors || [])
                                                 .filter(v => !productVendors.some(pv => pv.vendor_id === v.id))
                                                 .map(v => (
                                                     <option key={v.id} value={v.id}>

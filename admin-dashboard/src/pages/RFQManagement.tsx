@@ -54,7 +54,7 @@ const RFQManagement: React.FC = () => {
 
     const filteredRFQs = (rfqs || []).filter(r => {
         const matchesSearch =
-            r.products?.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            r.products?.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
             r.profiles?.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
             r.profiles?.full_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
             r.profiles?.phone?.toLowerCase().includes(searchTerm.toLowerCase());

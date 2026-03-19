@@ -191,10 +191,10 @@ const AdminManagement: React.FC = () => {
                 <div className="lg:col-span-1 bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden h-[calc(100vh-200px)] flex flex-col">
                     <div className="p-4 border-b border-gray-100 bg-gray-50 font-bold text-gray-700 flex items-center justify-between">
                         <span>Current Administrators</span>
-                        <span className="bg-indigo-100 text-indigo-700 px-2 py-0.5 rounded-full text-xs">{admins.length}</span>
+                        <span className="bg-indigo-100 text-indigo-700 px-2 py-0.5 rounded-full text-xs">{admins?.length || 0}</span>
                     </div>
                     <div className="overflow-y-auto flex-grow relative">
-                        {admins.map(admin => {
+                        {(admins || []).map(admin => {
                             const isMe = admin.id === userProfile?.id;
                             const isSuper = admin.admin_permissions?.includes('super_admin');
                             return (

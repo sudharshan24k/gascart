@@ -164,16 +164,16 @@ const AdminDashboard = () => {
                     <h3 className="font-black text-xl text-slate-900 tracking-tight">Recent Activity</h3>
                     <div className="admin-card p-0 overflow-hidden">
                         <div className="p-6 space-y-6">
-                            {stats?.recentOrders && stats.recentOrders.length > 0 ? (
-                                stats.recentOrders.map((order: any) => (
+                            {(stats?.recentOrders || []).length > 0 ? (
+                                (stats?.recentOrders || []).map((order: any) => (
                                     <div key={order.id} className="flex gap-4 items-start group">
                                         <div className="w-2 h-2 rounded-full bg-indigo-600 mt-2 shrink-0 group-hover:scale-150 transition-transform"></div>
                                         <div>
                                             <p className="text-sm font-bold text-slate-900">
-                                                Order #{order.id.slice(0, 8)} from {order.customer_name}
+                                                Order #{order.id?.slice(0, 8)} from {order.customer_name}
                                             </p>
                                             <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-1">
-                                                {new Date(order.created_at).toLocaleString()}
+                                                {order.created_at ? new Date(order.created_at).toLocaleString() : 'N/A'}
                                             </p>
                                         </div>
                                     </div>

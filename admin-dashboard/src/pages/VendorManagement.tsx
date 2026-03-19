@@ -581,15 +581,11 @@ const VendorManagement = () => {
                                                         )}
                                                     </div>
 
-                                                    {enquiry.certifications && enquiry.certifications.length > 0 && (
-                                                        <div className="flex flex-wrap gap-2 mt-4">
-                                                            {enquiry.certifications.map((cert: string, i: number) => (
-                                                                <span key={i} className="flex items-center gap-1.5 text-[9px] font-black text-emerald-600 uppercase tracking-widest bg-emerald-50 px-2.5 py-1 rounded-lg border border-emerald-100">
-                                                                    <Award className="w-3 h-3" /> {cert}
-                                                                </span>
-                                                            ))}
-                                                        </div>
-                                                    )}
+                                                    {enquiry.certifications && (enquiry.certifications || []).map((cert: string, i: number) => (
+                                                        <span key={i} className="flex items-center gap-1.5 text-[9px] font-black text-emerald-600 uppercase tracking-widest bg-emerald-50 px-2.5 py-1 rounded-lg border border-emerald-100">
+                                                            <Award className="w-3 h-3" /> {cert}
+                                                        </span>
+                                                    ))}
                                                 </div>
                                             </div>
                                             <div className="text-right shrink-0">
