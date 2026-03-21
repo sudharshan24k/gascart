@@ -14,8 +14,8 @@ import Input from '../components/ui/Input';
 import Button from '../components/ui/Button';
 
 const Checkout: React.FC = () => {
-    const { items, loading, cartTotal } = useCart();
-    const { session } = useAuth();
+    const { items, loading: cartLoading, cartTotal } = useCart();
+    const { session, loading: authLoading } = useAuth();
     const { showToast } = useToast();
     const navigate = useNavigate();
     const [step, setStep] = useState(1); // 1: Shipping, 2: Payment
@@ -50,16 +50,23 @@ const Checkout: React.FC = () => {
     const advancePayable = grandTotal * 0.5;
 
     useEffect(() => {
-        if (!session) {
-            navigate('/login?redirect=/checkout', { replace: true });
-            return;
-        }
-        if (!loading && items.length === 0) {
+        // Wait for both auth and cart to finish loading before checking for empty cart
+        if (!authLoading && !cartLoading && items.length === 0) {
             navigate('/cart');
             return;
         }
+        
+        // Pre-fill user info if available
+        if (session?.user && !formData.email) {
+            setFormData(prev => ({
+                ...prev,
+                full_name: prev.full_name || session.user.user_metadata?.full_name || '',
+                email: prev.email || session.user.email || ''
+            }));
+        }
+
         fetchAddresses();
-    }, [items, loading, navigate, session]);
+    }, [items, authLoading, cartLoading, navigate, session]);
 
     const fetchAddresses = async () => {
         if (!session) {
@@ -96,7 +103,7 @@ const Checkout: React.FC = () => {
         setShowNewAddressForm(false);
         setFormData({
             full_name: addr.full_name || '',
-            email: formData.email, // Keep current email if set, or from session
+            email: session?.user?.email || formData.email, // Use session email as primary fallback
             address_line1: addr.address_line1 || '',
             address_line2: addr.address_line2 || '',
             city: addr.city || '',
@@ -127,8 +134,8 @@ const Checkout: React.FC = () => {
     };
 
     const handleContinueToPayment = async () => {
-        if (!formData.address_line1 || !formData.city || !formData.state || !formData.zip_code || !formData.phone) {
-            showToast('Please complete all shipping details.', 'error');
+        if (!formData.full_name || !formData.email || !formData.address_line1 || !formData.city || !formData.state || !formData.zip_code || !formData.phone) {
+            showToast('Please complete all shipping and contact details.', 'error');
             return;
         }
         if (!isValidZip(formData.zip_code)) {
@@ -162,8 +169,8 @@ const Checkout: React.FC = () => {
     };
 
     const handlePlaceOrder = async () => {
-        if (!formData.address_line1 || !formData.city || !formData.state || !formData.zip_code || !formData.phone) {
-            showToast('Please complete all shipping details.', 'error');
+        if (!formData.full_name || !formData.email || !formData.address_line1 || !formData.city || !formData.state || !formData.zip_code || !formData.phone) {
+            showToast('Please complete all shipping and contact details.', 'error');
             setStep(1);
             return;
         }
@@ -187,7 +194,9 @@ const Checkout: React.FC = () => {
                 billingDetails: formData // Assuming same for simplicity
             });
 
-            if (!orderResponse.success) throw new Error(orderResponse.error || 'Failed to create order');
+            if (!orderResponse.success) {
+                throw new Error(orderResponse.error || 'Failed to create order');
+            }
 
             const { razorpayOrderId, amount, keyId, orderId } = orderResponse;
 
@@ -242,7 +251,7 @@ const Checkout: React.FC = () => {
         }
     };
 
-    if (loading) return <div className="min-h-screen pt-32 flex justify-center"><Loader2 className="w-10 h-10 animate-spin text-primary" /></div>;
+    if (authLoading || cartLoading) return <div className="min-h-screen pt-32 flex justify-center"><Loader2 className="w-10 h-10 animate-spin text-primary" /></div>;
 
     return (
         <div className="min-h-screen pt-28 pb-24 bg-neutral-50">
@@ -348,6 +357,17 @@ const Checkout: React.FC = () => {
                                                 </div>
                                                 <div className="md:col-span-2">
                                                     <Input
+                                                        label="Contact Email"
+                                                        name="email"
+                                                        type="email"
+                                                        required
+                                                        value={formData.email}
+                                                        onChange={handleInputChange}
+                                                        placeholder="email@example.com"
+                                                    />
+                                                </div>
+                                                <div className="md:col-span-2">
+                                                    <Input
                                                         label="Address Line 1"
                                                         name="address_line1"
                                                         required
@@ -414,11 +434,12 @@ const Checkout: React.FC = () => {
                                             </div>
                                         )}
 
-                                        <div className="pt-6 border-t border-dashed border-neutral-200">
+                                                 <div className="pt-6 border-t border-dashed border-neutral-200">
                                             <Button
                                                 onClick={handleContinueToPayment}
                                                 disabled={
-                                                    !formData.address_line1 || !formData.city || !formData.state ||
+                                                    !formData.full_name || !formData.email || !formData.address_line1 || 
+                                                    !formData.city || !formData.state ||
                                                     !formData.zip_code || !isValidZip(formData.zip_code) ||
                                                     !formData.phone || !isValidPhone(formData.phone)
                                                 }

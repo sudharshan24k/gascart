@@ -23,6 +23,27 @@ export interface ApiResponse<T = any> {
     data?: T;
 }
 
+export interface PaymentOrderResponse {
+    success: boolean;
+    error?: string;
+    orderId: string;
+    razorpayOrderId: string;
+    amount: number;
+    currency: string;
+    keyId: string;
+    totalAmount: number;
+    advanceAmount: number;
+    balanceDue: number;
+}
+
+export interface PaymentVerifyResponse {
+    success: boolean;
+    error?: string;
+    orderId: string;
+    paymentStatus: string;
+    diagnostics?: string[];
+}
+
 export const api = {
     products: {
         list: async (params: Record<string, string>): Promise<ApiResponse> => {
@@ -491,7 +512,7 @@ export const api = {
         }
     },
     payments: {
-        createOrder: async (data: { items: any[], shippingDetails: any, billingDetails: any }): Promise<ApiResponse> => {
+        createOrder: async (data: { items: any[], shippingDetails: any, billingDetails: any }): Promise<PaymentOrderResponse> => {
             const token = (await supabase.auth.getSession()).data.session?.access_token;
             if (!token) throw new Error('Not authenticated');
             const apiUrl = getBaseUrl();
@@ -505,7 +526,7 @@ export const api = {
             });
             return res.json();
         },
-        verifyPayment: async (data: { razorpay_order_id: string, razorpay_payment_id: string, razorpay_signature: string, order_id: string }): Promise<ApiResponse> => {
+        verifyPayment: async (data: { razorpay_order_id: string, razorpay_payment_id: string, razorpay_signature: string, order_id: string }): Promise<PaymentVerifyResponse> => {
             const token = (await supabase.auth.getSession()).data.session?.access_token;
             if (!token) throw new Error('Not authenticated');
             const apiUrl = getBaseUrl();

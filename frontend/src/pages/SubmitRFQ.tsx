@@ -14,15 +14,6 @@ const SubmitRFQ = () => {
     const [error, setError] = useState<string | null>(null);
     const navigate = useNavigate();
 
-    React.useEffect(() => {
-        if (!loading && !session) {
-            navigate('/login?redirect=/submit-rfq', { replace: true });
-        }
-    }, [session, loading, navigate]);
-
-    if (loading || !session) {
-        return <div className="min-h-screen pt-32 flex justify-center text-primary font-bold animate-pulse">Checking authentication...</div>;
-    }
 
     if (state.items.length === 0 && !submitted) {
         return (

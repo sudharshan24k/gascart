@@ -37,6 +37,7 @@ import VendorManager from './pages/Admin/VendorManager';
 import PrivacyPolicy from './pages/PrivacyPolicy';
 import TermsOfService from './pages/TermsOfService';
 import Careers from './pages/Careers';
+import ProtectedRoute from './components/auth/ProtectedRoute';
 
 import { ToastProvider } from './context/ToastContext';
 import ScrollToTop from './components/ScrollToTop';
@@ -72,20 +73,20 @@ function App() {
                                     <Route path="compare" element={<Compare />} />
                                     <Route path="product" element={<Navigate to="/shop" replace />} />
                                     <Route path="product/:id" element={<ProductDetail />} />
-                                    <Route path="enquiry-list" element={<EnquiryList />} />
-                                    <Route path="submit-rfq" element={<SubmitRFQ />} />
-                                    <Route path="cart" element={<Cart />} />
-                                    <Route path="order-confirmation" element={<OrderConfirmation />} />
+                                    <Route path="enquiry-list" element={<ProtectedRoute><EnquiryList /></ProtectedRoute>} />
+                                    <Route path="submit-rfq" element={<ProtectedRoute><SubmitRFQ /></ProtectedRoute>} />
+                                    <Route path="cart" element={<ProtectedRoute><Cart /></ProtectedRoute>} />
+                                    <Route path="order-confirmation" element={<ProtectedRoute><OrderConfirmation /></ProtectedRoute>} />
                                     <Route path="login" element={<Login />} />
                                     <Route path="forgot-password" element={<ForgotPassword />} />
                                     <Route path="reset-password" element={<ResetPassword />} />
                                     <Route path="signup" element={<Signup />} />
-                                    <Route path="checkout" element={<Checkout />} />
-                                    <Route path="order-success" element={<OrderSuccess />} />
-                                    <Route path="profile" element={<Profile />} />
-                                    <Route path="my-orders" element={<MyOrders />} />
+                                    <Route path="checkout" element={<ProtectedRoute><Checkout /></ProtectedRoute>} />
+                                    <Route path="order-success" element={<ProtectedRoute><OrderSuccess /></ProtectedRoute>} />
+                                    <Route path="profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
+                                    <Route path="my-orders" element={<ProtectedRoute><MyOrders /></ProtectedRoute>} />
                                     <Route path="orders" element={<Navigate to="/my-orders" replace />} />
-                                    <Route path="order-tracking/:id" element={<OrderTracking />} />
+                                    <Route path="order-tracking/:id" element={<ProtectedRoute><OrderTracking /></ProtectedRoute>} />
 
 
                                     {/* Admin Routes */}

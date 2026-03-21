@@ -92,6 +92,8 @@ export const getCart = async (req: AuthRequest, res: Response, next: NextFunctio
 
         // Auto-merge guest cart with user cart if both are provided
         if (userId && sessionId) {
+            console.log(`[CartController] Attempting merge for User: ${userId}, Session: ${sessionId}`);
+            // Find guest cart (not yet associated with a user)
             const { data: sessionCart } = await supabase
                 .from('carts')
                 .select('id')
@@ -100,14 +102,17 @@ export const getCart = async (req: AuthRequest, res: Response, next: NextFunctio
                 .maybeSingle();
 
             if (sessionCart) {
-                const { data: userCart } = await supabase
+                console.log(`[CartController] Found session cart: ${sessionCart.id}`);
+                // Find or create user cart
+                let { data: userCart } = await supabase
                     .from('carts')
                     .select('id')
                     .eq('user_id', userId)
                     .maybeSingle();
 
                 if (userCart) {
-                    // Fetch session cart items
+                    console.log(`[CartController] Merging into existing user cart: ${userCart.id}`);
+                    // Fetch all items from session cart
                     const { data: sessionItems } = await supabase
                         .from('cart_items')
                         .select('*')
@@ -115,12 +120,13 @@ export const getCart = async (req: AuthRequest, res: Response, next: NextFunctio
 
                     if (sessionItems && sessionItems.length > 0) {
                         for (const item of sessionItems) {
+                            // Check if equivalent item exists in user cart
                             let checkQuery = supabase.from('cart_items')
                                 .select('id, quantity')
                                 .eq('cart_id', userCart.id)
                                 .eq('product_id', item.product_id);
                             
-                            if (item.selected_variant) checkQuery = checkQuery.contains('selected_variant', item.selected_variant);
+                            if (item.selected_variant) checkQuery = checkQuery.eq('selected_variant', item.selected_variant);
                             else checkQuery = checkQuery.is('selected_variant', null);
                             
                             if (item.vendor_id) checkQuery = checkQuery.eq('vendor_id', item.vendor_id);
@@ -130,16 +136,27 @@ export const getCart = async (req: AuthRequest, res: Response, next: NextFunctio
                             const existing = existingItems && existingItems.length > 0 ? existingItems[0] : null;
 
                             if (existing) {
-                                await supabase.from('cart_items').update({ quantity: existing.quantity + item.quantity }).eq('id', existing.id);
+                                // Update quantity and delete guest item
+                                await supabase.from('cart_items')
+                                    .update({ quantity: existing.quantity + item.quantity })
+                                    .eq('id', existing.id);
                                 await supabase.from('cart_items').delete().eq('id', item.id);
                             } else {
-                                await supabase.from('cart_items').update({ cart_id: userCart.id }).eq('id', item.id);
+                                // Move guest item to user cart
+                                await supabase.from('cart_items')
+                                    .update({ cart_id: userCart.id })
+                                    .eq('id', item.id);
                             }
                         }
                     }
+                    // Delete the now-empty session cart
                     await supabase.from('carts').delete().eq('id', sessionCart.id);
                 } else {
-                    await supabase.from('carts').update({ user_id: userId }).eq('id', sessionCart.id);
+                    console.log(`[CartController] No user cart found, promoting session cart to user cart`);
+                    // Just associate the session cart with the user
+                    await supabase.from('carts')
+                        .update({ user_id: userId })
+                        .eq('id', sessionCart.id);
                 }
             }
         }

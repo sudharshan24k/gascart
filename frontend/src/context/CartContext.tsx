@@ -50,13 +50,16 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     const fetchCart = async () => {
         try {
+            console.log('[CartContext] Fetching cart...', { token, sessionId });
             setLoading(true);
             const res = await api.cart.get(token, sessionId);
+            console.log('[CartContext] Get Cart response:', res);
             if (res.status === 'success' && res.data) {
+                console.log('[CartContext] Setting items:', res.data.cart_items);
                 setItems(res.data.cart_items || []);
             }
         } catch (err) {
-            console.error('Failed to fetch cart', err);
+            console.error('[CartContext] Failed to fetch cart', err);
         } finally {
             setLoading(false);
         }

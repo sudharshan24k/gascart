@@ -18,7 +18,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     useEffect(() => {
         // Check active session
+        console.log('[AuthContext] Checking active session...');
         supabase.auth.getSession().then(({ data: { session } }) => {
+            console.log('[AuthContext] Active session found:', session?.user?.email);
             setSession(session);
             setUser(session?.user ?? null);
             setLoading(false);
@@ -27,13 +29,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         // Listen for auth changes
         const {
             data: { subscription },
-        } = supabase.auth.onAuthStateChange((_event, session) => {
+        } = supabase.auth.onAuthStateChange((event, session) => {
+            console.log('[AuthContext] Auth state change event:', event, session?.user?.email);
             setSession(session);
             setUser(session?.user ?? null);
             setLoading(false);
         });
 
-        return () => subscription.unsubscribe();
+        return () => {
+            console.log('[AuthContext] Unsubscribing from auth changes');
+            subscription.unsubscribe();
+        };
     }, []);
 
     const signOut = async () => {
