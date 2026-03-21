@@ -220,7 +220,9 @@ const ProductListing: React.FC = () => {
                                     >
                                         All Categories
                                     </button>
-                                    {categories.filter(c => !c.parent_id).map(category => (
+                                    
+                                    {/* Top 5 Root Categories */}
+                                    {categories.filter(c => !c.parent_id).slice(0, 5).map(category => (
                                         <div key={category.id}>
                                             <button
                                                 onClick={() => { updateFilter('category', category.id); setFilterOpen(false); }}
@@ -239,6 +241,31 @@ const ProductListing: React.FC = () => {
                                             ))}
                                         </div>
                                     ))}
+
+                                    {/* Scrollable Remaining Categories */}
+                                    {categories.filter(c => !c.parent_id).length > 5 && (
+                                        <div className="pt-2 mt-2 border-t border-neutral-100 max-h-60 overflow-y-auto custom-scrollbar pr-1 space-y-1">
+                                            {categories.filter(c => !c.parent_id).slice(5).map(category => (
+                                                <div key={category.id}>
+                                                    <button
+                                                        onClick={() => { updateFilter('category', category.id); setFilterOpen(false); }}
+                                                        className={`w-full text-left px-3 py-2 rounded-lg text-sm font-medium transition-colors ${activeCategory === category.id ? 'bg-primary text-white shadow-md shadow-primary/20' : 'text-neutral-600 hover:bg-neutral-50'}`}
+                                                    >
+                                                        {category.name}
+                                                    </button>
+                                                    {categories.filter(sub => sub.parent_id === category.id).map(sub => (
+                                                        <button
+                                                            key={sub.id}
+                                                            onClick={() => { updateFilter('category', sub.id); setFilterOpen(false); }}
+                                                            className={`w-full text-left px-3 py-2 pl-6 rounded-lg text-sm transition-colors ${activeCategory === sub.id ? 'text-primary font-bold bg-primary/5' : 'text-neutral-500 hover:text-neutral-900'}`}
+                                                        >
+                                                            • {sub.name}
+                                                        </button>
+                                                    ))}
+                                                </div>
+                                            ))}
+                                        </div>
+                                    )}
                                 </div>
                             </div>
 

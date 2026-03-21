@@ -1,6 +1,6 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import { fetchRFQs, updateAdminRFQStatus, downloadRFQs } from '../services/admin.service';
-import { ClipboardList, Download, Search, Mail, Eye, User, Building2, X } from 'lucide-react';
+import { ClipboardList, Download, Search, Mail, Eye, User, Building2, X, Layers, Component, Calendar } from 'lucide-react';
 import { formatDateIST } from '../utils/dateUtils';
 
 const RFQManagement: React.FC = () => {
@@ -9,6 +9,7 @@ const RFQManagement: React.FC = () => {
     const [searchTerm, setSearchTerm] = useState('');
     const [statusFilter, setStatusFilter] = useState('all');
     const [selectedRFQ, setSelectedRFQ] = useState<any>(null);
+    const [activeTab, setActiveTab] = useState<'itemized' | 'project'>('itemized');
 
     useEffect(() => {
         loadRFQs();
@@ -35,6 +36,19 @@ const RFQManagement: React.FC = () => {
         }
     };
 
+    const handleBulkStatusUpdate = async (enquiryId: string, newStatus: string) => {
+        const itemsToUpdate = rfqs.filter(r => r.submitted_fields?.enquiry_id === enquiryId);
+        try {
+            setLoading(true);
+            await Promise.all(itemsToUpdate.map(item => updateAdminRFQStatus(item.id, newStatus)));
+            await loadRFQs();
+        } catch (err) {
+            alert('Failed to update bulk status');
+        } finally {
+            setLoading(false);
+        }
+    };
+
     const handleExport = async () => {
         try {
             const data = await downloadRFQs();
@@ -51,19 +65,54 @@ const RFQManagement: React.FC = () => {
         }
     };
 
-    const filteredRFQs = (rfqs || []).filter(r => {
-        const term = searchTerm.toLowerCase().replace(/^#/, '');
-        const matchesSearch = term === '' || 
-            r.products?.name?.toLowerCase().includes(term) ||
-            r.profiles?.email?.toLowerCase().includes(term) ||
-            r.profiles?.full_name?.toLowerCase().includes(term) ||
-            r.profiles?.company_name?.toLowerCase().includes(term) ||
-            r.submitted_fields?.enquiry_id?.toLowerCase().includes(term);
-        const matchesStatus = statusFilter === 'all' || r.status === statusFilter;
-        return matchesStatus && matchesSearch;
-    });
+    const filteredRFQs = useMemo(() => {
+        return (rfqs || []).filter(r => {
+            const term = searchTerm.toLowerCase().replace(/^#/, '');
+            const matchesSearch = term === '' || 
+                r.products?.name?.toLowerCase().includes(term) ||
+                r.profiles?.email?.toLowerCase().includes(term) ||
+                r.profiles?.full_name?.toLowerCase().includes(term) ||
+                r.profiles?.company_name?.toLowerCase().includes(term) ||
+                r.submitted_fields?.enquiry_id?.toLowerCase().includes(term);
+            const matchesStatus = statusFilter === 'all' || r.status === statusFilter;
+            return matchesStatus && matchesSearch;
+        });
+    }, [rfqs, searchTerm, statusFilter]);
 
-    if (loading) {
+    const projectEnquiries = useMemo(() => {
+        const groups: Record<string, any> = {};
+        rfqs.forEach(rfq => {
+            const eid = rfq.submitted_fields?.enquiry_id;
+            if (eid) {
+                if (!groups[eid]) {
+                    groups[eid] = {
+                        enquiry_id: eid,
+                        items: [],
+                        user: rfq.profiles,
+                        created_at: rfq.created_at,
+                        status: rfq.status,
+                        company: rfq.profiles?.company_name || rfq.submitted_fields?.company_name || 'N/A'
+                    };
+                }
+                groups[eid].items.push(rfq);
+            }
+        });
+        
+        return Object.values(groups)
+            .filter((g: any) => {
+                const term = searchTerm.toLowerCase().replace(/^#/, '');
+                const matchesSearch = term === '' || 
+                    g.enquiry_id.toLowerCase().includes(term) ||
+                    g.user?.email?.toLowerCase().includes(term) ||
+                    g.user?.full_name?.toLowerCase().includes(term) ||
+                    g.company?.toLowerCase().includes(term);
+                const matchesStatus = statusFilter === 'all' || g.status === statusFilter;
+                return matchesStatus && matchesSearch;
+            })
+            .sort((a: any, b: any) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+    }, [rfqs, searchTerm, statusFilter]);
+
+    if (loading && rfqs.length === 0) {
         return (
             <div className="flex items-center justify-center min-h-[400px]">
                 <div className="w-10 h-10 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
@@ -84,6 +133,29 @@ const RFQManagement: React.FC = () => {
                 >
                     <Download className="w-5 h-5 text-primary" />
                     Export Requisitions
+                </button>
+            </div>
+
+            {/* Tab Navigation */}
+            <div className="flex gap-4 mb-8 p-1.5 bg-gray-100/50 rounded-2xl w-fit">
+                <button
+                    onClick={() => setActiveTab('itemized')}
+                    className={`flex items-center gap-2 px-6 py-3 rounded-xl font-bold transition-all ${activeTab === 'itemized' ? 'bg-white text-primary shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
+                >
+                    <Component className="w-4 h-4" />
+                    Itemized Requests
+                </button>
+                <button
+                    onClick={() => setActiveTab('project')}
+                    className={`flex items-center gap-2 px-6 py-3 rounded-xl font-bold transition-all ${activeTab === 'project' ? 'bg-white text-primary shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
+                >
+                    <Layers className="w-4 h-4" />
+                    Project Enquiries (Bulk)
+                    {projectEnquiries.length > 0 && (
+                        <span className="bg-primary/10 text-primary text-[10px] px-2 py-0.5 rounded-full ml-1">
+                            {projectEnquiries.length}
+                        </span>
+                    )}
                 </button>
             </div>
 
@@ -114,7 +186,8 @@ const RFQManagement: React.FC = () => {
                 </div>
 
                 <div className="overflow-x-auto flex-grow">
-                    <table className="w-full text-left border-collapse">
+                    {activeTab === 'itemized' ? (
+                        <table className="w-full text-left border-collapse">
                         <thead>
                             <tr className="bg-white text-gray-400 text-[10px] font-black uppercase tracking-[0.2em] border-b border-gray-50">
                                 <th className="px-10 py-6">Requisition Asset</th>
@@ -213,11 +286,96 @@ const RFQManagement: React.FC = () => {
                             ))}
                         </tbody>
                     </table>
+                    ) : (
+                        <table className="w-full text-left border-collapse">
+                            <thead>
+                                <tr className="bg-white text-gray-400 text-[10px] font-black uppercase tracking-[0.2em] border-b border-gray-50">
+                                    <th className="px-10 py-6">Project / Enquiry ID</th>
+                                    <th className="px-10 py-6">Customer Details</th>
+                                    <th className="px-10 py-6 text-center">Items</th>
+                                    <th className="px-10 py-6 text-center">Current Status</th>
+                                    <th className="px-10 py-6">Timestamp</th>
+                                    <th className="px-10 py-6 text-right"
+                                        style={{ background: 'linear-gradient(135deg, #1a1a2e 0%, #16213e 100%)', color: '#a78bfa', borderRadius: '0 12px 0 0' }}
+                                    >
+                                        ⚙️ Operations
+                                    </th>
+                                </tr>
+                            </thead>
+                            <tbody className="divide-y divide-gray-50">
+                                {projectEnquiries.map((group) => (
+                                    <tr key={group.enquiry_id} className="hover:bg-gray-50/50 transition-colors group">
+                                        <td className="px-10 py-8">
+                                            <div className="flex flex-col">
+                                                <span className="font-mono font-black text-lg text-primary bg-primary/5 px-4 py-2 rounded-2xl border-2 border-primary/10 w-fit">
+                                                    #{group.enquiry_id}
+                                                </span>
+                                                <span className="mt-2 text-[10px] font-black uppercase tracking-widest text-gray-400 flex items-center gap-1">
+                                                    <Layers className="w-3 h-3" /> Bulk Project Requisition
+                                                </span>
+                                            </div>
+                                        </td>
+                                        <td className="px-10 py-8">
+                                            <div className="flex flex-col">
+                                                <span className="font-black text-gray-900 group-hover:text-primary transition-colors">{group.company}</span>
+                                                <div className="mt-1 flex items-center gap-2 text-xs font-bold text-gray-500">
+                                                    <User className="w-3 h-3 text-primary/40" /> {group.user?.full_name || 'Guest'}
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td className="px-10 py-8 text-center">
+                                            <div className="inline-flex flex-col items-center">
+                                                <span className="text-2xl font-black text-gray-900">{group.items.length}</span>
+                                                <span className="text-[10px] font-black uppercase text-gray-400 tracking-tighter">Products</span>
+                                            </div>
+                                        </td>
+                                        <td className="px-10 py-8">
+                                            <div className="flex justify-center">
+                                                <span className={`px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-[0.1em] border ${group.status === 'new' ? 'bg-amber-50 text-amber-600 border-amber-100' :
+                                                    group.status === 'processing' ? 'bg-blue-50 text-blue-600 border-blue-100' :
+                                                        group.status === 'completed' ? 'bg-green-50 text-green-600 border-green-100' :
+                                                            'bg-gray-50 text-gray-400 border-gray-100'
+                                                    }`}>
+                                                    {group.status}
+                                                </span>
+                                            </div>
+                                        </td>
+                                        <td className="px-10 py-8 text-sm text-gray-400 font-black font-mono">
+                                            {formatDateIST(group.created_at)}
+                                        </td>
+                                        <td className="px-6 py-8 text-right bg-primary/5">
+                                            <div className="flex flex-col items-end gap-3">
+                                                <button
+                                                    onClick={() => setSelectedRFQ({ ...group.items[0], _isBulk: true, _bulkItems: group.items, _enquiryId: group.enquiry_id })}
+                                                    className="flex items-center gap-2 bg-white text-primary font-black px-6 py-3 rounded-xl border-2 border-primary/20 shadow-sm hover:border-primary transition-all active:scale-95 text-xs"
+                                                >
+                                                    <Eye className="w-4 h-4" /> View Full Enquiry
+                                                </button>
+                                                <div className="flex flex-col items-end gap-1">
+                                                    <span className="text-[9px] font-black uppercase tracking-widest text-gray-400">Sync All Status</span>
+                                                    <select
+                                                        onChange={(e) => handleBulkStatusUpdate(group.enquiry_id, e.target.value)}
+                                                        value={group.status}
+                                                        className="text-[10px] font-black py-2 pl-3 pr-6 rounded-lg outline-none border border-gray-200 bg-white"
+                                                    >
+                                                        <option value="new">🟡 New</option>
+                                                        <option value="processing">In Progress</option>
+                                                        <option value="completed">Completed</option>
+                                                        <option value="rejected">Rejected</option>
+                                                    </select>
+                                                </div>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    )}
 
-                    {filteredRFQs.length === 0 && (
+                    {((activeTab === 'itemized' && filteredRFQs.length === 0) || (activeTab === 'project' && projectEnquiries.length === 0)) && (
                         <div className="py-32 text-center text-gray-400 flex flex-col items-center">
                             <ClipboardList className="w-20 h-20 mb-6 opacity-5" />
-                            <p className="font-black text-xl uppercase tracking-widest opacity-20">No active enquiries</p>
+                            <p className="font-black text-xl uppercase tracking-widest opacity-20">No active {activeTab === 'itemized' ? 'requests' : 'project enquiries'} found</p>
                         </div>
                     )}
                 </div>
@@ -225,44 +383,110 @@ const RFQManagement: React.FC = () => {
 
             {selectedRFQ && (
                 <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-gray-900/60 backdrop-blur-sm shadow-inner" onClick={() => setSelectedRFQ(null)}>
-                    <div className="bg-white w-full max-w-2xl rounded-[40px] shadow-2xl overflow-hidden flex flex-col relative z-20" onClick={e => e.stopPropagation()}>
+                    <div className="bg-white w-full max-w-4xl rounded-[40px] shadow-2xl overflow-hidden flex flex-col relative z-20 max-h-[90vh]" onClick={e => e.stopPropagation()}>
                         <div className="p-10 border-b border-gray-50 flex justify-between items-center bg-gray-50/30">
                             <div>
-                                <h3 className="text-3xl font-black text-gray-900 leading-tight">Technical Spec Report</h3>
+                                <h3 className="text-3xl font-black text-gray-900 leading-tight">
+                                    {selectedRFQ._isBulk ? 'Bulk Project Requisition Report' : 'Technical Spec Report'}
+                                </h3>
                                 <div className="flex items-center gap-3 mt-2">
-                                    <p className="text-gray-500 font-bold uppercase text-[10px] tracking-widest">Asset: {selectedRFQ.products?.name}</p>
+                                    {!selectedRFQ._isBulk && <p className="text-gray-500 font-bold uppercase text-[10px] tracking-widest">Asset: {selectedRFQ.products?.name}</p>}
+                                    {selectedRFQ._isBulk && <p className="text-gray-500 font-bold uppercase text-[10px] tracking-widest">Items: {selectedRFQ._bulkItems.length} Products</p>}
                                     <span className="w-1.5 h-1.5 bg-gray-300 rounded-full"></span>
-                                    <p className="text-primary font-black uppercase text-[10px] tracking-widest">Enquiry ID: {selectedRFQ.submitted_fields?.enquiry_id || 'N/A'}</p>
+                                    <p className="text-primary font-black uppercase text-[10px] tracking-widest">Enquiry ID: {selectedRFQ._enquiryId || selectedRFQ.submitted_fields?.enquiry_id || 'N/A'}</p>
                                 </div>
                             </div>
                             <button onClick={() => setSelectedRFQ(null)} className="p-2 bg-gray-100 hover:bg-gray-200 rounded-full transition-colors">
                                 <X className="w-6 h-6 text-gray-500" />
                             </button>
                         </div>
-                        <div className="p-6 bg-blue-50/50 border-b border-gray-100">
-                            <h4 className="text-sm font-black text-blue-900 mb-3 uppercase tracking-widest">Submitter Contact Details</h4>
-                            <div className="grid grid-cols-2 md:grid-cols-3 gap-6">
-                                <div><span className="block text-[10px] uppercase text-blue-400 mb-1 font-bold">Name</span><span className="font-bold text-blue-900">{selectedRFQ.profiles?.full_name || 'Guest User'}</span></div>
-                                <div><span className="block text-[10px] uppercase text-blue-400 mb-1 font-bold">Email</span><span className="font-bold text-blue-900">{selectedRFQ.profiles?.email || 'N/A'}</span></div>
-                                <div><span className="block text-[10px] uppercase text-blue-400 mb-1 font-bold">Phone</span><span className="font-bold text-blue-900">{selectedRFQ.profiles?.phone || 'Not Provided'}</span></div>
-                                <div><span className="block text-[10px] uppercase text-blue-400 mb-1 font-bold">Company</span><span className="font-bold text-blue-900">{selectedRFQ.profiles?.company_name || selectedRFQ.submitted_fields?.company_name || 'Not Provided'}</span></div>
-                                <div><span className="block text-[10px] uppercase text-blue-400 mb-1 font-bold">Preferred Vendor</span><span className="font-bold text-blue-900">{selectedRFQ.vendor?.company_name || 'Any Vendor'}</span></div>
-                            </div>
-                        </div>
-                        <div className="p-12 overflow-y-auto max-h-[60vh]">
-                            <div className="grid grid-cols-2 gap-8">
-                                {Object.entries(selectedRFQ.submitted_fields || {}).map(([key, value]: [string, any]) => (
-                                    <div key={key} className="space-y-1">
-                                        <label className="text-[10px] font-black text-primary uppercase tracking-widest">{key}</label>
-                                        <p className="text-lg font-bold text-gray-700 bg-gray-50 p-4 rounded-2xl">{value}</p>
+                        
+                        <div className="flex flex-col md:flex-row overflow-hidden flex-grow">
+                            {/* Left Side: Contact Info */}
+                            <div className="w-full md:w-80 bg-blue-50/30 p-8 border-r border-gray-100 overflow-y-auto">
+                                <h4 className="text-xs font-black text-blue-900 mb-6 uppercase tracking-widest border-b border-blue-100 pb-2 flex items-center gap-2">
+                                    <User className="w-4 h-4" /> Submitter Details
+                                </h4>
+                                <div className="space-y-6">
+                                    <div><span className="block text-[9px] uppercase text-blue-400 mb-1 font-bold">Name</span><span className="font-bold text-blue-900">{selectedRFQ.profiles?.full_name || 'Guest User'}</span></div>
+                                    <div><span className="block text-[9px] uppercase text-blue-400 mb-1 font-bold">Email</span><span className="font-bold text-blue-900 text-sm break-all">{selectedRFQ.profiles?.email || 'N/A'}</span></div>
+                                    <div><span className="block text-[9px] uppercase text-blue-400 mb-1 font-bold">Phone</span><span className="font-bold text-blue-900">{selectedRFQ.profiles?.phone || 'Not Provided'}</span></div>
+                                    <div><span className="block text-[9px] uppercase text-blue-400 mb-1 font-bold">Company</span><span className="font-bold text-blue-900">{selectedRFQ.profiles?.company_name || selectedRFQ.submitted_fields?.company_name || 'Not Provided'}</span></div>
+                                    {!selectedRFQ._isBulk && <div><span className="block text-[9px] uppercase text-blue-400 mb-1 font-bold">Preferred Vendor</span><span className="font-bold text-blue-900">{selectedRFQ.vendor?.company_name || 'Any Vendor'}</span></div>}
+                                    
+                                    <div className="pt-6 border-t border-blue-100">
+                                        <div className="bg-white p-4 rounded-2xl border border-blue-100">
+                                            <span className="block text-[9px] uppercase text-blue-400 mb-2 font-bold">Submission Meta</span>
+                                            <div className="flex items-center gap-2 text-blue-900 font-bold mb-1">
+                                                <Calendar className="w-3 h-3" />
+                                                <span className="text-[10px]">{formatDateIST(selectedRFQ.created_at)}</span>
+                                            </div>
+                                        </div>
                                     </div>
-                                ))}
+                                </div>
+                            </div>
+
+                            {/* Right Side: Technical Specs */}
+                            <div className="flex-grow p-8 overflow-y-auto bg-white">
+                                {selectedRFQ._isBulk ? (
+                                    <div className="space-y-12">
+                                        <h4 className="text-xl font-black text-gray-900 mb-6 flex items-center gap-2">
+                                            <Layers className="w-6 h-6 text-primary" />
+                                            Enquired Products
+                                        </h4>
+                                        {selectedRFQ._bulkItems.map((item: any, idx: number) => (
+                                            <div key={item.id} className="bg-gray-50/50 rounded-[32px] p-8 border border-gray-100 relative group hover:bg-white hover:shadow-xl hover:shadow-gray-200/50 transition-all">
+                                                <span className="absolute -top-4 -left-4 w-10 h-10 bg-primary text-white rounded-full flex items-center justify-center font-black text-xs shadow-lg">
+                                                    {idx + 1}
+                                                </span>
+                                                <div className="flex justify-between items-start mb-8">
+                                                    <div>
+                                                        <h5 className="text-2xl font-black text-gray-900 group-hover:text-primary transition-colors">{item.products?.name}</h5>
+                                                        <div className="flex items-center gap-2 mt-2">
+                                                            <span className="px-3 py-1 bg-primary/5 text-primary text-[10px] font-black rounded-lg border border-primary/10">Quantity: {item.submitted_fields?.item_quantity || 1}</span>
+                                                            <span className="px-3 py-1 bg-gray-100 text-gray-500 text-[10px] font-black rounded-lg border border-gray-200">Price Ref: ₹{Number(item.submitted_fields?.item_price || 0).toLocaleString()}</span>
+                                                        </div>
+                                                    </div>
+                                                    <div className="bg-white p-3 rounded-2xl border border-gray-100 shadow-sm">
+                                                        <span className="block text-[8px] uppercase text-gray-400 font-black mb-1">Status</span>
+                                                        <span className="text-[10px] font-black uppercase text-primary tracking-widest">{item.status}</span>
+                                                    </div>
+                                                </div>
+
+                                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                    {Object.entries(item.submitted_fields || {}).map(([key, value]: [string, any]) => {
+                                                        if (['enquiry_id', 'item_quantity', 'item_price', 'company_name', 'Company Name', 'Contact Person', 'Project Location'].includes(key)) return null;
+                                                        return (
+                                                            <div key={key} className="space-y-1 bg-white p-4 rounded-2xl border border-gray-100/50">
+                                                                <label className="text-[8px] font-black text-primary uppercase tracking-widest">{key}</label>
+                                                                <p className="text-sm font-bold text-gray-700">{String(value)}</p>
+                                                            </div>
+                                                        );
+                                                    })}
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                ) : (
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                                        {Object.entries(selectedRFQ.submitted_fields || {}).map(([key, value]: [string, any]) => (
+                                            <div key={key} className="space-y-1 bg-gray-50 p-6 rounded-3xl border border-gray-100">
+                                                <label className="text-[10px] font-black text-primary uppercase tracking-widest">{key}</label>
+                                                <p className="text-lg font-bold text-gray-700">{String(value)}</p>
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
                             </div>
                         </div>
-                        <div className="p-8 border-t border-gray-50 bg-gray-50/10 flex justify-end">
+
+                        <div className="p-8 border-t border-gray-50 bg-gray-50/10 flex justify-between items-center">
+                            <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">
+                                Report Generated on {new Date().toLocaleDateString()}
+                            </p>
                             <button
                                 onClick={() => setSelectedRFQ(null)}
-                                className="bg-gray-900 text-white font-black px-10 py-4 rounded-2xl hover:bg-primary transition-all"
+                                className="bg-gray-900 text-white font-black px-10 py-4 rounded-2xl hover:bg-primary transition-all shadow-lg hover:shadow-primary/20 active:scale-95"
                             >
                                 Dismiss Report
                             </button>
