@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 import { ProtectedRoute } from './components/RequirePermission';
 import AdminLayout from './pages/AdminLayout';
+import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
 import Products from './pages/Products';
 import Orders from './pages/Orders';
@@ -36,7 +37,7 @@ function App() {
         <AuthProvider>
             <Router basename={basename}>
                 <Routes>
-                    {/* Login is handled by the main website's /login route */}
+                    <Route path="/login" element={<Login />} />
 
                     <Route element={<ProtectedRoute />}>
                         <Route path="/" element={<AdminLayout />}>
