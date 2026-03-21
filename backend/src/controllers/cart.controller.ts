@@ -219,3 +219,27 @@ export const removeCartItem = async (req: AuthRequest, res: Response, next: Next
         next(err);
     }
 };
+
+export const clearCart = async (req: AuthRequest, res: Response, next: NextFunction) => {
+    try {
+        const userId = req.user?.id;
+        const sessionId = req.headers['x-session-id'] as string;
+
+        if (!userId && !sessionId) {
+            return res.status(400).json({ message: 'Identification required' });
+        }
+
+        const cartId = await getOrCreateCart(userId, sessionId);
+
+        const { error } = await supabase
+            .from('cart_items')
+            .delete()
+            .eq('cart_id', cartId);
+
+        if (error) throw error;
+
+        res.json({ status: 'success', message: 'Cart cleared' });
+    } catch (err) {
+        next(err);
+    }
+};

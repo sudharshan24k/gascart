@@ -333,7 +333,7 @@ const Profile: React.FC = () => {
                                             </div>
                                             <h3 className="text-xl font-bold text-neutral-900 mb-2">No Previous Orders</h3>
                                             <p className="text-neutral-500 max-w-xs mx-auto mb-8">Once you place an order, you can track its status and download invoices here.</p>
-                                            <Link to="/products" className="px-8 py-3 bg-primary text-white font-bold rounded-xl shadow-lg hover:bg-primary-dark transition-all">
+                                            <Link to="/shop" className="px-8 py-3 bg-primary text-white font-bold rounded-xl shadow-lg hover:bg-primary-dark transition-all">
                                                 Browse Marketplace
                                             </Link>
                                         </div>
@@ -418,7 +418,7 @@ const Profile: React.FC = () => {
                                             </div>
                                             <h3 className="text-xl font-bold text-neutral-900 mb-2">No Technical Requests</h3>
                                             <p className="text-neutral-500 max-w-xs mx-auto mb-8">Request technical quotes for customized equipment directly from product pages.</p>
-                                            <Link to="/products" className="px-8 py-3 bg-primary text-white font-bold rounded-xl shadow-lg hover:bg-primary-dark transition-all">
+                                            <Link to="/shop" className="px-8 py-3 bg-primary text-white font-bold rounded-xl shadow-lg hover:bg-primary-dark transition-all">
                                                 Explore Equipment
                                             </Link>
                                         </div>

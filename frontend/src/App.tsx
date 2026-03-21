@@ -72,6 +72,7 @@ function App() {
                                     <Route path="shop" element={<ProductListing />} />
                                     <Route path="compare" element={<Compare />} />
                                     <Route path="product" element={<Navigate to="/shop" replace />} />
+                                    <Route path="products" element={<Navigate to="/shop" replace />} />
                                     <Route path="product/:id" element={<ProductDetail />} />
                                     <Route path="enquiry-list" element={<ProtectedRoute><EnquiryList /></ProtectedRoute>} />
                                     <Route path="submit-rfq" element={<ProtectedRoute><SubmitRFQ /></ProtectedRoute>} />

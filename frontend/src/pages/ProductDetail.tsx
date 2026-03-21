@@ -84,7 +84,7 @@ const ProductDetail: React.FC = () => {
         return (
             <div className="min-h-screen pt-32 flex flex-col items-center justify-center bg-neutral-50">
                 <h2 className="text-2xl font-bold text-neutral-900 mb-2">Asset Not Found</h2>
-                <Link to="/products" className="text-primary hover:underline">Return to Marketplace</Link>
+                <Link to="/shop" className="text-primary hover:underline">Return to Marketplace</Link>
             </div>
         );
     }
@@ -116,7 +116,7 @@ const ProductDetail: React.FC = () => {
                 <div className="flex items-center gap-2 text-sm text-neutral-500 overflow-x-auto whitespace-nowrap pb-2">
                     <Link to="/" className="hover:text-primary transition-colors">Home</Link>
                     <ChevronRight className="w-4 h-4 text-neutral-300 flex-shrink-0" />
-                    <Link to="/products" className="hover:text-primary transition-colors">Marketplace</Link>
+                    <Link to="/shop" className="hover:text-primary transition-colors">Marketplace</Link>
                     <ChevronRight className="w-4 h-4 text-neutral-300 flex-shrink-0" />
                     <span className="text-neutral-900 font-medium truncate">{product.name}</span>
                 </div>
@@ -212,7 +212,7 @@ const ProductDetail: React.FC = () => {
                     >
                         <div className="bg-white p-8 md:p-10 rounded-[40px] shadow-sm border border-neutral-100">
                             <div className="mb-6 flex items-center justify-between">
-                                <Link to="/products" className="text-xs font-bold text-primary uppercase tracking-widest hover:underline bg-primary/5 px-3 py-1 rounded-full">
+                                <Link to="/shop" className="text-xs font-bold text-primary uppercase tracking-widest hover:underline bg-primary/5 px-3 py-1 rounded-full">
                                     {product.categories?.name || product.category || 'Industrial Equipment'}
                                 </Link>
                                 <div className="flex items-center gap-2 text-neutral-400 text-xs font-bold uppercase tracking-wider">

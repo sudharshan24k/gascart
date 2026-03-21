@@ -119,6 +119,17 @@ export const api = {
                 headers
             });
             return res.json();
+        },
+        clear: async (token: string | null, sessionId: string): Promise<ApiResponse> => {
+            const apiUrl = getBaseUrl();
+            const headers: any = { 'x-session-id': sessionId };
+            if (token) headers['Authorization'] = `Bearer ${token}`;
+
+            const res = await fetch(`${apiUrl}/cart`, {
+                method: 'DELETE',
+                headers
+            });
+            return res.json();
         }
     },
     orders: {

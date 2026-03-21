@@ -4,8 +4,8 @@ import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
 import {
-    Lock, CreditCard, CheckCircle2, ShieldCheck,
-    Loader2, MapPin, Plus, Wallet, ArrowLeft, ArrowRight
+     Lock, CreditCard, CheckCircle2, ShieldCheck,
+     Loader2, MapPin, Plus, Wallet, ArrowLeft, ArrowRight
 } from 'lucide-react';
 import { api } from '../services/api';
 import { createRazorpayPayment } from '../services/razorpay.service';
@@ -14,7 +14,7 @@ import Input from '../components/ui/Input';
 import Button from '../components/ui/Button';
 
 const Checkout: React.FC = () => {
-    const { items, loading: cartLoading, cartTotal } = useCart();
+    const { items, loading: cartLoading, cartTotal, clearCart } = useCart();
     const { session, loading: authLoading } = useAuth();
     const { showToast } = useToast();
     const navigate = useNavigate();
@@ -221,6 +221,7 @@ const Checkout: React.FC = () => {
 
                         if (verifyResponse.success) {
                             showToast('Payment successful! Redirecting...', 'success');
+                            await clearCart();
                             navigate(`/order-success?orderId=${orderId}`);
                         } else {
                             if (verifyResponse.diagnostics) {

@@ -7,60 +7,66 @@ import { logAction } from '../utils/auditLogger';
 
 export const getDashboardStats = async (req: Request, res: Response, next: NextFunction) => {
     try {
-        // Fetch counts in parallel
+        // Fetch all counts and recent data in a single Promise.all
         const [
-            { count: totalProducts },
-            { count: activeProducts },
-            { count: pendingConsultants },
-            { count: approvedConsultants },
-            { count: totalUsers },
-            { count: totalOrders },
-            { count: pendingOrders },
-            { data: revenueData }, // For revenue sum
-            { data: recentOrdersData } // Recently received orders
+            productCount,
+            customerCount,
+            vendorCount,
+            orderCount,
+            revenueData,
+            recentOrders,
+            rfqCount,
+            recentRFQs
         ] = await Promise.all([
-            supabase.from('products').select('*', { count: 'exact', head: true }), // Removed invalid is_active query
-            supabase.from('products').select('*', { count: 'exact', head: true }), // Fallback for activeProducts
-            supabase.from('consultants').select('*', { count: 'exact', head: true }).eq('status', 'pending'),
-            supabase.from('consultants').select('*', { count: 'exact', head: true }).eq('status', 'approved'),
-            supabase.from('profiles').select('*', { count: 'exact', head: true }),
+            supabase.from('products').select('*', { count: 'exact', head: true }),
+            supabase.from('profiles').select('*', { count: 'exact', head: true }).eq('role', 'customer'),
+            supabase.from('profiles').select('*', { count: 'exact', head: true }).eq('role', 'vendor'),
             supabase.from('orders').select('*', { count: 'exact', head: true }),
-            supabase.from('orders').select('*', { count: 'exact', head: true }).eq('status', 'pending'),
-            supabase.from('orders').select('total_amount').eq('payment_status', 'paid'),
-            supabase.from('orders').select('id, created_at, total_amount, status, user_id').order('created_at', { ascending: false }).limit(5)
+            supabase.from('orders').select('total_amount').neq('payment_status', 'failed'),
+            supabase.from('orders')
+                .select(`
+                    id, 
+                    created_at, 
+                    total_amount, 
+                    status, 
+                    payment_status,
+                    profiles:user_id(full_name, email)
+                `)
+                .order('created_at', { ascending: false })
+                .limit(5),
+            supabase.from('rfqs').select('*', { count: 'exact', head: true }),
+            supabase.from('rfqs')
+                .select(`
+                    id,
+                    created_at,
+                    status,
+                    submitted_fields,
+                    products(name)
+                `)
+                .order('created_at', { ascending: false })
+                .limit(5)
         ]);
 
-        const totalRevenue = revenueData?.reduce((sum, order) => sum + (order.total_amount || 0), 0) || 0;
-
-        // Fetch profiles for recent orders to get customer names
-        const userIds = [...new Set(recentOrdersData?.map((o: any) => o.user_id) || [])].filter(id => id != null);
-        let profileMap = new Map();
-        if (userIds.length > 0) {
-            const { data: profiles } = await supabase.from('profiles').select('id, full_name').in('id', userIds);
-            profileMap = new Map(profiles?.map((p: any) => [p.id, p]) || []);
-        }
-
-        const recentOrders = recentOrdersData?.map((o: any) => ({
-            ...o,
-            customer_name: profileMap.get(o.user_id)?.full_name || 'Customer'
-        })) || [];
+        const totalRevenue = (revenueData.data as any[])?.reduce((acc: number, order: any) => acc + (Number(order.total_amount) || 0), 0) || 0;
 
         res.json({
             status: 'success',
             data: {
-                totalProducts: totalProducts || 0,
-                activeProducts: activeProducts || 0,
-                pendingConsultants: pendingConsultants || 0,
-                approvedConsultants: approvedConsultants || 0,
-                totalUsers: totalUsers || 0,
-                totalOrders: totalOrders || 0,
-                pendingOrders: pendingOrders || 0,
+                counts: {
+                    products: productCount.count || 0,
+                    customers: customerCount.count || 0,
+                    vendors: vendorCount.count || 0,
+                    orders: orderCount.count || 0,
+                    rfqs: rfqCount.count || 0
+                },
                 totalRevenue,
-                recentOrders,
+                recentOrders: recentOrders.data || [],
+                recentRFQs: recentRFQs.data || [],
                 lastUpdate: new Date().toISOString()
             }
         });
     } catch (err) {
+        console.error('[AdminController] Dashboard stats error:', err);
         next(err);
     }
 };

@@ -94,31 +94,47 @@ export const getMyRFQs = async (req: Request, res: Response, next: NextFunction)
 export const getAllRFQs = async (req: Request, res: Response, next: NextFunction) => {
     try {
         // Fetch RFQs without joining profiles
+        // Join products and vendor profiles
         const { data: rfqs, error } = await supabase
             .from('rfqs')
             .select(`
                 *, 
                 products(name, slug),
-                vendor:vendor_id(id, company_name)
+                vendor:profiles!vendor_id(id, company_name)
             `)
             .order('created_at', { ascending: false });
 
-        if (error) throw error;
+        if (error) {
+            console.error('[RFQs] Error fetching RFQs:', error);
+            throw error;
+        }
 
-        // Manually fetch profiles
+        if (!rfqs || rfqs.length === 0) {
+            return res.json({ status: 'success', results: 0, data: [] });
+        }
+
+        // Fetch user profiles for the seekers
         const userIds = [...new Set(rfqs.map((r: any) => r.user_id))];
         const { data: profiles, error: profileError } = await supabase
             .from('profiles')
             .select('id, email, full_name, phone, company_name')
             .in('id', userIds);
 
-        if (profileError) throw profileError;
+        if (profileError) {
+            console.error('[RFQs] Error fetching profiles:', profileError);
+            throw profileError;
+        }
 
-        // Map profiles to RFQs
-        const profileMap = new Map(profiles.map((p: any) => [p.id, p]));
+        const profileMap = new Map(profiles?.map((p: any) => [p.id, p]) || []);
+
         const data = rfqs.map((r: any) => ({
             ...r,
-            profiles: profileMap.get(r.user_id) || { email: 'Unknown', full_name: 'Unknown', phone: 'N/A', company_name: 'N/A' }
+            profiles: profileMap.get(r.user_id) || { 
+                email: 'Unknown', 
+                full_name: 'Guest User', 
+                phone: 'N/A', 
+                company_name: r.submitted_fields?.company_name || 'N/A' 
+            }
         }));
 
         res.json({ status: 'success', data });

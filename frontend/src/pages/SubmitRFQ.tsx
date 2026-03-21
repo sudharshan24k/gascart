@@ -8,7 +8,7 @@ import { api } from '../services/api';
 
 const SubmitRFQ = () => {
     const { state, dispatch } = useEnquiry();
-    const { session, loading } = useAuth();
+    const { session } = useAuth();
     const [submitted, setSubmitted] = useState(false);
     const [submitting, setSubmitting] = useState(false);
     const [error, setError] = useState<string | null>(null);

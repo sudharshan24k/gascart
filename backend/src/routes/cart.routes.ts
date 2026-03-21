@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { addToCart, getCart, updateCartItem, removeCartItem } from '../controllers/cart.controller';
+import { addToCart, getCart, updateCartItem, removeCartItem, clearCart } from '../controllers/cart.controller';
 import { optionalAuth } from '../middlewares/optionalAuth.middleware';
 
 const router = Router();
@@ -17,5 +17,6 @@ router.post('/items', optionalAuth, addToCart);
 router.get('/', optionalAuth, getCart);
 router.patch('/items/:itemId', optionalAuth, updateCartItem);
 router.delete('/items/:itemId', optionalAuth, removeCartItem);
+router.delete('/', optionalAuth, clearCart);
 
 export default router;

@@ -63,7 +63,7 @@ const ConsultantRegistration: React.FC = () => {
                 projects_completed: parseInt(formData.projects_completed) || 0,
                 user_id: user?.id
             });
-            if (response?.status === 'error' || response?.error) {
+            if (response?.status === 'error') {
                 throw new Error(response.message || 'Registration failed');
             }
             setSubmitted(true);

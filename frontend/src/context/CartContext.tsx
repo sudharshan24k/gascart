@@ -27,6 +27,7 @@ interface CartContextType {
     addToCart: (productId: string, quantity?: number, variant?: any, vendor?: any) => Promise<void>;
     updateQuantity: (itemId: string, quantity: number) => Promise<void>;
     removeFromCart: (itemId: string) => Promise<void>;
+    clearCart: () => Promise<void>;
     loading: boolean;
 }
 
@@ -109,6 +110,16 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
         }
     };
 
+    const clearCart = async () => {
+        try {
+            setItems([]);
+            await api.cart.clear(token, sessionId);
+        } catch (err) {
+            console.error('Clear cart failed', err);
+            await fetchCart();
+        }
+    };
+
     const cartTotal = items.reduce((sum, item) => {
         const price = item.vendor_price
             ?? item.selected_variant?.price
@@ -117,7 +128,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }, 0);
 
     return (
-        <CartContext.Provider value={{ items, cartTotal, addToCart, updateQuantity, removeFromCart, loading }}>
+        <CartContext.Provider value={{ items, cartTotal, addToCart, updateQuantity, removeFromCart, clearCart, loading }}>
             {children}
         </CartContext.Provider>
     );
