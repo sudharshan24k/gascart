@@ -88,6 +88,7 @@ const RFQManagement: React.FC = () => {
                     groups[eid] = {
                         enquiry_id: eid,
                         items: [],
+                        product_names: [], // Store unique product names
                         user: rfq.profiles,
                         created_at: rfq.created_at,
                         status: rfq.status,
@@ -95,6 +96,9 @@ const RFQManagement: React.FC = () => {
                     };
                 }
                 groups[eid].items.push(rfq);
+                if (rfq.products?.name && !groups[eid].product_names.includes(rfq.products.name)) {
+                    groups[eid].product_names.push(rfq.products.name);
+                }
             }
         });
         
@@ -323,10 +327,23 @@ const RFQManagement: React.FC = () => {
                                                 </div>
                                             </div>
                                         </td>
-                                        <td className="px-10 py-8 text-center">
-                                            <div className="inline-flex flex-col items-center">
-                                                <span className="text-2xl font-black text-gray-900">{group.items.length}</span>
-                                                <span className="text-[10px] font-black uppercase text-gray-400 tracking-tighter">Products</span>
+                                        <td className="px-10 py-8">
+                                            <div className="flex flex-col">
+                                                <div className="flex flex-wrap gap-1.5 mb-2">
+                                                    {group.product_names.slice(0, 2).map((name: string, idx: number) => (
+                                                        <span key={idx} className="bg-gray-100 text-gray-700 text-[10px] font-bold px-2.5 py-1 rounded-lg border border-gray-200 line-clamp-1 max-w-[150px]">
+                                                            {name}
+                                                        </span>
+                                                    ))}
+                                                    {group.product_names.length > 2 && (
+                                                        <span className="bg-primary/5 text-primary text-[10px] font-black px-2.5 py-1 rounded-lg border border-primary/10">
+                                                            + {group.product_names.length - 2} more
+                                                        </span>
+                                                    )}
+                                                </div>
+                                                <span className="text-[10px] font-black uppercase text-gray-400 tracking-tighter">
+                                                    Total {group.items.length} {group.items.length === 1 ? 'Product' : 'Products'} Requisitioned
+                                                </span>
                                             </div>
                                         </td>
                                         <td className="px-10 py-8">
