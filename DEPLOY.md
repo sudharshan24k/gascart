@@ -1,5 +1,5 @@
 # Deployment Guide
-
+.
 ## 1. Prerequisites
 - **GitHub Account**: Push this code to a GitHub repository.
 - **Vercel Account**: Sign up at [vercel.com](https://vercel.com).
