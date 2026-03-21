@@ -401,6 +401,12 @@ const Profile: React.FC = () => {
                                             </div>
                                         ))
                                     )}
+
+                                    <div className="mt-8 p-6 bg-neutral-50 rounded-2xl border border-neutral-100 text-center">
+                                        <p className="text-sm text-neutral-600 font-medium">
+                                            If you want to cancel your order, please mail to <a href="mailto:info@gascart.in" className="text-primary font-bold hover:underline">info@gascart.in</a>
+                                        </p>
+                                    </div>
                                 </motion.div>
                             )}
 

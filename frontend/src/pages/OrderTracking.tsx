@@ -28,27 +28,6 @@ const OrderTracking: React.FC = () => {
         fetchOrder();
     }, [id]);
 
-    const handleCancelOrder = async () => {
-        if (!id) return;
-        if (!window.confirm('Are you sure you want to cancel this order? Stock will be reserved for others.')) return;
-
-        try {
-            const res = await api.orders.cancel(id);
-            if (res.status === 'success') {
-                alert('Order cancelled successfully');
-                // Refresh order data
-                const response = await api.orders.get(id);
-                if (response.status === 'success') setOrder(response.data);
-            } else {
-                alert('Failed to cancel: ' + res.message);
-            }
-        } catch (err) {
-            console.error('Cancel order error:', err);
-            alert('An error occurred while cancelling the order');
-        }
-    };
-
-
     const steps = [
         { key: 'pending', label: 'Order Placed', icon: Clock },
         { key: 'processing', label: 'Processing', icon: Info },
@@ -127,14 +106,7 @@ const OrderTracking: React.FC = () => {
                                 </span>
                                 <p className="text-sm text-neutral-400 font-medium">Placed on {formatDateIST(order.created_at)}</p>
 
-                                {order.status === 'pending' && (
-                                    <button
-                                        onClick={handleCancelOrder}
-                                        className="mt-6 text-xs font-bold text-red-400 hover:text-red-300 transition-colors uppercase tracking-widest border border-red-400/30 hover:border-red-300 px-6 py-3 rounded-xl flex items-center gap-2 group"
-                                    >
-                                        <XCircle className="w-4 h-4" /> Cancel Order
-                                    </button>
-                                )}
+
                             </div>
                         </div>
 

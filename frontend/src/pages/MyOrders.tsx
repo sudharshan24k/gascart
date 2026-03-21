@@ -267,6 +267,12 @@ const MyOrders: React.FC = () => {
                                 </div>
                             </motion.div>
                         ))}
+
+                        <div className="mt-12 p-8 bg-neutral-100 rounded-[32px] border border-neutral-200 text-center">
+                            <p className="text-neutral-600 font-medium">
+                                If you want to cancel your order, please mail to <a href="mailto:info@gascart.in" className="text-primary font-bold hover:underline">info@gascart.in</a>
+                            </p>
+                        </div>
                     </div>
                 )}
             </div>
