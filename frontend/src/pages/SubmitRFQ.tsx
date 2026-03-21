@@ -63,7 +63,8 @@ const SubmitRFQ = () => {
 
             if (failures.length > 0) {
                 console.error('Partial RFQ failures:', failures);
-                throw new Error(`Failed to submit ${failures.length} out of ${state.items.length} enquiries. Please try again.`);
+                const errorMsg = failures.map(f => f.message || 'Unknown error').join(', ');
+                throw new Error(`Failed to submit ${failures.length} out of ${state.items.length} enquiries. Errors: ${errorMsg}`);
             }
 
             setSubmitted(true);

@@ -21,17 +21,21 @@ export const submitRFQ = async (req: Request, res: Response, next: NextFunction)
 
         if (pError || !product) throw new Error('Product not found');
 
-        // 2. Validate mandatory fields
+        // 2. Validate mandatory fields (Skip strict 400 rejection for project-level bulk enquiries)
         const rfqConfig = product.min_rfq_fields || [];
         const missingFields = rfqConfig
             .filter((f: any) => f.required && !submitted_fields[f.label])
             .map((f: any) => f.label);
 
-        if (missingFields.length > 0) {
+        if (missingFields.length > 0 && !submitted_fields.enquiry_id) {
             return res.status(400).json({
                 status: 'error',
                 message: `Missing mandatory technical specifications: ${missingFields.join(', ')}`
             });
+        }
+
+        if (missingFields.length > 0 && submitted_fields.enquiry_id) {
+            console.log(`[RFQ] Project enquiry ${submitted_fields.enquiry_id} for product ${product_id} missing technical fields: ${missingFields.join(', ')}. Proceeding with project-level info.`);
         }
 
         // 3. Insert RFQ
