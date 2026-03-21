@@ -1,5 +1,5 @@
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 import { ProtectedRoute } from './components/RequirePermission';
 import AdminLayout from './pages/AdminLayout';
@@ -20,7 +20,6 @@ import MediaLibrary from './pages/MediaLibrary';
 import AuditLogs from './pages/AuditLogs';
 import CareerApplications from './pages/CareerApplications';
 import AdminManagement from './pages/AdminManagement';
-import Login from './pages/Login';
 
 // Helper component to redirect to main site login
 const LoginRedirect = () => {
