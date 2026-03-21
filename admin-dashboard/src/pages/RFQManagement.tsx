@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { fetchRFQs, updateAdminRFQStatus, downloadRFQs } from '../services/admin.service';
-import { ClipboardList, Download, Search, Mail, Eye, User, Building2, Clock, CheckCircle2, X } from 'lucide-react';
+import { ClipboardList, Download, Search, Mail, Eye, User, Building2, X } from 'lucide-react';
 import { formatDateIST } from '../utils/dateUtils';
 
 const RFQManagement: React.FC = () => {

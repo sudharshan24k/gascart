@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Package, ClipboardCheck, Clock, Plus, ArrowUpRight, TrendingUp, Users, Activity, ShoppingCart, ClipboardList, Box } from 'lucide-react';
+import { ClipboardCheck, Plus, TrendingUp, Activity, ShoppingCart, ClipboardList, Box } from 'lucide-react';
 import { getDashboardStats } from '../services/admin.service';
 import { Link, useNavigate } from 'react-router-dom';
 
