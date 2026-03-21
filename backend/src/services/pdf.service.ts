@@ -72,6 +72,7 @@ export interface InvoiceShippingAddress {
     address_line1?: string;
     city?: string;
     state?: string;
+    postal_code?: string;
     zip_code?: string;
     phone?: string;
 }
@@ -131,7 +132,7 @@ export const generateInvoicePDF = (data: InvoiceData): Promise<Buffer> => {
         doc.text(data.shippingAddress.full_name || 'Customer', 300, customerInfoTop + 20);
         doc.text(data.shippingAddress.address_line1 || '', 300, customerInfoTop + 35);
         doc.text(
-            `${data.shippingAddress.city || ''}, ${data.shippingAddress.state || ''} ${data.shippingAddress.zip_code || ''}`,
+            `${data.shippingAddress.city || ''}, ${data.shippingAddress.state || ''} ${data.shippingAddress.postal_code || data.shippingAddress.zip_code || ''}`,
             300,
             customerInfoTop + 50
         );

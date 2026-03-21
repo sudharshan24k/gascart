@@ -124,7 +124,7 @@ function generateInvoicePDF(doc: PDFKit.PDFDocument, order: any, profile: any) {
     doc.fontSize(11).font('Helvetica-Bold').fillColor('#0f172a').text(shippingAddr.full_name || profile?.full_name || 'Customer', 300, customerInfoTop + 18);
     doc.fontSize(9).font('Helvetica').fillColor('#475569');
     doc.text(shippingAddr.address_line1 || '', 300, customerInfoTop + 33);
-    doc.text(`${shippingAddr.city || ''}, ${shippingAddr.state || ''} ${shippingAddr.zip_code || ''}`, 300, customerInfoTop + 46);
+    doc.text(`${shippingAddr.city || ''}, ${shippingAddr.state || ''} ${shippingAddr.postal_code || shippingAddr.zip_code || ''}`, 300, customerInfoTop + 46);
 
     doc.moveTo(50, 235).lineTo(550, 235).lineWidth(1).strokeColor('#f1f5f9').stroke();
 

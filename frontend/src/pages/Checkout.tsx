@@ -5,7 +5,7 @@ import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
 import {
      Lock, CreditCard, CheckCircle2, ShieldCheck,
-     Loader2, MapPin, Plus, Wallet, ArrowLeft, ArrowRight
+     Loader2, MapPin, Plus, Wallet, ArrowLeft, ArrowRight, Eye
 } from 'lucide-react';
 import { api } from '../services/api';
 import { createRazorpayPayment } from '../services/razorpay.service';
@@ -28,7 +28,7 @@ const Checkout: React.FC = () => {
         address_line2: '',
         city: '',
         state: '',
-        zip_code: '',
+        postal_code: '',
         country: 'India', // Default to India for Razorpay context usually
         phone: ''
     });
@@ -38,9 +38,10 @@ const Checkout: React.FC = () => {
     const [showNewAddressForm, setShowNewAddressForm] = useState(false);
     const [saveAddress, setSaveAddress] = useState(true); // Default to saving new addresses
     const [processingOrder, setProcessingOrder] = useState(false);
+    const [viewingAddress, setViewingAddress] = useState<any | null>(null);
 
     // Validation helpers
-    const isValidZip = (v: string) => /^[1-9][0-9]{5}$/.test(v.trim());
+    const isValidPostalCode = (v: string) => /^[1-9][0-9]{5}$/.test(v.trim());
     const isValidPhone = (v: string) => /^(\+91)?[6-9][0-9]{9}$/.test(v.replace(/\s/g, ''));
 
     // Calculate Totals
@@ -108,7 +109,7 @@ const Checkout: React.FC = () => {
             address_line2: addr.address_line2 || '',
             city: addr.city || '',
             state: addr.state || '',
-            zip_code: addr.postal_code || '',
+            postal_code: addr.postal_code || '',
             country: addr.country || 'India',
             phone: addr.phone || ''
         });
@@ -124,7 +125,7 @@ const Checkout: React.FC = () => {
             address_line2: '',
             city: '',
             state: '',
-            zip_code: '',
+            postal_code: '',
             phone: ''
         }));
     };
@@ -134,11 +135,11 @@ const Checkout: React.FC = () => {
     };
 
     const handleContinueToPayment = async () => {
-        if (!formData.full_name || !formData.email || !formData.address_line1 || !formData.city || !formData.state || !formData.zip_code || !formData.phone) {
+        if (!formData.full_name || !formData.email || !formData.address_line1 || !formData.city || !formData.state || !formData.postal_code || !formData.phone) {
             showToast('Please complete all shipping and contact details.', 'error');
             return;
         }
-        if (!isValidZip(formData.zip_code)) {
+        if (!isValidPostalCode(formData.postal_code)) {
             showToast('Please enter a valid 6-digit PIN code.', 'error');
             return;
         }
@@ -169,7 +170,7 @@ const Checkout: React.FC = () => {
     };
 
     const handlePlaceOrder = async () => {
-        if (!formData.full_name || !formData.email || !formData.address_line1 || !formData.city || !formData.state || !formData.zip_code || !formData.phone) {
+        if (!formData.full_name || !formData.email || !formData.address_line1 || !formData.city || !formData.state || !formData.postal_code || !formData.phone) {
             showToast('Please complete all shipping and contact details.', 'error');
             setStep(1);
             return;
@@ -311,7 +312,19 @@ const Checkout: React.FC = () => {
                                                             <div className="flex items-center gap-2 mb-3">
                                                                 <MapPin className={`w-5 h-5 ${selectedAddressId === addr.id ? 'text-primary' : 'text-neutral-400'}`} />
                                                                 <span className={`font-bold ${selectedAddressId === addr.id ? 'text-neutral-900' : 'text-neutral-600'}`}>{addr.label || 'Saved Address'}</span>
-                                                                {selectedAddressId === addr.id && <CheckCircle2 className="w-5 h-5 text-primary ml-auto" />}
+                                                                <div className="flex items-center gap-1.5 ml-auto">
+                                                                    <button 
+                                                                        onClick={(e) => {
+                                                                            e.stopPropagation();
+                                                                            setViewingAddress(addr);
+                                                                        }}
+                                                                        className="p-1.5 hover:bg-neutral-100 rounded-full text-neutral-400 hover:text-primary transition-colors"
+                                                                        title="View Details"
+                                                                    >
+                                                                        <Eye className="w-4 h-4" />
+                                                                    </button>
+                                                                    {selectedAddressId === addr.id && <CheckCircle2 className="w-5 h-5 text-primary" />}
+                                                                </div>
                                                             </div>
                                                             <p className="font-medium text-neutral-900 mb-1">{addr.full_name}</p>
                                                             <p className="text-sm text-neutral-500 leading-relaxed mb-4">
@@ -327,9 +340,26 @@ const Checkout: React.FC = () => {
                                                         <Plus className="w-8 h-8" />
                                                         <span className="font-bold text-sm">Add New Address</span>
                                                     </button>
-                                                </>
-                                            )}
                                         </div>
+
+                                        {selectedAddressId && !showNewAddressForm && (
+                                            <div className="mt-4 p-4 bg-primary/5 rounded-2xl border border-primary/20 flex flex-wrap gap-4 items-center">
+                                                <div className="flex items-center gap-2">
+                                                    <span className="text-[10px] font-black uppercase text-primary/60 tracking-wider">Contact Phone:</span>
+                                                    <span className="text-sm font-bold text-neutral-900">{formData.phone || 'Missing'}</span>
+                                                </div>
+                                                <div className="hidden md:block w-px h-4 bg-primary/20" />
+                                                <div className="flex items-center gap-2">
+                                                    <span className="text-[10px] font-black uppercase text-primary/60 tracking-wider">Contact Email:</span>
+                                                    <span className="text-sm font-bold text-neutral-900">{formData.email || 'Missing'}</span>
+                                                </div>
+                                                {!isValidPhone(formData.phone) && (
+                                                    <span className="ml-auto text-xs font-bold text-red-500 flex items-center gap-1">
+                                                        Invalid Phone Number
+                                                    </span>
+                                                )}
+                                            </div>
+                                        )}
 
                                         {(showNewAddressForm || addresses.length === 0) && (
                                             <div className="grid md:grid-cols-2 gap-6 bg-neutral-50 p-6 rounded-3xl border border-neutral-100 mb-6 relative overflow-hidden">
@@ -408,14 +438,14 @@ const Checkout: React.FC = () => {
                                                 </div>
                                                 <div>
                                                     <Input
-                                                        label="Zip Code"
-                                                        name="zip_code"
+                                                        label="PIN Code"
+                                                        name="postal_code"
                                                         required
-                                                        value={formData.zip_code}
+                                                        value={formData.postal_code}
                                                         onChange={handleInputChange}
                                                         placeholder="Pin Code"
                                                     />
-                                                    {formData.zip_code && !isValidZip(formData.zip_code) && (
+                                                    {formData.postal_code && !isValidPostalCode(formData.postal_code) && (
                                                         <p className="text-xs text-red-500 font-semibold mt-1.5 ml-1">Enter a valid 6-digit PIN code</p>
                                                     )}
                                                 </div>
@@ -441,7 +471,7 @@ const Checkout: React.FC = () => {
                                                 disabled={
                                                     !formData.full_name || !formData.email || !formData.address_line1 || 
                                                     !formData.city || !formData.state ||
-                                                    !formData.zip_code || !isValidZip(formData.zip_code) ||
+                                                    !formData.postal_code || !isValidPostalCode(formData.postal_code) ||
                                                     !formData.phone || !isValidPhone(formData.phone)
                                                 }
                                                 size="lg"
@@ -568,6 +598,79 @@ const Checkout: React.FC = () => {
                     </div>
                 </div>
             </div>
+
+            {/* Address Detail Modal */}
+            <AnimatePresence>
+                {viewingAddress && (
+                    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm">
+                        <motion.div 
+                            initial={{ scale: 0.9, opacity: 0 }}
+                            animate={{ scale: 1, opacity: 1 }}
+                            exit={{ scale: 0.9, opacity: 0 }}
+                            className="bg-white rounded-[32px] shadow-2xl w-full max-w-md overflow-hidden"
+                        >
+                            <div className="p-8">
+                                <div className="flex items-center justify-between mb-6">
+                                    <h3 className="text-xl font-bold text-neutral-900">Address Details</h3>
+                                    <button onClick={() => setViewingAddress(null)} className="text-neutral-400 hover:text-neutral-600">
+                                        <Plus className="w-6 h-6 rotate-45" />
+                                    </button>
+                                </div>
+
+                                <div className="space-y-4">
+                                    <div className="p-4 bg-neutral-50 rounded-2xl border border-neutral-100">
+                                        <p className="text-[10px] font-black uppercase text-neutral-400 tracking-wider mb-1">Recipient</p>
+                                        <p className="font-bold text-neutral-900">{viewingAddress.full_name}</p>
+                                    </div>
+
+                                    <div className="p-4 bg-neutral-50 rounded-2xl border border-neutral-100">
+                                        <p className="text-[10px] font-black uppercase text-neutral-400 tracking-wider mb-1">Shipping Address</p>
+                                        <p className="text-sm font-medium text-neutral-700 leading-relaxed">
+                                            {viewingAddress.address_line1}
+                                            {viewingAddress.address_line2 && <><br />{viewingAddress.address_line2}</>}
+                                            <br />{viewingAddress.city}, {viewingAddress.state} - {viewingAddress.postal_code}
+                                            <br />{viewingAddress.country}
+                                        </p>
+                                    </div>
+
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <div className="p-4 bg-neutral-50 rounded-2xl border border-neutral-100">
+                                            <p className="text-[10px] font-black uppercase text-neutral-400 tracking-wider mb-1">Contact Phone</p>
+                                            <p className="font-bold text-neutral-900 text-sm whitespace-nowrap">{viewingAddress.phone || 'Not Provided'}</p>
+                                        </div>
+                                        <div className="p-4 bg-neutral-50 rounded-2xl border border-neutral-100">
+                                            <p className="text-[10px] font-black uppercase text-neutral-400 tracking-wider mb-1">Contact Email</p>
+                                            <p className="font-bold text-neutral-900 text-sm truncate" title={viewingAddress.email || session?.user?.email}>{viewingAddress.email || session?.user?.email || 'N/A'}</p>
+                                        </div>
+                                    </div>
+
+                                    {!viewingAddress.phone && (
+                                        <div className="p-3 bg-red-50 rounded-xl border border-red-100 flex gap-2">
+                                            <div className="w-1.5 h-1.5 rounded-full bg-red-500 mt-1.5 shrink-0" />
+                                            <p className="text-xs text-red-700 font-bold leading-tight">
+                                                This address is missing a phone number. Please edit it or add a new one to continue with checkout.
+                                            </p>
+                                        </div>
+                                    )}
+                                </div>
+
+                                <div className="mt-8">
+                                    <Button 
+                                        fullWidth 
+                                        onClick={() => {
+                                            applyAddress(viewingAddress);
+                                            setViewingAddress(null);
+                                        }}
+                                        disabled={!viewingAddress.phone && !isValidPhone(formData.phone)}
+                                    >
+                                        Use This Address
+                                    </Button>
+                                </div>
+                            </div>
+                        </motion.div>
+                    </div>
+                )}
+            </AnimatePresence>
         </div>
     );
 };
