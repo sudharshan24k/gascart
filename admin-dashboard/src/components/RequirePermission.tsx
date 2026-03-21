@@ -42,12 +42,12 @@ export const ProtectedRoute: React.FC<{ permission?: string; requireSuperAdmin?:
     }
 
     if (!isAuthenticated) {
-        // Force redirect to the main marketplace login (outside of /admin basename)
+        // Redirect to login with the current path as a redirect parameter
         const currentPath = window.location.pathname;
         const search = window.location.search;
         const fullPath = currentPath + search;
-        window.location.href = `/login?redirect=${encodeURIComponent(fullPath)}`;
-        return <div className="flex items-center justify-center min-h-screen">Redirecting to login...</div>;
+        
+        return <Navigate to={`/login?redirect=${encodeURIComponent(fullPath)}`} replace />;
     }
 
     if (requireSuperAdmin && !isSuperAdmin) {
