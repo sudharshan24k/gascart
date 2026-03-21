@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom';
+import { Link, Outlet, useLocation } from 'react-router-dom';
 import {
     LayoutDashboard, Package, ShoppingCart, Users, LogOut,
     ClipboardCheck, BookOpen, FolderTree, Building2, ShieldCheck,
@@ -13,7 +13,7 @@ import { useAuth } from '../context/AuthContext';
 
 const AdminLayout = () => {
     const location = useLocation();
-    const navigate = useNavigate();
+
     const [sidebarOpen, setSidebarOpen] = useState(false);
     const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
     const [scrolled, setScrolled] = useState(false);
