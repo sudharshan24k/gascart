@@ -333,13 +333,15 @@ const Checkout: React.FC = () => {
                                                         </button>
                                                     ))}
 
-                                                    <button
+                                                     <button
                                                         onClick={handleNewAddressClick}
                                                         className={`flex flex-col items-center justify-center p-6 border-2 border-dashed rounded-[24px] transition-all gap-3 min-h-[180px] ${showNewAddressForm ? 'border-primary bg-primary/5 text-primary' : 'border-neutral-200 text-neutral-400 hover:text-primary hover:border-primary hover:bg-primary/5'}`}
                                                     >
                                                         <Plus className="w-8 h-8" />
                                                         <span className="font-bold text-sm">Add New Address</span>
                                                     </button>
+                                                </>
+                                            )}
                                         </div>
 
                                         {selectedAddressId && !showNewAddressForm && (
