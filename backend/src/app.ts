@@ -35,18 +35,18 @@ app.use(express.json());
 
 // Routes
 app.get('/', (req, res) => {
-    res.json({ message: 'Bespoke E-commerce API is running 🚀', version: '1.0.0', commit: 'diagnostic-march-15' });
+    res.json({ message: 'Bespoke E-commerce API is running 🚀', version: '1.0.0', commit: 'production-v1.0.1' });
 });
 
 app.get('/health', (req, res) => {
-    res.json({ status: 'ok', version: '1.0.0', commit: 'diagnostic-march-15' });
+    res.json({ status: 'ok', version: '1.0.0', commit: 'production-v1.0.1' });
 });
 
 app.get('/api/v1/health', (req, res) => {
     res.status(200).json({
         status: 'success',
         message: 'Backend is running',
-        commit: 'diagnostic-march-15',
+        commit: 'production-v1.0.1',
         debug: {
             urlBaseLength: config.supabase.url?.length || 0,
             anonKeyLength: config.supabase.key?.length || 0,

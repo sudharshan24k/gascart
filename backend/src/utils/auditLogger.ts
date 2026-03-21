@@ -56,10 +56,12 @@ export const writeAuditLog = async (entry: AuditLogEntry): Promise<void> => {
             .insert([entry]);
 
         if (error) {
-            console.error('[AuditLog] Failed to write log:', error.message);
+            console.error('[AuditLog] Failed to write log to DB:', error.message, error.details);
+            throw new Error(`Audit log failed: ${error.message}`);
         }
     } catch (err: any) {
         console.error('[AuditLog] Unexpected error:', err.message);
+        throw err;
     }
 };
 

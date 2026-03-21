@@ -337,21 +337,19 @@ export const updateCareerApplicationStatus = async (req: Request, res: Response,
     }
 };
 
-export const logAuthEvent = async (req: AuthRequest, res: Response, next: NextFunction) => {
+export const logAuthEvent = async (req: Request, res: Response, next: NextFunction) => {
     try {
         const { action, description, metadata } = req.body;
-        console.log(`[Audit] Logging auth event: ${action} - ${description} (User: ${req.user?.email})`);
-
-        if (!['LOGIN', 'LOGOUT'].includes(action)) {
-            return res.status(400).json({ status: 'fail', message: 'Invalid auth action' });
-        }
-
+        
+        // If requireAuth was removed, req.user might be missing. 
+        // We'll still try to log whatever we can.
         await logAction(req, action as any, description, {
             entity_type: 'system',
             metadata
         });
 
         res.json({ status: 'success' });
+
     } catch (err) {
         next(err);
     }

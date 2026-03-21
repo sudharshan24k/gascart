@@ -260,6 +260,10 @@ export const updateProduct = async (req: Request, res: Response, next: NextFunct
 
         if (error) throw error;
 
+        // DEBUG
+        const fs = require('fs');
+        fs.appendFileSync('/tmp/gascart-trace.log', `[Trace] ${new Date().toISOString()} - updating product ${id}\n`);
+
         await logAction(req, 'UPDATE', `Updated product '${data.name}'`, {
             entity_type: 'product',
             entity_id: id,

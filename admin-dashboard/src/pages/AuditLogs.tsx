@@ -172,6 +172,7 @@ const AuditLogs: React.FC = () => {
                             <option value="DELETE">DELETE</option>
                             <option value="STATUS_CHANGE">STATUS CHANGE</option>
                             <option value="LOGIN">LOGIN</option>
+                            <option value="LOGOUT">LOGOUT</option>
                             <option value="EXPORT">EXPORT</option>
                         </select>
                     </div>
@@ -188,7 +189,7 @@ const AuditLogs: React.FC = () => {
                             <option value="product">Product</option>
                             <option value="consultant">Consultant</option>
                             <option value="order">Order</option>
-                            <option value="sys">System</option>
+                            <option value="system">System</option>
                         </select>
                     </div>
 

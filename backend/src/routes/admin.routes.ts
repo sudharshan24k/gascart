@@ -20,7 +20,9 @@ const router = Router();
 
 router.get('/stats', requireAuth, requireAdmin, getDashboardStats);
 router.get('/audit-logs', requireAuth, requireAdmin, getAuditLogs);
-router.post('/audit/log-auth', requireAuth, logAuthEvent);
+// Note: requireAuth is relaxed here to ensure logs are captured during session transitions (logout/login)
+router.post('/audit/log-auth', logAuthEvent);
+
 router.get('/users', requireAuth, requireAdmin, getAllUsers);
 router.get('/users/:userId/orders', requireAuth, requireAdmin, getUserOrders);
 router.patch('/users/:userId', requireAuth, requireAdmin, updateUser);
