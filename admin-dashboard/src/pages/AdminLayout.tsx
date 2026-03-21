@@ -102,12 +102,11 @@ const AdminLayout = () => {
         // Log logout before clearing session
         try {
             await logAuthEvent('LOGOUT', 'User logged out from Admin Dashboard');
+            await authService.signOut();
+            window.location.href = '/login';
         } catch (logErr) {
             console.warn('[Audit] Failed to log logout:', logErr);
         }
-
-        await authService.signOut();
-        navigate('/login');
     };
 
     return (

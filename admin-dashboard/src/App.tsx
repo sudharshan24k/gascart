@@ -1,3 +1,4 @@
+import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 import { ProtectedRoute } from './components/RequirePermission';
@@ -21,12 +22,22 @@ import CareerApplications from './pages/CareerApplications';
 import AdminManagement from './pages/AdminManagement';
 import Login from './pages/Login';
 
+// Helper component to redirect to main site login
+const LoginRedirect = () => {
+    React.useEffect(() => {
+        window.location.href = '/login';
+    }, []);
+    return <div className="p-8 text-center text-neutral-500 font-bold">Redirecting to login...</div>;
+};
+
 function App() {
+    const basename = import.meta.env.MODE === 'production' ? '/admin' : '/';
+
     return (
         <AuthProvider>
-            <Router basename="/admin">
+            <Router basename={basename}>
                 <Routes>
-                    <Route path="/login" element={<Login />} />
+                    {/* Login is handled by the main website's /login route */}
 
                     <Route element={<ProtectedRoute />}>
                         <Route path="/" element={<AdminLayout />}>
@@ -77,7 +88,8 @@ function App() {
                         </Route>
                     </Route>
 
-                    <Route path="*" element={<Navigate to="/" replace />} />
+                    {/* Catch-all route to redirect to the main website's login page */}
+                    <Route path="*" element={<LoginRedirect />} />
                 </Routes>
             </Router>
         </AuthProvider>
