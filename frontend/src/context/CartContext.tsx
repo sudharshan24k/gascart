@@ -12,6 +12,7 @@ interface CartItem {
         price: number;
         image_url?: string;
         sku?: string;
+        advance_payment_percentage?: number;
     };
     quantity: number;
     selected_variant?: any;
