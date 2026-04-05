@@ -46,7 +46,7 @@ app.use(helmet({
 // ─── CORS ─────────────────────────────────────────────────────────────────────
 // Restrict origins to the configured frontend URL only.
 // In development a localhost fallback is added for convenience.
-const allowedOrigins: string[] = [config.frontendUrl];
+const allowedOrigins: string[] = [config.frontendUrl, config.adminUrl].filter(Boolean);
 if (config.env === 'development') {
     allowedOrigins.push('http://localhost:5173', 'http://localhost:3000');
 }

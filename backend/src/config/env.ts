@@ -14,6 +14,7 @@ export const config = {
         keySecret: process.env.RAZORPAY_KEY_SECRET || '',
         webhookSecret: process.env.RAZORPAY_WEBHOOK_SECRET || '',
     },
-    frontendUrl: process.env.FRONTEND_URL || 'http://localhost:5173'
+    frontendUrl: process.env.FRONTEND_URL || 'http://localhost:5173',
+    adminUrl: process.env.ADMIN_URL || 'http://localhost:5173'
 };
 
