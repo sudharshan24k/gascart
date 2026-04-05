@@ -39,8 +39,8 @@ const Home: React.FC = () => {
                             <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary-400 to-primary-200">Sustainable Fuel</span>
                         </h1>
                         <p className="text-lg sm:text-xl text-gray-300 mb-10 max-w-xl leading-relaxed">
-                            All CBG & CNG components, equipment, and expertise —<br />
-                            in one structured, education-led marketplace.
+                            CBG & CNG marketplace | Supermarket for Oil & Gas Industry —<br />
+                            All components, equipment, and expertise in one structured platform.
                         </p>
                         <div className="flex flex-col sm:flex-row gap-4">
                             <Link to="/shop" className="btn btn-primary btn-lg shadow-glow-primary hover:scale-105 active:scale-95">

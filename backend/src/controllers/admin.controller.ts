@@ -3,7 +3,7 @@ import { AuthRequest } from '../middlewares/auth.middleware';
 import { supabase } from '../config/supabase';
 import archiver from 'archiver';
 import { generateInvoiceBuffer, generateInvoiceStream } from '../utils/invoice.util';
-import { logAction } from '../utils/auditLogger';
+import { logAction, AuditAction } from '../utils/auditLogger';
 
 export const getDashboardStats = async (req: Request, res: Response, next: NextFunction) => {
     try {
@@ -340,12 +340,24 @@ export const updateCareerApplicationStatus = async (req: Request, res: Response,
 export const logAuthEvent = async (req: Request, res: Response, next: NextFunction) => {
     try {
         const { action, description, metadata } = req.body;
-        
-        // If requireAuth was removed, req.user might be missing. 
-        // We'll still try to log whatever we can.
-        await logAction(req, action as any, description, {
+
+        // Validate action against the known AuditAction values to prevent log spoofing
+        const ALLOWED_AUTH_ACTIONS: AuditAction[] = ['LOGIN', 'LOGOUT'];
+        if (!ALLOWED_AUTH_ACTIONS.includes(action)) {
+            return res.status(400).json({
+                status: 'error',
+                message: `Invalid action. Allowed values: ${ALLOWED_AUTH_ACTIONS.join(', ')}`
+            });
+        }
+
+        // Sanitize description — cap length to prevent log flooding with junk data
+        const safeDescription = typeof description === 'string'
+            ? description.trim().slice(0, 500)
+            : String(action);
+
+        await logAction(req, action as AuditAction, safeDescription, {
             entity_type: 'system',
-            metadata
+            metadata: typeof metadata === 'object' && metadata !== null ? metadata : undefined
         });
 
         res.json({ status: 'success' });

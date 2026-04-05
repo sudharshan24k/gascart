@@ -99,3 +99,56 @@
     @apply bg-slate-200 rounded-full hover:bg-slate-300;
   }
 }
+
+/* Print Styles */
+@media print {
+  @page {
+    size: auto;
+    margin: 1cm;
+  }
+
+  /* Hide the entire React application root */
+  #root {
+    display: none !important;
+  }
+
+  /* Style the portal-rendered report for a clean paper output */
+  body > div.fixed.inset-0 {
+    display: flex !important;
+    position: static !important;
+    width: 100% !important;
+    height: auto !important;
+    background: white !important;
+    padding: 0 !important;
+    z-index: auto !important;
+  }
+
+  #printable-report {
+    width: 100% !important;
+    max-width: none !important;
+    max-height: none !important;
+    height: auto !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    border: none !important;
+    overflow: visible !important;
+    margin: 0 !important;
+  }
+
+  /* Remove all interactive UI elements from print */
+  .no-print {
+    display: none !important;
+  }
+
+  /* Preserving colors and adjusting spacing for professional look */
+  * {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  /* Ensure the sub-containers also flow correctly */
+  #printable-report > div {
+    height: auto !important;
+    overflow: visible !important;
+  }
+}

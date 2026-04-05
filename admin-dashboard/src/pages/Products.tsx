@@ -520,7 +520,7 @@ const AdminProducts = () => {
                                         </div>
                                     </td>
                                     <td className="py-10 px-12">
-                                        {product.purchase_model === 'rfq' ? (
+                                        {(product.purchase_model === 'rfq' || !product.purchase_model) ? (
                                             <span className="px-4 py-1.5 rounded-xl text-[9px] font-black uppercase tracking-widest bg-amber-50 text-amber-600 border border-amber-100">
                                                 Technical RFQ
                                             </span>

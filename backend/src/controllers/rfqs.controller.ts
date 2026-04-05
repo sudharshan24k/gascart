@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import { supabase } from '../config/supabase';
-import { generateRFQPDF } from '../services/pdf.service';
+import { generateRFQPDF, generateBulkRFQPDF } from '../services/pdf.service';
 import { notifyAdminOfRFQ } from '../services/email.service';
 import { createObjectCsvWriter } from 'csv-writer';
 import fs from 'fs';
@@ -170,13 +170,20 @@ export const exportRFQs = async (req: Request, res: Response, next: NextFunction
     try {
         const { format } = req.query; // csv or excel (csv for now)
 
-        // Fetch RFQs with vendor information
+        // Fetch RFQs with vendor information using the same join as getAllRFQs
         const { data: rfqs, error } = await supabase
             .from('rfqs')
-            .select('*, products(name), vendor:vendor_id(company_name)')
+            .select('*, products(name), vendor:profiles!vendor_id(id, company_name)')
             .order('created_at', { ascending: false });
 
-        if (error) throw error;
+        if (error) {
+            console.error('[RFQs Export] Error:', error);
+            throw error;
+        }
+
+        if (!rfqs || rfqs.length === 0) {
+            return res.status(404).json({ status: 'error', message: 'No RFQs found to export' });
+        }
 
         // Manually fetch profiles
         const userIds = [...new Set(rfqs.map((r: any) => r.user_id))];
@@ -225,10 +232,62 @@ export const exportRFQs = async (req: Request, res: Response, next: NextFunction
 
         await csvWriter.writeRecords(records);
 
-        res.download(exportPath, (err) => {
-            if (!err) fs.unlinkSync(exportPath); // Clean up
+        res.download(exportPath, `gascart_rfqs_${Date.now()}.csv`, (err) => {
+            if (!err) {
+                try { fs.unlinkSync(exportPath); } catch (e) {}
+            }
         });
     } catch (err) {
+        next(err);
+    }
+};
+
+export const exportRFQsPDF = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        // 1. Fetch RFQs
+        const { data: rfqs, error } = await supabase
+            .from('rfqs')
+            .select('*, products(name), vendor:profiles!vendor_id(id, company_name)')
+            .order('created_at', { ascending: false });
+
+        if (error) throw error;
+        if (!rfqs || rfqs.length === 0) {
+            return res.status(404).json({ status: 'error', message: 'No RFQs found to export' });
+        }
+
+        // 2. Fetch User Profiles
+        const userIds = [...new Set(rfqs.map((r: any) => r.user_id))];
+        const { data: profiles, error: profileError } = await supabase
+            .from('profiles')
+            .select('id, email, full_name, phone, company_name')
+            .in('id', userIds);
+
+        if (profileError) throw profileError;
+        const profileMap = new Map(profiles.map((p: any) => [p.id, p]));
+
+        // 3. Prepare PDF Data
+        const items = rfqs.map((r: any) => {
+            const profile = profileMap.get(r.user_id);
+            return {
+                rfqId: r.submitted_fields?.enquiry_id || r.id.slice(0, 8),
+                productName: r.products?.name || 'Unknown Asset',
+                submittedFields: r.submitted_fields,
+                userEmail: profile?.email || 'N/A',
+                full_name: profile?.full_name,
+                company_name: profile?.company_name || r.submitted_fields?.company_name,
+                createdAt: r.created_at
+            };
+        });
+
+        // 4. Generate PDF
+        const pdfBuffer = await generateBulkRFQPDF(items);
+
+        // 5. Send Response
+        res.setHeader('Content-Type', 'application/pdf');
+        res.setHeader('Content-Disposition', `attachment; filename=gascart_technical_report_${Date.now()}.pdf`);
+        res.send(pdfBuffer);
+    } catch (err) {
+        console.error('[RFQs PDF Export] Error:', err);
         next(err);
     }
 };

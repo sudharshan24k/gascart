@@ -9,6 +9,8 @@ interface InquiryFiltersProps {
     endDate: string;
     setEndDate: (date: string) => void;
     onExportExcel: () => void;
+    onExportPDF: () => void;
+    exporting: boolean;
 }
 
 const InquiryFilters: React.FC<InquiryFiltersProps> = ({
@@ -18,8 +20,12 @@ const InquiryFilters: React.FC<InquiryFiltersProps> = ({
     setStartDate,
     endDate,
     setEndDate,
-    onExportExcel
+    onExportExcel,
+    onExportPDF,
+    exporting
 }) => {
+    const [exportDropdown, setExportDropdown] = React.useState(false);
+
     return (
         <div className="bg-white p-4 rounded-xl shadow-sm border border-neutral-200 flex flex-col lg:flex-row justify-between gap-4 items-start lg:items-center">
             {/* Status Tabs with Horizontal Scroll for Mobile */}
@@ -57,13 +63,43 @@ const InquiryFilters: React.FC<InquiryFiltersProps> = ({
                     />
                 </div>
 
-                <button
-                    onClick={onExportExcel}
-                    className="flex items-center justify-center gap-2 px-4 py-2 bg-emerald-50 text-emerald-700 border border-emerald-200 hover:bg-emerald-100 rounded-lg text-sm font-bold transition-colors shadow-sm w-full sm:w-auto mt-2 sm:mt-0"
-                >
-                    <Download className="w-4 h-4" />
-                    Export
-                </button>
+                <div className="relative">
+                    <button
+                        onClick={() => setExportDropdown(!exportDropdown)}
+                        disabled={exporting}
+                        className="flex items-center justify-center gap-2 px-6 py-2 bg-emerald-50 text-emerald-700 border border-emerald-200 hover:bg-emerald-100 rounded-lg text-sm font-bold transition-all shadow-sm w-full sm:w-auto"
+                    >
+                        {exporting ? (
+                            <div className="w-4 h-4 border-2 border-emerald-700/30 border-t-emerald-700 rounded-full animate-spin" />
+                        ) : (
+                            <Download className="w-4 h-4" />
+                        )}
+                        Export Inquiries
+                    </button>
+
+                    {exportDropdown && (
+                        <div className="absolute right-0 top-full mt-2 w-56 bg-white rounded-xl shadow-2xl border border-neutral-100 py-2 z-50 animate-in fade-in slide-in-from-top-2 duration-200">
+                            <button
+                                onClick={() => {
+                                    onExportExcel();
+                                    setExportDropdown(false);
+                                }}
+                                className="w-full text-left px-4 py-2 text-sm text-neutral-700 hover:bg-neutral-50 font-bold transition-colors"
+                            >
+                                Raw Data (Excel/CSV)
+                            </button>
+                            <button
+                                onClick={() => {
+                                    onExportPDF();
+                                    setExportDropdown(false);
+                                }}
+                                className="w-full text-left px-4 py-2 text-sm text-neutral-700 hover:bg-neutral-50 font-bold transition-colors"
+                            >
+                                Technical Report (PDF)
+                            </button>
+                        </div>
+                    )}
+                </div>
             </div>
         </div>
     );

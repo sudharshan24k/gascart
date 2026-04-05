@@ -246,7 +246,25 @@ export const createVendor = async (req: Request, res: Response, next: NextFuncti
 export const updateVendor = async (req: Request, res: Response, next: NextFunction) => {
     try {
         const { id } = req.params;
-        const updates = req.body;
+
+        // Allowlist prevents overwriting immutable fields (id, email, created_at, etc.)
+        const {
+            company_name, full_name, phone, certifications,
+            visibility_status, vendor_documents, bio
+        } = req.body;
+
+        const updates: Record<string, any> = {};
+        if (company_name !== undefined) updates.company_name = company_name;
+        if (full_name !== undefined) updates.full_name = full_name;
+        if (phone !== undefined) updates.phone = phone;
+        if (certifications !== undefined) updates.certifications = certifications;
+        if (visibility_status !== undefined) updates.visibility_status = visibility_status;
+        if (vendor_documents !== undefined) updates.vendor_documents = vendor_documents;
+        if (bio !== undefined) updates.bio = bio;
+
+        if (Object.keys(updates).length === 0) {
+            return res.status(400).json({ status: 'error', message: 'No valid fields provided for update' });
+        }
 
         const { data, error } = await supabase
             .from('profiles')
@@ -377,13 +395,32 @@ export const removeVendorFromProduct = async (req: Request, res: Response, next:
 // Admin: Update vendor-product association details
 export const updateProductVendor = async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const { product_id, vendor_id, ...updates } = req.body;
+        const { product_id, vendor_id } = req.body;
 
         if (!product_id || !vendor_id) {
             return res.status(400).json({
                 status: 'error',
                 message: 'Both product_id and vendor_id are required'
             });
+        }
+
+        // Allowlist only legitimate vendor-product association fields
+        const {
+            vendor_sku, vendor_price, vendor_stock_quantity,
+            vendor_lead_time_days, vendor_specifications, is_primary, priority
+        } = req.body;
+
+        const updates: Record<string, any> = {};
+        if (vendor_sku !== undefined) updates.vendor_sku = vendor_sku;
+        if (vendor_price !== undefined) updates.vendor_price = vendor_price;
+        if (vendor_stock_quantity !== undefined) updates.vendor_stock_quantity = vendor_stock_quantity;
+        if (vendor_lead_time_days !== undefined) updates.vendor_lead_time_days = vendor_lead_time_days;
+        if (vendor_specifications !== undefined) updates.vendor_specifications = vendor_specifications;
+        if (is_primary !== undefined) updates.is_primary = Boolean(is_primary);
+        if (priority !== undefined) updates.priority = priority;
+
+        if (Object.keys(updates).length === 0) {
+            return res.status(400).json({ status: 'error', message: 'No valid fields provided for update' });
         }
 
         // If setting as primary, unset others

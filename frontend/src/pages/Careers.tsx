@@ -4,7 +4,7 @@ import { UploadCloud, CheckCircle, AlertCircle, Briefcase, FileText, User, Mail,
 import { api, supabase } from '../services/api';
 
 const MAX_FILE_SIZE = 2 * 1024 * 1024; // 2MB
-const CATEGORIES = ['Technicians', 'Officers', 'Entry level management', 'Middle management'];
+const CATEGORIES = ['Technicians', 'Officers', 'Entry level management', 'Middle management', 'O&M - CBG', 'O&M - CNG'];
 
 const Careers: React.FC = () => {
     const [formData, setFormData] = useState({
@@ -96,9 +96,9 @@ const Careers: React.FC = () => {
                     <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
                         <CheckCircle className="w-10 h-10 text-green-600" />
                     </div>
-                    <h2 className="text-3xl font-bold text-gray-900 mb-4">Application Received!</h2>
+                    <h2 className="text-3xl font-bold text-gray-900 mb-4">Profile Submitted!</h2>
                     <p className="text-gray-600 mb-8 leading-relaxed">
-                        Thank you, {formData.full_name}. We have successfully received your application for the {formData.category} position. Our team will review your profile and get back to you if there's a match.
+                        Thank you, {formData.full_name}. We have successfully received your profile. We will refer you to interested companies in the {formData.category} sector if there's a match.
                     </p>
                     <button
                         onClick={() => window.location.href = '/'}
@@ -117,11 +117,11 @@ const Careers: React.FC = () => {
                 {/* Header */}
                 <div className="text-center mb-16">
                     <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6 tracking-tight">
-                        Join Our <span className="text-primary">Team</span>
+                        I AM <span className="text-primary">OPEN TO WORK</span>
                     </h1>
                     <p className="text-lg text-gray-600 max-w-2xl mx-auto leading-relaxed">
-                        Become part of the revolution in industrial procurement and biogas infrastructure.
-                        We're looking for passionate individuals driven to make a difference.
+                        The purpose of this page is to help you get noticed by the right employers. 
+                        Submit your profile, and we will refer you to interested companies in the CBG & CNG industry.
                     </p>
                 </div>
 
@@ -132,9 +132,9 @@ const Careers: React.FC = () => {
                         {/* Sidebar Info */}
                         <div className="md:col-span-2 bg-[#0A1A2F] text-white p-10 flex flex-col justify-between">
                             <div>
-                                <h3 className="text-2xl font-bold mb-6">Start your journey.</h3>
+                                <h3 className="text-2xl font-bold mb-6">Let us refer you.</h3>
                                 <p className="text-slate-300 text-sm leading-relaxed mb-8">
-                                    Fill out the form with your details and upload your latest resume. Make sure your resume highlights your relevant experience.
+                                    Fill out the form with your details and upload your latest resume. We will serve as a bridge between you and potential employers in the gas industry.
                                 </p>
                                 <div className="space-y-6">
                                     <div className="flex items-start gap-4">
@@ -142,8 +142,8 @@ const Careers: React.FC = () => {
                                             <Briefcase className="w-5 h-5 text-primary" />
                                         </div>
                                         <div>
-                                            <h4 className="font-bold text-sm">4 Categories</h4>
-                                            <p className="text-xs text-slate-400 mt-1">Found the perfect fit for your expertise.</p>
+                                            <h4 className="font-bold text-sm">6 Categories</h4>
+                                            <p className="text-xs text-slate-400 mt-1">Select the best fit for your expertise.</p>
                                         </div>
                                     </div>
                                     <div className="flex items-start gap-4">
@@ -271,9 +271,9 @@ const Careers: React.FC = () => {
                                         className="w-full bg-primary hover:bg-primary-dark text-white font-bold py-4 rounded-xl flex items-center justify-center gap-2 transition disabled:opacity-70"
                                     >
                                         {uploading ? (
-                                            <><Loader2 className="w-5 h-5 animate-spin" /> Submitting Application...</>
+                                            <><Loader2 className="w-5 h-5 animate-spin" /> Submitting Profile...</>
                                         ) : (
-                                            <>Submit Application</>
+                                            <>Submit Profile</>
                                         )}
                                     </button>
                                 </div>

@@ -39,7 +39,7 @@ const Footer: React.FC = () => {
                         <ul className="space-y-4">
                             {[
                                 { name: 'About Us', path: '/about-us' },
-                                { name: 'Careers', path: '/careers' },
+                                { name: 'Job Pool', path: '/careers' },
                                 { name: 'Knowledge Hub', path: '/learn' },
                                 { name: 'Platform Documents', path: '/learn' },
                                 { name: 'Contact', path: '/contact' }

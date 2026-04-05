@@ -225,9 +225,33 @@ export const getProduct = async (req: Request, res: Response, next: NextFunction
 
 export const createProduct = async (req: Request, res: Response, next: NextFunction) => {
     try {
+        // Allowlist prevents mass assignment of internal DB fields
+        const {
+            name, description, price, category_id, stock_quantity,
+            low_stock_threshold, sku, specifications, variants,
+            warehouse_location, images, purchase_model,
+            // Admin-controlled status fields — route is already requireAdmin-gated
+            is_active, is_featured, vendor_id
+        } = req.body;
+
+        const productData: Record<string, any> = {
+            name, description, price, category_id
+        };
+        if (stock_quantity !== undefined) productData.stock_quantity = stock_quantity;
+        if (low_stock_threshold !== undefined) productData.low_stock_threshold = low_stock_threshold;
+        if (sku !== undefined) productData.sku = sku;
+        if (specifications !== undefined) productData.specifications = specifications;
+        if (variants !== undefined) productData.variants = variants;
+        if (warehouse_location !== undefined) productData.warehouse_location = warehouse_location;
+        if (images !== undefined) productData.images = images;
+        if (purchase_model !== undefined) productData.purchase_model = purchase_model;
+        if (is_active !== undefined) productData.is_active = is_active;
+        if (is_featured !== undefined) productData.is_featured = is_featured;
+        if (vendor_id !== undefined) productData.vendor_id = vendor_id;
+
         const { data, error } = await supabase
             .from('products')
-            .insert([req.body])
+            .insert([productData])
             .select()
             .single();
 
@@ -249,7 +273,36 @@ export const createProduct = async (req: Request, res: Response, next: NextFunct
 export const updateProduct = async (req: Request, res: Response, next: NextFunction) => {
     try {
         const { id } = req.params;
-        const updates = req.body;
+
+        // Allowlist prevents mass assignment of internal DB fields
+        const {
+            name, description, price, category_id, stock_quantity,
+            low_stock_threshold, sku, specifications, variants,
+            warehouse_location, images, purchase_model,
+            // Admin-controlled status fields — route is already requireAdmin-gated
+            is_active, is_featured, vendor_id
+        } = req.body;
+
+        const updates: Record<string, any> = {};
+        if (name !== undefined) updates.name = name;
+        if (description !== undefined) updates.description = description;
+        if (price !== undefined) updates.price = price;
+        if (category_id !== undefined) updates.category_id = category_id;
+        if (stock_quantity !== undefined) updates.stock_quantity = stock_quantity;
+        if (low_stock_threshold !== undefined) updates.low_stock_threshold = low_stock_threshold;
+        if (sku !== undefined) updates.sku = sku;
+        if (specifications !== undefined) updates.specifications = specifications;
+        if (variants !== undefined) updates.variants = variants;
+        if (warehouse_location !== undefined) updates.warehouse_location = warehouse_location;
+        if (images !== undefined) updates.images = images;
+        if (purchase_model !== undefined) updates.purchase_model = purchase_model;
+        if (is_active !== undefined) updates.is_active = is_active;
+        if (is_featured !== undefined) updates.is_featured = is_featured;
+        if (vendor_id !== undefined) updates.vendor_id = vendor_id;
+
+        if (Object.keys(updates).length === 0) {
+            return res.status(400).json({ status: 'error', message: 'No valid fields provided for update' });
+        }
 
         const { data, error } = await supabase
             .from('products')
@@ -259,10 +312,6 @@ export const updateProduct = async (req: Request, res: Response, next: NextFunct
             .single();
 
         if (error) throw error;
-
-        // DEBUG
-        const fs = require('fs');
-        fs.appendFileSync('/tmp/gascart-trace.log', `[Trace] ${new Date().toISOString()} - updating product ${id}\n`);
 
         await logAction(req, 'UPDATE', `Updated product '${data.name}'`, {
             entity_type: 'product',

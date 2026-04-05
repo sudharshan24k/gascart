@@ -3,6 +3,8 @@ import { api } from '../services/api';
 import { supabase } from '../services/api';
 import InquiryFilters from '../components/consultants/InquiryFilters';
 import InquiryList from '../components/consultants/InquiryList';
+import InquiryModal from '../components/consultants/InquiryModal';
+import { downloadInquiriesPDF } from '../services/admin.service';
 
 const ConsultantInquiries: React.FC = () => {
     const [inquiries, setInquiries] = useState<any[]>([]);
@@ -10,6 +12,8 @@ const ConsultantInquiries: React.FC = () => {
     const [statusFilter, setStatusFilter] = useState('All');
     const [startDate, setStartDate] = useState('');
     const [endDate, setEndDate] = useState('');
+    const [selectedInquiry, setSelectedInquiry] = useState<any>(null);
+    const [isExporting, setIsExporting] = useState(false);
 
     useEffect(() => {
         fetchInquiries();
@@ -33,13 +37,13 @@ const ConsultantInquiries: React.FC = () => {
         }
     };
 
-    const handleUpdateStatus = async (id: string, newStatus: string) => {
+    const handleUpdateInquiry = async (id: string, updates: any) => {
         try {
-            await api.consultants.updateInquiryStatus(id, newStatus);
+            await api.consultants.updateInquiryStatus(id, updates);
             fetchInquiries();
         } catch (error) {
-            console.error('Failed to update status:', error);
-            alert('Failed to update status');
+            console.error('Failed to update inquiry:', error);
+            alert('Failed to update inquiry');
         }
     };
 
@@ -78,14 +82,14 @@ const ConsultantInquiries: React.FC = () => {
         .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
 
     const handleExportExcel = () => {
-        const headers = ['ID', 'Date', 'Time', 'Status', 'Service Required', 'Timeline', 'Client Name', 'Client Email', 'Client Phone', 'Target Consultant', 'Project Notes'];
+        const headers = ['Ref Number', 'Date', 'Time', 'Status', 'Service Required', 'Timeline', 'Client Name', 'Client Email', 'Client Phone', 'Target Consultant', 'Project Notes', 'Internal Comments'];
 
         const csvRows = [headers.join(',')];
 
         filteredInquiries.forEach(inq => {
             const dateObj = new Date(inq.created_at);
             const row = [
-                inq.id,
+                inq.reference_number || inq.id.slice(0, 8),
                 dateObj.toLocaleDateString(),
                 dateObj.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
                 inq.status,
@@ -94,8 +98,9 @@ const ConsultantInquiries: React.FC = () => {
                 `"${(inq.profiles?.full_name || 'Guest User').replace(/"/g, '""')}"`,
                 inq.profiles?.email || '',
                 inq.profiles?.phone || '',
-                `"${(inq.consultants?.first_name || '')} ${(inq.consultants?.last_name || '')}".trim()`,
-                `"${(inq.project_description || '').replace(/"/g, '""')}"`
+                `"${((inq.consultants?.first_name || '') + ' ' + (inq.consultants?.last_name || '')).trim().replace(/"/g, '""')}"`,
+                `"${(inq.project_description || '').replace(/"/g, '""')}"`,
+                `"${(inq.internal_comments || '').replace(/"/g, '""')}"`
             ];
             csvRows.push(row.join(','));
         });
@@ -109,6 +114,46 @@ const ConsultantInquiries: React.FC = () => {
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
+    };
+
+    const handleExportPDF = async () => {
+        setIsExporting(true);
+        try {
+            const params: any = {};
+            if (statusFilter !== 'All') params.status = statusFilter.toLowerCase();
+            if (startDate) params.startDate = startDate;
+            if (endDate) params.endDate = endDate;
+
+            const blob = await downloadInquiriesPDF(params);
+            const url = window.URL.createObjectURL(new Blob([blob]));
+            const link = document.createElement('a');
+            link.href = url;
+            link.setAttribute('download', `consultation_report_${new Date().toISOString().split('T')[0]}.pdf`);
+            document.body.appendChild(link);
+            link.click();
+            link.remove();
+        } catch (error) {
+            console.error('Failed to export PDF:', error);
+            alert('Failed to generate PDF report');
+        } finally {
+            setIsExporting(false);
+        }
+    };
+
+    const handleDownloadSinglePDF = async (id: string) => {
+        try {
+            const blob = await downloadInquiriesPDF({ id });
+            const url = window.URL.createObjectURL(new Blob([blob]));
+            const link = document.createElement('a');
+            link.href = url;
+            link.setAttribute('download', `inquiry_${id.slice(0, 8).toUpperCase()}.pdf`);
+            document.body.appendChild(link);
+            link.click();
+            link.remove();
+        } catch (error) {
+            console.error('Failed to download PDF:', error);
+            alert('Failed to download PDF report');
+        }
     };
 
     return (
@@ -128,15 +173,27 @@ const ConsultantInquiries: React.FC = () => {
                 endDate={endDate}
                 setEndDate={setEndDate}
                 onExportExcel={handleExportExcel}
+                onExportPDF={handleExportPDF}
+                exporting={isExporting}
             />
 
             <InquiryList
                 inquiries={filteredInquiries}
                 loading={loading}
-                handleUpdateStatus={handleUpdateStatus}
+                handleUpdateInquiry={handleUpdateInquiry}
                 getStatusStyle={getStatusStyle}
                 onAssignConsultant={handleAssignConsultant}
+                onViewReport={setSelectedInquiry}
             />
+
+            {selectedInquiry && (
+                <InquiryModal
+                    inquiry={selectedInquiry}
+                    onClose={() => setSelectedInquiry(null)}
+                    onDownloadPDF={handleDownloadSinglePDF}
+                    getStatusStyle={getStatusStyle}
+                />
+            )}
         </div>
     );
 };

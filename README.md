@@ -1,6 +1,6 @@
-# E-commerce Platform 
+# Gascart | CBG & CNG marketplace
 
-A fully custom, production-ready e-commerce platform built with React, Node.js, and Supabase.
+The Supermarket for Oil & Gas Industry. A fully custom, production-ready B2B marketplace built with React, Node.js, and Supabase.
 
 ## Architecture
 

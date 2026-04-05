@@ -8,7 +8,8 @@ import {
     getMyConsultantProfile,
     submitConsultationInquiry,
     getConsultationInquiries,
-    updateConsultationInquiryStatus
+    updateConsultationInquiryStatus,
+    exportInquiriesPDF
 } from '../controllers/consultants.controller';
 import { requireAuth, requireAdmin } from '../middlewares/auth.middleware';
 
@@ -21,6 +22,7 @@ router.post('/register', registerConsultant);
 router.post('/inquiries', requireAuth, submitConsultationInquiry); // Require auth to submit requests
 router.get('/inquiries', requireAuth, getConsultationInquiries);
 router.patch('/inquiries/:id/status', requireAuth, requireAdmin, updateConsultationInquiryStatus);
+router.get('/inquiries/export/pdf', requireAuth, requireAdmin, exportInquiriesPDF);
 
 // Public routes
 router.get('/', getConsultants);

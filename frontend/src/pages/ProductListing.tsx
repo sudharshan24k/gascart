@@ -357,23 +357,25 @@ const ProductListing: React.FC = () => {
                                                     <div className="text-lg font-bold text-neutral-900">₹{Number(product.price).toLocaleString()}</div>
                                                 </div>
                                                 <div className="flex gap-2">
-                                                    <button
-                                                        onClick={() => {
-                                                            if (!session) {
-                                                                navigate(`/login?redirect=/shop`);
-                                                                return;
-                                                            }
-                                                            dispatch({
-                                                                type: 'ADD_ITEM',
-                                                                payload: { id: product.id, name: product.name, price: Number(product.price), quantity: 1, image: mainImage, vendor: { id: product.vendor_id, company_name: vendorName } }
-                                                            });
-                                                        }}
-                                                        className="px-6 py-3 bg-neutral-900 text-white rounded-xl font-bold text-sm hover:bg-primary transition-colors"
-                                                    >
-                                                        Add to Enquiry
-                                                    </button>
-                                                    <Link to={`/product/${product.id}`} className="px-6 py-3 border border-neutral-200 text-neutral-900 rounded-xl font-bold text-sm hover:bg-neutral-50 transition-colors">
-                                                        Details
+                                                    {(product.purchase_model === 'rfq' || product.purchase_model === 'both' || !product.purchase_model) && (
+                                                        <button
+                                                            onClick={() => {
+                                                                if (!session) {
+                                                                    navigate(`/login?redirect=/shop`);
+                                                                    return;
+                                                                }
+                                                                dispatch({
+                                                                    type: 'ADD_ITEM',
+                                                                    payload: { id: product.id, name: product.name, price: Number(product.price), quantity: 1, image: mainImage, vendor: { id: product.vendor_id, company_name: vendorName } }
+                                                                });
+                                                            }}
+                                                            className="px-6 py-3 bg-neutral-900 text-white rounded-xl font-bold text-sm hover:bg-primary transition-colors whitespace-nowrap"
+                                                        >
+                                                            Add to Enquiry
+                                                        </button>
+                                                    )}
+                                                    <Link to={`/product/${product.id}`} className="px-6 py-3 border border-neutral-200 text-neutral-900 rounded-xl font-bold text-sm hover:bg-neutral-50 transition-colors whitespace-nowrap">
+                                                        {product.purchase_model === 'direct' ? 'Buy Now' : 'Details'}
                                                     </Link>
                                                 </div>
                                             </motion.div>
@@ -394,10 +396,20 @@ const ProductListing: React.FC = () => {
                                                     alt={product.name}
                                                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
                                                 />
-                                                <div className="absolute top-4 left-4">
+                                                <div className="absolute top-4 left-4 flex flex-col gap-2">
                                                     {product.purchase_model === 'rfq' && (
                                                         <span className="bg-white/90 backdrop-blur text-neutral-900 text-[10px] font-black px-3 py-1.5 rounded-lg border border-white/20 shadow-sm uppercase tracking-widest">
                                                             RFQ Only
+                                                        </span>
+                                                    )}
+                                                    {product.purchase_model === 'direct' && (
+                                                        <span className="bg-emerald-500/90 backdrop-blur text-white text-[10px] font-black px-3 py-1.5 rounded-lg border border-white/20 shadow-sm uppercase tracking-widest">
+                                                            Direct Buy
+                                                        </span>
+                                                    )}
+                                                    {product.purchase_model === 'both' && (
+                                                        <span className="bg-primary/90 backdrop-blur text-white text-[10px] font-black px-3 py-1.5 rounded-lg border border-white/20 shadow-sm uppercase tracking-widest">
+                                                            Hybrid Order
                                                         </span>
                                                     )}
                                                 </div>
@@ -440,12 +452,17 @@ const ProductListing: React.FC = () => {
                                                                 navigate(`/login?redirect=/shop`);
                                                                 return;
                                                             }
+                                                            if (product.purchase_model === 'direct') {
+                                                                // For direct items in grid, we link to details to select variants/vendor
+                                                                navigate(`/product/${product.id}`);
+                                                                return;
+                                                            }
                                                             dispatch({
                                                                 type: 'ADD_ITEM',
                                                                 payload: { id: product.id, name: product.name, price: Number(product.price), quantity: 1, image: mainImage, vendor: { id: product.vendor_id, company_name: vendorName } }
                                                             });
                                                         }}
-                                                        className="w-10 h-10 bg-neutral-900 rounded-xl flex items-center justify-center text-white hover:bg-primary transition-colors shadow-lg shadow-neutral-900/20 group-hover:scale-110"
+                                                        className={`w-10 h-10 rounded-xl flex items-center justify-center text-white transition-colors shadow-lg group-hover:scale-110 ${product.purchase_model === 'direct' ? 'bg-emerald-600 hover:bg-emerald-700 shadow-emerald-600/20' : 'bg-neutral-900 hover:bg-primary shadow-neutral-900/20'}`}
                                                     >
                                                         <Plus className="w-5 h-5" />
                                                     </button>

@@ -15,13 +15,15 @@ import {
 } from '../controllers/admin.controller';
 import { getResumeSignedUrl } from '../controllers/careers.controller';
 import { requireAuth, requireAdmin } from '../middlewares/auth.middleware';
+import { rateLimit } from '../middlewares/rateLimit.middleware';
 
 const router = Router();
 
 router.get('/stats', requireAuth, requireAdmin, getDashboardStats);
 router.get('/audit-logs', requireAuth, requireAdmin, getAuditLogs);
-// Note: requireAuth is relaxed here to ensure logs are captured during session transitions (logout/login)
-router.post('/audit/log-auth', logAuthEvent);
+// requireAuth ensures only authenticated users can write auth events;
+// rateLimit(10, 60_000) caps at 10 writes/min per IP to prevent log spam.
+router.post('/audit/log-auth', requireAuth, rateLimit(10, 60_000), logAuthEvent);
 
 router.get('/users', requireAuth, requireAdmin, getAllUsers);
 router.get('/users/:userId/orders', requireAuth, requireAdmin, getUserOrders);

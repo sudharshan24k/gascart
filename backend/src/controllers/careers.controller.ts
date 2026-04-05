@@ -9,7 +9,7 @@ export const submitApplication = async (req: Request, res: Response) => {
             return res.status(400).json({ status: 'fail', message: 'All fields are required' });
         }
 
-        const validCategories = ['Technicians', 'Officers', 'Entry level management', 'Middle management'];
+        const validCategories = ['Technicians', 'Officers', 'Entry level management', 'Middle management', 'O&M - CBG', 'O&M - CNG'];
         if (!validCategories.includes(category)) {
             return res.status(400).json({ status: 'fail', message: 'Invalid category' });
         }

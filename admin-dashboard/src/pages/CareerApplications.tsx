@@ -4,7 +4,7 @@ import { Briefcase, Filter, User, Mail, Phone, Clock, FileText, CheckCircle, XCi
 import { getCareerApplications, updateCareerApplicationStatus, getResumeSignedUrl as getProxiedResumeUrl } from '../services/admin.service';
 import { toast } from 'react-hot-toast';
 
-const CATEGORIES = ['All Categories', 'Technicians', 'Officers', 'Entry level management', 'Middle management'];
+const CATEGORIES = ['All Categories', 'Technicians', 'Officers', 'Entry level management', 'Middle management', 'O&M - CBG', 'O&M - CNG'];
 const STATUSES = ['All Statuses', 'pending', 'reviewed', 'rejected'];
 
 const CareerApplications: React.FC = () => {

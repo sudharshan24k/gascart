@@ -30,7 +30,7 @@ const Header: React.FC = () => {
         { name: 'Marketplace', path: '/shop' },
         { name: 'Experts', path: '/experts' },
         { name: 'Vendor', path: '/vendor-enquiry' },
-        { name: 'Careers', path: '/careers' },
+        { name: 'Job Pool', path: '/careers' },
     ];
 
     const handleSignOut = async () => {

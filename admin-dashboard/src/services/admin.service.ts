@@ -268,6 +268,21 @@ export const downloadRFQs = async () => {
     return response.data;
 };
 
+export const downloadRFQsPDF = async () => {
+    const response = await adminApi.get('/rfqs/export/pdf', {
+        responseType: 'blob'
+    });
+    return response.data;
+};
+
+export const downloadInquiriesPDF = async (params?: any) => {
+    const response = await adminApi.get('/consultants/inquiries/export/pdf', {
+        params,
+        responseType: 'blob'
+    });
+    return response.data;
+};
+
 export const downloadOrders = async () => {
     const response = await adminApi.get('/orders/admin/export', {
         responseType: 'blob'

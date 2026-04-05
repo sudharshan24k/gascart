@@ -73,18 +73,20 @@ export const api = {
             });
             return res.json();
         },
-        updateInquiryStatus: async (id: string, status: string) => {
+        updateInquiryStatus: async (id: string, updates: string | Record<string, any>) => {
             let token = (await supabase.auth.getSession()).data.session?.access_token;
             if (!token) throw new Error('Not authenticated');
 
             const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3000/api/v1';
+            const body = typeof updates === 'string' ? { status: updates } : updates;
+
             const res = await fetch(`${apiUrl}/consultants/inquiries/${id}/status`, {
                 method: 'PATCH',
                 headers: {
                     'Content-Type': 'application/json',
                     'Authorization': `Bearer ${token}`
                 },
-                body: JSON.stringify({ status })
+                body: JSON.stringify(body)
             });
             return res.json();
         }

@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useMemo } from 'react';
-import { fetchRFQs, updateAdminRFQStatus, downloadRFQs } from '../services/admin.service';
-import { ClipboardList, Download, Search, Mail, Eye, User, Building2, X, Layers, Component, Calendar } from 'lucide-react';
+import { createPortal } from 'react-dom';
+import { fetchRFQs, updateAdminRFQStatus, downloadRFQs, downloadRFQsPDF } from '../services/admin.service';
+import { ClipboardList, Download, Search, Mail, Eye, User, Building2, X, Layers, Component, Calendar, FileText, ChevronDown } from 'lucide-react';
 import { formatDateIST } from '../utils/dateUtils';
 
 const RFQManagement: React.FC = () => {
@@ -10,6 +11,8 @@ const RFQManagement: React.FC = () => {
     const [statusFilter, setStatusFilter] = useState('all');
     const [selectedRFQ, setSelectedRFQ] = useState<any>(null);
     const [activeTab, setActiveTab] = useState<'itemized' | 'project'>('itemized');
+    const [exportDropdown, setExportDropdown] = useState(false);
+    const [exporting, setExporting] = useState(false);
 
     useEffect(() => {
         loadRFQs();
@@ -49,19 +52,27 @@ const RFQManagement: React.FC = () => {
         }
     };
 
-    const handleExport = async () => {
+    const handleExport = async (format: 'csv' | 'pdf' = 'csv') => {
+        setExporting(true);
+        setExportDropdown(false);
         try {
-            const data = await downloadRFQs();
-            const url = window.URL.createObjectURL(new Blob([data]));
+            const data = format === 'csv' ? await downloadRFQs() : await downloadRFQsPDF();
+            const blob = new Blob([data], { type: format === 'csv' ? 'text/csv' : 'application/pdf' });
+            const url = window.URL.createObjectURL(blob);
             const link = document.createElement('a');
             link.href = url;
-            link.setAttribute('download', `gascart_rfqs_${new Date().toISOString().split('T')[0]}.csv`);
+            const extension = format === 'csv' ? 'csv' : 'pdf';
+            const filename = format === 'csv' ? `gascart_rfqs_${new Date().toISOString().split('T')[0]}.${extension}` : `gascart_technical_report_${new Date().toISOString().split('T')[0]}.${extension}`;
+            link.setAttribute('download', filename);
             document.body.appendChild(link);
             link.click();
             link.remove();
+            window.URL.revokeObjectURL(url);
         } catch (err) {
             console.error('Export failed', err);
-            alert('Export failed');
+            alert('Export failed. Please check if there are any technical enquiries to export.');
+        } finally {
+            setExporting(false);
         }
     };
 
@@ -131,13 +142,49 @@ const RFQManagement: React.FC = () => {
                     <h2 className="text-3xl font-bold text-gray-900">Technical Enquiries (RFQs)</h2>
                     <p className="text-gray-500 mt-1 font-medium italic">Manage engineering-led leads and project requisitions.</p>
                 </div>
-                <button
-                    onClick={handleExport}
-                    className="flex items-center gap-2 bg-white text-gray-900 font-black px-8 py-4 rounded-2xl border-2 border-gray-100 shadow-xl shadow-gray-200/50 hover:border-primary transition-all active:scale-95"
-                >
-                    <Download className="w-5 h-5 text-primary" />
-                    Export Requisitions
-                </button>
+                <div className="relative">
+                    <div className="flex items-center shadow-xl shadow-gray-200/50 rounded-2xl overflow-hidden border-2 border-gray-100 group">
+                        <button
+                            onClick={() => handleExport('csv')}
+                            disabled={exporting}
+                            className="flex items-center gap-2 bg-white text-gray-900 font-extrabold px-6 py-4 hover:bg-gray-50 transition-all border-r border-gray-100 disabled:opacity-50"
+                        >
+                            {exporting ? (
+                                <div className="w-4 h-4 border-2 border-primary border-t-transparent rounded-full animate-spin"></div>
+                            ) : (
+                                <Download className="w-5 h-5 text-primary" />
+                            )}
+                            Export CSV
+                        </button>
+                        <button 
+                            onClick={() => setExportDropdown(!exportDropdown)}
+                            className="bg-white px-3 py-4 hover:bg-gray-50 transition-all text-gray-400 hover:text-primary"
+                        >
+                            <ChevronDown className={`w-5 h-5 transition-transform ${exportDropdown ? 'rotate-180' : ''}`} />
+                        </button>
+                    </div>
+
+                    {exportDropdown && (
+                        <div className="absolute right-0 mt-2 w-56 bg-white rounded-2xl shadow-2xl border border-gray-100 py-3 z-[110] animate-in fade-in slide-in-from-top-2">
+                             <button
+                                onClick={() => handleExport('pdf')}
+                                className="w-full flex items-center gap-3 px-6 py-3 text-sm font-bold text-gray-700 hover:bg-primary/5 hover:text-primary transition-all text-left"
+                            >
+                                <FileText className="w-4 h-4" />
+                                Download Full Report (PDF)
+                            </button>
+                            <div className="my-2 border-t border-gray-50"></div>
+                            <p className="px-6 py-2 text-[10px] uppercase font-black text-gray-300 tracking-widest">Advanced Options</p>
+                            <button
+                                onClick={() => handleExport('csv')}
+                                className="w-full flex items-center gap-3 px-6 py-3 text-sm font-bold text-gray-700 hover:bg-primary/5 hover:text-primary transition-all text-left"
+                            >
+                                <Download className="w-4 h-4" />
+                                Export Raw Data (CSV)
+                            </button>
+                        </div>
+                    )}
+                </div>
             </div>
 
             {/* Tab Navigation */}
@@ -398,9 +445,9 @@ const RFQManagement: React.FC = () => {
                 </div>
             </div>
 
-            {selectedRFQ && (
+            {selectedRFQ && createPortal(
                 <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-gray-900/60 backdrop-blur-sm shadow-inner" onClick={() => setSelectedRFQ(null)}>
-                    <div className="bg-white w-full max-w-4xl rounded-[40px] shadow-2xl overflow-hidden flex flex-col relative z-20 max-h-[90vh]" onClick={e => e.stopPropagation()}>
+                    <div className="bg-white w-full max-w-4xl rounded-[40px] shadow-2xl overflow-hidden flex flex-col relative z-20 max-h-[90vh]" onClick={e => e.stopPropagation()} id="printable-report">
                         <div className="p-10 border-b border-gray-50 flex justify-between items-center bg-gray-50/30">
                             <div>
                                 <h3 className="text-3xl font-black text-gray-900 leading-tight">
@@ -413,14 +460,14 @@ const RFQManagement: React.FC = () => {
                                     <p className="text-primary font-black uppercase text-[10px] tracking-widest">Enquiry ID: {selectedRFQ._enquiryId || selectedRFQ.submitted_fields?.enquiry_id || 'N/A'}</p>
                                 </div>
                             </div>
-                            <button onClick={() => setSelectedRFQ(null)} className="p-2 bg-gray-100 hover:bg-gray-200 rounded-full transition-colors">
+                            <button onClick={() => setSelectedRFQ(null)} className="p-2 bg-gray-100 hover:bg-gray-200 rounded-full transition-colors no-print">
                                 <X className="w-6 h-6 text-gray-500" />
                             </button>
                         </div>
                         
                         <div className="flex flex-col md:flex-row overflow-hidden flex-grow">
                             {/* Left Side: Contact Info */}
-                            <div className="w-full md:w-80 bg-blue-50/30 p-8 border-r border-gray-100 overflow-y-auto">
+                            <div className="w-full md:w-80 bg-blue-50/30 p-8 border-r border-gray-100 overflow-y-auto print:bg-white">
                                 <h4 className="text-xs font-black text-blue-900 mb-6 uppercase tracking-widest border-b border-blue-100 pb-2 flex items-center gap-2">
                                     <User className="w-4 h-4" /> Submitter Details
                                 </h4>
@@ -464,7 +511,7 @@ const RFQManagement: React.FC = () => {
                                                             <span className="px-3 py-1 bg-gray-100 text-gray-500 text-[10px] font-black rounded-lg border border-gray-200">Price Ref: ₹{Number(item.submitted_fields?.item_price || 0).toLocaleString()}</span>
                                                         </div>
                                                     </div>
-                                                    <div className="bg-white p-3 rounded-2xl border border-gray-100 shadow-sm">
+                                                    <div className="bg-white p-3 rounded-2xl border border-gray-100 shadow-sm no-print">
                                                         <span className="block text-[8px] uppercase text-gray-400 font-black mb-1">Status</span>
                                                         <span className="text-[10px] font-black uppercase text-primary tracking-widest">{item.status}</span>
                                                     </div>
@@ -497,19 +544,29 @@ const RFQManagement: React.FC = () => {
                             </div>
                         </div>
 
-                        <div className="p-8 border-t border-gray-50 bg-gray-50/10 flex justify-between items-center">
+                        <div className="p-8 border-t border-gray-50 bg-gray-50/10 flex justify-between items-center no-print">
                             <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">
                                 Report Generated on {new Date().toLocaleDateString()}
                             </p>
-                            <button
-                                onClick={() => setSelectedRFQ(null)}
-                                className="bg-gray-900 text-white font-black px-10 py-4 rounded-2xl hover:bg-primary transition-all shadow-lg hover:shadow-primary/20 active:scale-95"
-                            >
-                                Dismiss Report
-                            </button>
+                            <div className="flex gap-4">
+                                <button
+                                    onClick={() => window.print()}
+                                    className="bg-primary text-white font-black px-8 py-4 rounded-2xl hover:bg-primary-dark transition-all shadow-lg hover:shadow-primary/20 flex items-center gap-2"
+                                >
+                                    <FileText className="w-5 h-5" />
+                                    Download PDF
+                                </button>
+                                <button
+                                    onClick={() => setSelectedRFQ(null)}
+                                    className="bg-gray-900 text-white font-black px-10 py-4 rounded-2xl hover:bg-primary transition-all shadow-lg hover:shadow-primary/20 active:scale-95"
+                                >
+                                    Dismiss Report
+                                </button>
+                            </div>
                         </div>
                     </div>
-                </div>
+                </div>,
+                document.body
             )}
         </div>
     );

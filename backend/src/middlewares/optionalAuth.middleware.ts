@@ -9,12 +9,6 @@ export const optionalAuth = async (req: AuthRequest, res: Response, next: NextFu
         return next();
     }
 
-    // Development bypass
-    if (process.env.NODE_ENV === 'development' && authHeader === 'Bearer development-token') {
-        req.user = { id: '00000000-0000-0000-0000-000000000000', email: 'admin@admin.com' };
-        return next();
-    }
-
     const token = authHeader.split(' ')[1];
 
     try {

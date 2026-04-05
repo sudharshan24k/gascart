@@ -23,9 +23,11 @@ export const getCategories = async (req: Request, res: Response, next: NextFunct
 
 export const createCategory = async (req: Request, res: Response, next: NextFunction) => {
     try {
+        const { name, slug, description, image_url } = req.body;
+
         const { data, error } = await supabase
             .from('categories')
-            .insert([{ ...req.body, status: 'active' }])
+            .insert([{ name, slug, description, image_url, status: 'active' }])
             .select()
             .single();
 
@@ -47,9 +49,18 @@ export const createCategory = async (req: Request, res: Response, next: NextFunc
 export const updateCategory = async (req: Request, res: Response, next: NextFunction) => {
     try {
         const { id } = req.params;
+        const { name, slug, description, image_url, status } = req.body;
+
+        const updates: Record<string, any> = {};
+        if (name !== undefined) updates.name = name;
+        if (slug !== undefined) updates.slug = slug;
+        if (description !== undefined) updates.description = description;
+        if (image_url !== undefined) updates.image_url = image_url;
+        if (status !== undefined) updates.status = status;
+
         const { data, error } = await supabase
             .from('categories')
-            .update(req.body)
+            .update(updates)
             .eq('id', id)
             .select()
             .single();
@@ -60,7 +71,7 @@ export const updateCategory = async (req: Request, res: Response, next: NextFunc
             entity_type: 'category',
             entity_id: id,
             entity_label: data.name,
-            metadata: { updates: req.body }
+            metadata: { updates }
         });
 
         res.json({ status: 'success', data });

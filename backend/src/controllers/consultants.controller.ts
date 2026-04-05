@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import { supabase } from '../config/supabase';
+import { generateBulkInquiryPDF, InquiryDocumentData } from '../services/pdf.service';
 
 export const registerConsultant = async (req: Request, res: Response, next: NextFunction) => {
     try {
@@ -111,7 +112,30 @@ export const getConsultant = async (req: Request, res: Response, next: NextFunct
 export const updateConsultant = async (req: Request, res: Response, next: NextFunction) => {
     try {
         const { id } = req.params;
-        const updates = req.body;
+
+        // Allowlist prevents overwriting immutable fields (id, user_id, created_at, etc.)
+        const {
+            first_name, last_name, email, phone, experience_years,
+            bio, service_categories, location, qualification,
+            profile_image_url, status, is_visible, rating, projects_completed, company_name
+        } = req.body;
+
+        const updates: Record<string, any> = {};
+        if (first_name !== undefined) updates.first_name = first_name;
+        if (last_name !== undefined) updates.last_name = last_name;
+        if (email !== undefined) updates.email = email;
+        if (phone !== undefined) updates.phone = phone;
+        if (experience_years !== undefined) updates.experience_years = experience_years;
+        if (bio !== undefined) updates.bio = bio;
+        if (service_categories !== undefined) updates.service_categories = service_categories;
+        if (location !== undefined) updates.location = location;
+        if (qualification !== undefined) updates.qualification = qualification;
+        if (profile_image_url !== undefined) updates.profile_image_url = profile_image_url;
+        if (status !== undefined) updates.status = status;
+        if (is_visible !== undefined) updates.is_visible = Boolean(is_visible);
+        if (rating !== undefined) updates.rating = rating;
+        if (projects_completed !== undefined) updates.projects_completed = projects_completed;
+        if (company_name !== undefined) updates.company_name = company_name;
 
         const { data, error } = await supabase
             .from('consultants')
@@ -217,14 +241,22 @@ export const getConsultationInquiries = async (req: Request, res: Response, next
 export const updateConsultationInquiryStatus = async (req: Request, res: Response, next: NextFunction) => {
     try {
         const { id } = req.params;
-        const { status } = req.body;
-        const user = (req as any).user;
 
-        // Note: For advanced safety you could enforce that only the assigned consultant or an admin can update
+        // Only allow updating status and internal comments — prevents mass assignment
+        // on sensitive fields like client_id, consultant_id, or created_at
+        const { status, internal_comments } = req.body;
+
+        const updates: Record<string, any> = {};
+        if (status !== undefined) updates.status = status;
+        if (internal_comments !== undefined) updates.internal_comments = internal_comments;
+
+        if (Object.keys(updates).length === 0) {
+            return res.status(400).json({ status: 'error', message: 'No valid fields provided for update' });
+        }
 
         const { data, error } = await supabase
             .from('consultant_inquiries')
-            .update({ status })
+            .update(updates)
             .eq('id', id)
             .select()
             .single();
@@ -232,6 +264,65 @@ export const updateConsultationInquiryStatus = async (req: Request, res: Respons
         if (error) throw error;
 
         res.json({ status: 'success', data });
+    } catch (err) {
+        next(err);
+    }
+};
+
+export const exportInquiriesPDF = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const { status, consultant_id, startDate, endDate, id } = req.query;
+
+        let query = supabase
+            .from('consultant_inquiries')
+            .select(`
+                *,
+                consultants(id, first_name, last_name, email),
+                profiles!client_id(id, full_name, email, phone)
+            `)
+            .order('created_at', { ascending: false });
+
+        if (id) {
+            query = query.eq('id', id);
+        } else {
+            if (status && status !== 'All') query = query.eq('status', status.toString().toLowerCase());
+            if (consultant_id) query = query.eq('consultant_id', consultant_id);
+            if (startDate) query = query.gte('created_at', startDate);
+            if (endDate) {
+                const end = new Date(endDate.toString());
+                end.setDate(end.getDate() + 1);
+                query = query.lt('created_at', end.toISOString());
+            }
+        }
+
+        const { data: inquiries, error } = await query;
+        if (error) throw error;
+
+        if (!inquiries || inquiries.length === 0) {
+            return res.status(404).json({ status: 'fail', message: 'No inquiries found to export' });
+        }
+
+        const pdfData: InquiryDocumentData[] = inquiries.map(inq => ({
+            referenceNumber: inq.reference_number || inq.id.slice(0, 8).toUpperCase(),
+            clientName: inq.profiles?.full_name || 'Guest User',
+            clientEmail: inq.profiles?.email || inq.guest_email || 'N/A',
+            clientPhone: inq.profiles?.phone,
+            serviceRequired: inq.service_required,
+            timelinePreference: inq.timeline_preference,
+            projectDescription: inq.project_description,
+            internalComments: inq.internal_comments,
+            consultantName: inq.consultants ? `${inq.consultants.first_name} ${inq.consultants.last_name}` : undefined,
+            consultantEmail: inq.consultants?.email,
+            status: inq.status,
+            createdAt: inq.created_at
+        }));
+
+        const buffer = await generateBulkInquiryPDF(pdfData);
+
+        res.setHeader('Content-Type', 'application/pdf');
+        res.setHeader('Content-Disposition', `attachment; filename=consultation_report_${Date.now()}.pdf`);
+        res.send(buffer);
+
     } catch (err) {
         next(err);
     }

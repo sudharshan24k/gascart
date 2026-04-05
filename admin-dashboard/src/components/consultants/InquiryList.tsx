@@ -5,12 +5,13 @@ import InquiryCard from './InquiryCard';
 interface InquiryListProps {
     inquiries: any[];
     loading: boolean;
-    handleUpdateStatus: (id: string, newStatus: string) => void;
+    handleUpdateInquiry: (id: string, updates: any) => void;
     getStatusStyle: (status: string) => string;
     onAssignConsultant?: (inquiryId: string, consultantId: string) => Promise<void>;
+    onViewReport?: (inquiry: any) => void;
 }
 
-const InquiryList: React.FC<InquiryListProps> = ({ inquiries, loading, handleUpdateStatus, getStatusStyle, onAssignConsultant }) => {
+const InquiryList: React.FC<InquiryListProps> = ({ inquiries, loading, handleUpdateInquiry, getStatusStyle, onAssignConsultant, onViewReport }) => {
     if (loading) {
         return (
             <div className="p-8 text-center bg-white rounded-xl shadow-sm border border-neutral-200">
@@ -42,9 +43,10 @@ const InquiryList: React.FC<InquiryListProps> = ({ inquiries, loading, handleUpd
                     <InquiryCard
                         key={inq.id}
                         inq={inq}
-                        handleUpdateStatus={handleUpdateStatus}
+                        handleUpdateInquiry={handleUpdateInquiry}
                         getStatusStyle={getStatusStyle}
                         onAssignConsultant={onAssignConsultant}
+                        onViewReport={onViewReport}
                     />
                 ))}
             </div>

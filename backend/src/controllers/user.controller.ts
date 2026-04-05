@@ -66,7 +66,19 @@ export const getAddresses = async (req: Request, res: Response, next: NextFuncti
 export const addAddress = async (req: Request, res: Response, next: NextFunction) => {
     try {
         const userId = getUserId(req);
-        const addressData = { ...req.body, user_id: userId };
+
+        // Allowlist prevents caller from overriding user_id or internal fields
+        const { label, address_line1, address_line2, city, state, country, postal_code, is_default } = req.body;
+
+        const addressData: Record<string, any> = { user_id: userId };
+        if (label !== undefined) addressData.label = label;
+        if (address_line1 !== undefined) addressData.address_line1 = address_line1;
+        if (address_line2 !== undefined) addressData.address_line2 = address_line2;
+        if (city !== undefined) addressData.city = city;
+        if (state !== undefined) addressData.state = state;
+        if (country !== undefined) addressData.country = country;
+        if (postal_code !== undefined) addressData.postal_code = postal_code;
+        if (is_default !== undefined) addressData.is_default = Boolean(is_default);
 
         const { data, error } = await supabase
             .from('user_addresses')
@@ -85,7 +97,19 @@ export const updateAddress = async (req: Request, res: Response, next: NextFunct
     try {
         const userId = getUserId(req);
         const { id } = req.params;
-        const updates = { ...req.body, updated_at: new Date().toISOString() };
+
+        // Allowlist prevents caller from overriding user_id, id, or timestamps
+        const { label, address_line1, address_line2, city, state, country, postal_code, is_default } = req.body;
+
+        const updates: Record<string, any> = { updated_at: new Date().toISOString() };
+        if (label !== undefined) updates.label = label;
+        if (address_line1 !== undefined) updates.address_line1 = address_line1;
+        if (address_line2 !== undefined) updates.address_line2 = address_line2;
+        if (city !== undefined) updates.city = city;
+        if (state !== undefined) updates.state = state;
+        if (country !== undefined) updates.country = country;
+        if (postal_code !== undefined) updates.postal_code = postal_code;
+        if (is_default !== undefined) updates.is_default = Boolean(is_default);
 
         const { data, error } = await supabase
             .from('user_addresses')

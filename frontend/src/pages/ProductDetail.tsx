@@ -90,9 +90,12 @@ const ProductDetail: React.FC = () => {
     }
 
     const activePrice = selectedVariant ? selectedVariant.price : (product.price || 0);
-    const isRFQ = product.purchase_model === 'rfq' || !product.purchase_model; // Default to RFQ if undefined
-    const isDirectBuy = product.purchase_model === 'direct_buy' || product.purchase_model === 'direct';
-    const isBoth = product.purchase_model === 'both';
+
+    // Purchase Architecture Logic
+    const purchaseModel = product.purchase_model?.toLowerCase();
+    const isBoth = purchaseModel === 'both';
+    const isRFQ = purchaseModel === 'rfq' || !purchaseModel; // Default to RFQ for legacy/undefined
+    const isDirectBuy = purchaseModel === 'direct' || purchaseModel === 'direct_buy';
 
     const isInComparison = enquiryState.comparisonItems.some(i => i.id === product.id);
 
@@ -139,9 +142,19 @@ const ProductDetail: React.FC = () => {
                                 className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
                             />
                             <div className="absolute top-6 left-6 flex flex-col gap-2">
-                                {isRFQ && (
+                                {isRFQ && !isBoth && (
                                     <span className="bg-white/90 backdrop-blur text-neutral-900 text-[10px] font-black px-4 py-2 rounded-xl uppercase tracking-widest shadow-sm border border-white/20">
                                         RFQ Only
+                                    </span>
+                                )}
+                                {isDirectBuy && !isBoth && (
+                                    <span className="bg-white/90 backdrop-blur text-neutral-900 text-[10px] font-black px-4 py-2 rounded-xl uppercase tracking-widest shadow-sm border border-white/20">
+                                        Direct Buy
+                                    </span>
+                                )}
+                                {isBoth && (
+                                    <span className="bg-white/90 backdrop-blur text-indigo-600 text-[10px] font-black px-4 py-2 rounded-xl uppercase tracking-widest shadow-sm border border-indigo-100">
+                                        Hybrid: Direct + RFQ
                                     </span>
                                 )}
                             </div>
@@ -344,46 +357,48 @@ const ProductDetail: React.FC = () => {
                                 )}
 
                                 <div className="grid grid-cols-2 gap-4 mt-2">
-                                    <button
-                                        onClick={() => {
-                                            if (!session) {
-                                                navigate(`/login?redirect=/product/${product.id}`);
-                                                return;
-                                            }
-                                            enquiryDispatch({
-                                                type: 'ADD_ITEM',
-                                                payload: {
-                                                    id: product.id,
-                                                    name: product.name,
-                                                    price: Number(activePrice),
-                                                    quantity: 1,
-                                                    image: activeImage,
-                                                    vendor: selectedVendor 
-                                                        ? { id: selectedVendor.vendor_id, company_name: selectedVendor.profiles?.company_name || 'Vendor' }
-                                                        : { id: product.vendor_id, company_name: product.profiles?.company_name || 'Authorized Vendor' }
+                                    {(isRFQ || isBoth) && (
+                                        <button
+                                            onClick={() => {
+                                                if (!session) {
+                                                    navigate(`/login?redirect=/product/${product.id}`);
+                                                    return;
                                                 }
-                                            });
-                                            success("Added to Enquiry List");
-                                        }}
-                                        className="py-3 bg-white border-2 border-neutral-100 text-neutral-900 rounded-xl font-bold text-sm hover:border-neutral-300 transition-all flex items-center justify-center gap-2"
-                                    >
-                                        <Plus className="w-4 h-4" /> Add to List
-                                    </button>
+                                                enquiryDispatch({
+                                                    type: 'ADD_ITEM',
+                                                    payload: {
+                                                        id: product.id,
+                                                        name: product.name,
+                                                        price: Number(activePrice),
+                                                        quantity: 1,
+                                                        image: activeImage,
+                                                        vendor: selectedVendor
+                                                            ? { id: selectedVendor.vendor_id, company_name: selectedVendor.profiles?.company_name || 'Vendor' }
+                                                            : { id: product.vendor_id, company_name: product.profiles?.company_name || 'Authorized Vendor' }
+                                                    }
+                                                });
+                                                success("Added to Enquiry List");
+                                            }}
+                                            className="py-3 bg-white border-2 border-neutral-100 text-neutral-900 rounded-xl font-bold text-sm hover:border-neutral-300 transition-all flex items-center justify-center gap-2"
+                                        >
+                                            <Plus className="w-4 h-4" /> Add to List
+                                        </button>
+                                    )}
                                     <button
                                         onClick={() => {
                                             enquiryDispatch({
                                                 type: 'TOGGLE_COMPARISON',
-                                                payload: { 
-                                                    id: product.id, 
-                                                    name: product.name, 
-                                                    image: activeImage, 
-                                                    category: product.category || product.categories?.name, 
+                                                payload: {
+                                                    id: product.id,
+                                                    name: product.name,
+                                                    image: activeImage,
+                                                    category: product.category || product.categories?.name,
                                                     attributes: product.attributes,
                                                     vendor: { id: product.vendor_id, company_name: product.profiles?.company_name || 'Authorized Vendor' }
                                                 }
                                             });
                                         }}
-                                        className={`py-3 rounded-xl font-bold text-sm transition-all flex items-center justify-center gap-2 border-2 ${isInComparison ? 'bg-secondary/10 border-secondary text-secondary' : 'bg-white border-neutral-100 text-neutral-900 hover:border-neutral-300'}`}
+                                        className={`py-3 rounded-xl font-bold text-sm transition-all flex items-center justify-center gap-2 border-2 ${isInComparison ? 'bg-secondary/10 border-secondary text-secondary col-span-full' : 'bg-white border-neutral-100 text-neutral-900 hover:border-neutral-300'} ${!(isRFQ || isBoth) ? 'col-span-full' : ''}`}
                                     >
                                         <GitCompare className="w-4 h-4" /> {isInComparison ? 'Comparing' : 'Compare'}
                                     </button>

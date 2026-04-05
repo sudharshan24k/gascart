@@ -68,18 +68,11 @@ const ExpertProfile: React.FC = () => {
         e.preventDefault();
         setSubmitting(true);
         try {
-            let token = (await supabase.auth.getSession()).data.session?.access_token || '';
-            if (!token && localStorage.getItem('user_logged_in') === 'true') {
-                // Or whatever fallback they use for frontend dev token
-                token = 'development-token';
-            }
-            if (!token && localStorage.getItem('admin_logged_in') === 'true') {
-                token = 'development-token';
-            }
+            const token = (await supabase.auth.getSession()).data.session?.access_token || '';
 
             const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3000/api/v1';
 
-            // Build headers, adding auth if available (since the API allows optional auth)
+            // Build headers, adding auth only when a real session token is available
             const headers: Record<string, string> = {
                 'Content-Type': 'application/json'
             };

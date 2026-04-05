@@ -96,11 +96,22 @@ export const createDocument = async (req: Request, res: Response, next: NextFunc
 export const updateDocument = async (req: Request, res: Response, next: NextFunction) => {
     try {
         const { id } = req.params;
-        const updates = req.body;
+
+        // Allowlist prevents overwriting immutable fields (id, uploaded_by, created_at)
+        const { title, category, file_url, file_size, version, is_public, status } = req.body;
+
+        const updates: Record<string, any> = { updated_at: new Date().toISOString() };
+        if (title !== undefined) updates.title = title;
+        if (category !== undefined) updates.category = category;
+        if (file_url !== undefined) updates.file_url = file_url;
+        if (file_size !== undefined) updates.file_size = file_size;
+        if (version !== undefined) updates.version = version;
+        if (is_public !== undefined) updates.is_public = Boolean(is_public);
+        if (status !== undefined) updates.status = status;
 
         const { data, error } = await supabase
             .from('platform_documents')
-            .update({ ...updates, updated_at: new Date().toISOString() })
+            .update(updates)
             .eq('id', id)
             .select()
             .single();

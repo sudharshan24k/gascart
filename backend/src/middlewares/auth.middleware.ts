@@ -19,11 +19,6 @@ export const requireAuth = async (req: AuthRequest, res: Response, next: NextFun
     const authHeader = req.headers['authorization'];
     const token = authHeader?.split(' ')[1];
 
-    if (token === 'development-token') {
-        req.user = { id: '00000000-0000-0000-0000-000000000000', email: 'admin@admin.com', role: 'admin', account_status: 'active', is_dev: true };
-        return next();
-    }
-
     if (!authHeader) {
         return res.status(401).json({ message: 'Authorization header missing' });
     }
@@ -66,7 +61,7 @@ export const requireAdmin = async (req: AuthRequest, res: Response, next: NextFu
         return res.status(401).json({ message: 'Authentication required' });
     }
 
-    if (req.user.is_dev || req.user.role === 'admin') {
+    if (req.user.role === 'admin') {
         return next();
     }
 
@@ -79,7 +74,7 @@ export const restrictTo = (...roles: string[]) => {
             return res.status(401).json({ message: 'Authentication required' });
         }
 
-        if (req.user.is_dev || roles.includes(req.user.role)) {
+        if (roles.includes(req.user.role)) {
             return next();
         }
 
