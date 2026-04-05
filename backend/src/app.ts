@@ -54,7 +54,10 @@ if (config.env === 'development') {
 app.use(cors({
     origin: (incomingOrigin, callback) => {
         // Allow server-to-server requests (no Origin header) and allowed origins
-        if (!incomingOrigin || allowedOrigins.includes(incomingOrigin)) {
+        // Support dynamic Vercel deployment URLs (specifically starting with 'gascart')
+        const isVercelDeploy = incomingOrigin?.startsWith('https://gascart') && incomingOrigin?.endsWith('.vercel.app');
+
+        if (!incomingOrigin || allowedOrigins.includes(incomingOrigin) || isVercelDeploy) {
             callback(null, true);
         } else {
             callback(new Error(`CORS: origin '${incomingOrigin}' is not allowed`));
