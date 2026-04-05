@@ -1,5 +1,5 @@
 import React from 'react';
-import { X, User, Mail, Phone, Calendar, Briefcase, FileText, Download, CheckCircle, Clock, AlertCircle } from 'lucide-react';
+import { X, User, Mail, Phone, Calendar, Briefcase, FileText, Download, Clock, AlertCircle } from 'lucide-react';
 
 interface InquiryModalProps {
     inquiry: any;
