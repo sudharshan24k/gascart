@@ -231,7 +231,7 @@ export const createProduct = async (req: Request, res: Response, next: NextFunct
             low_stock_threshold, sku, specifications, variants,
             warehouse_location, images, purchase_model,
             // Admin-controlled status fields — route is already requireAdmin-gated
-            is_active, is_featured, vendor_id
+            is_active, is_featured, vendor_id, advance_payment_percentage
         } = req.body;
 
         const productData: Record<string, any> = {
@@ -248,6 +248,7 @@ export const createProduct = async (req: Request, res: Response, next: NextFunct
         if (is_active !== undefined) productData.is_active = is_active;
         if (is_featured !== undefined) productData.is_featured = is_featured;
         if (vendor_id !== undefined) productData.vendor_id = vendor_id;
+        if (advance_payment_percentage !== undefined) productData.advance_payment_percentage = advance_payment_percentage;
 
         const { data, error } = await supabase
             .from('products')
@@ -280,7 +281,7 @@ export const updateProduct = async (req: Request, res: Response, next: NextFunct
             low_stock_threshold, sku, specifications, variants,
             warehouse_location, images, purchase_model,
             // Admin-controlled status fields — route is already requireAdmin-gated
-            is_active, is_featured, vendor_id
+            is_active, is_featured, vendor_id, advance_payment_percentage
         } = req.body;
 
         const updates: Record<string, any> = {};
@@ -299,6 +300,7 @@ export const updateProduct = async (req: Request, res: Response, next: NextFunct
         if (is_active !== undefined) updates.is_active = is_active;
         if (is_featured !== undefined) updates.is_featured = is_featured;
         if (vendor_id !== undefined) updates.vendor_id = vendor_id;
+        if (advance_payment_percentage !== undefined) updates.advance_payment_percentage = advance_payment_percentage;
 
         if (Object.keys(updates).length === 0) {
             return res.status(400).json({ status: 'error', message: 'No valid fields provided for update' });

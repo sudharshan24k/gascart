@@ -26,8 +26,42 @@ export const createPaymentOrder = async (req: AuthRequest, res: Response) => {
 
         const tax = subtotal * 0.18;
         const totalAmount = subtotal + tax;          // Grand total (tax-inclusive) — matches frontend
-        const advanceAmount = totalAmount * 0.5;     // 50% advance
-        const balanceDue = totalAmount - advanceAmount;
+
+        // Calculate dynamic advance amount
+        let calculatedAdvance = 0;
+        let commonPercentage: number | null = null;
+        let isMixed = false;
+
+        for (const item of items) {
+            // Use product's advance percentage (default to 50 if missing)
+            const percentage = item.product?.advance_payment_percentage ?? 50;
+            const itemSubtotal = Number(item.price) * Number(item.quantity);
+            const itemTax = itemSubtotal * 0.18;
+            const itemTotal = itemSubtotal + itemTax;
+            
+            calculatedAdvance += (itemTotal * (percentage / 100));
+
+            if (commonPercentage === null) {
+                commonPercentage = percentage;
+            } else if (commonPercentage !== percentage) {
+                isMixed = true;
+            }
+        }
+
+        const advanceAmount = Math.round(calculatedAdvance * 100) / 100;
+        const balanceDue = Math.round((totalAmount - advanceAmount) * 100) / 100;
+
+        // Determine payment terms string
+        let paymentTerms = '50_percent_advance';
+        if (isMixed) {
+            paymentTerms = 'dynamic_advance';
+        } else if (commonPercentage === 75) {
+            paymentTerms = '75_percent_advance';
+        } else if (commonPercentage === 100) {
+            paymentTerms = '100_percent_advance';
+        } else if (commonPercentage === 50) {
+            paymentTerms = '50_percent_advance';
+        }
 
         // 1. Create a draft order in database first
         const { data: order, error: orderError } = await supabase
@@ -37,7 +71,7 @@ export const createPaymentOrder = async (req: AuthRequest, res: Response) => {
                 total_amount: totalAmount,
                 paid_amount: 0, // Will be updated after payment
                 balance_due: balanceDue,
-                payment_terms: '50_percent_advance',
+                payment_terms: paymentTerms,
                 status: 'pending',
                 shipping_address: shippingDetails,
                 billing_address: billingDetails,

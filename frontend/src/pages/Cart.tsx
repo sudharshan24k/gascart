@@ -14,7 +14,26 @@ const Cart = () => {
     const subtotal = cartTotal;
     const tax = subtotal * 0.18; // 18% GST example
     const grandTotal = subtotal + tax;
-    const advancePayable = grandTotal * 0.5;
+    
+    // Calculate dynamic advance
+    let totalAdvance = 0;
+    let commonPercentage: number | null = null;
+    let isMixed = false;
+
+    items.forEach(item => {
+        const price = item.vendor_price ?? item.selected_variant?.price ?? item.product.price;
+        const itemTotal = (price * item.quantity) * 1.18;
+        const percentage = item.product.advance_payment_percentage ?? 50;
+        totalAdvance += (itemTotal * (percentage / 100));
+
+        if (commonPercentage === null) {
+            commonPercentage = percentage;
+        } else if (commonPercentage !== percentage) {
+            isMixed = true;
+        }
+    });
+
+    const advancePayable = totalAdvance;
 
     if (loading && items.length === 0) {
         return (
@@ -182,7 +201,9 @@ const Cart = () => {
                                     
                                     <div className="flex justify-between items-center p-4 bg-primary/5 rounded-2xl border border-primary/20">
                                         <div>
-                                            <dt className="text-sm font-black text-primary">Advance (50%)</dt>
+                                            <dt className="text-sm font-black text-primary">
+                                                {isMixed ? 'Advance Payment' : `Advance (${commonPercentage ?? 50}%)`}
+                                            </dt>
                                         </div>
                                         <dd className="text-2xl font-black text-primary">₹{advancePayable.toLocaleString()}</dd>
                                     </div>
