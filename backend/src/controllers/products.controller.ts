@@ -265,6 +265,15 @@ export const createProduct = async (req: Request, res: Response, next: NextFunct
             metadata: { product: data }
         });
 
+        // Clear Cache
+        if (redis.status === 'ready') {
+            try {
+                const keys = await redis.keys('products:*');
+                if (keys.length > 0) await redis.del(...keys);
+            } catch (err) {
+                console.warn('[Products] Cache clear failed:', err);
+            }
+        }
         res.status(201).json({ status: 'success', data });
     } catch (err) {
         next(err);
@@ -322,6 +331,15 @@ export const updateProduct = async (req: Request, res: Response, next: NextFunct
             metadata: { updates }
         });
 
+        // Clear Cache
+        if (redis.status === 'ready') {
+            try {
+                const keys = await redis.keys('products:*');
+                if (keys.length > 0) await redis.del(...keys);
+            } catch (err) {
+                console.warn('[Products] Cache clear failed:', err);
+            }
+        }
         res.json({ status: 'success', data });
     } catch (err) {
         next(err);
@@ -349,6 +367,15 @@ export const deleteProduct = async (req: Request, res: Response, next: NextFunct
             entity_label: product?.name || id
         });
 
+        // Clear Cache
+        if (redis.status === 'ready') {
+            try {
+                const keys = await redis.keys('products:*');
+                if (keys.length > 0) await redis.del(...keys);
+            } catch (err) {
+                console.warn('[Products] Cache clear failed:', err);
+            }
+        }
         res.json({ status: 'success', message: 'Product deleted successfully' });
     } catch (err) {
         next(err);

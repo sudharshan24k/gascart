@@ -63,7 +63,8 @@ const AdminProducts = () => {
         variants: [] as any[],
         documents: [] as { name: string, url: string }[],
         low_stock_threshold: '10',
-        warehouse_location: ''
+        warehouse_location: '',
+        advance_payment_percentage: 50
     });
 
     const [vendorFormData, setVendorFormData] = useState({
@@ -196,7 +197,8 @@ const AdminProducts = () => {
                 variants: product.variants || [],
                 documents: product.documents || [],
                 low_stock_threshold: (product.low_stock_threshold || 10).toString(),
-                warehouse_location: product.warehouse_location || ''
+                warehouse_location: product.warehouse_location || '',
+                advance_payment_percentage: product.advance_payment_percentage || 50
             });
             loadProductVendors(product.id);
         } else {
@@ -217,7 +219,8 @@ const AdminProducts = () => {
                 variants: [],
                 documents: [],
                 low_stock_threshold: '10',
-                warehouse_location: ''
+                warehouse_location: '',
+                advance_payment_percentage: 50
             });
         }
         setIsModalOpen(true);

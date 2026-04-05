@@ -205,48 +205,50 @@ export const ProductModal = ({
                                         </div>
                                     </div>
                                     
-                                    <div className="py-6 border-t border-b border-gray-100 my-4">
-                                        <label className="block text-sm font-black text-gray-900 mb-4 uppercase tracking-[0.15em]">Advance Payment Protocol</label>
-                                        <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-                                            {[
-                                                { id: 50, name: '50% Advance', desc: 'Standard 50/50 Split' },
-                                                { id: 75, name: '75% Advance', desc: '75% Secure Upfront' },
-                                                { id: 100, name: 'Full Payment', desc: '100% Upfront (Direct)' }
-                                            ].map((opt) => (
-                                                <div
-                                                    key={opt.id}
-                                                    onClick={() => setFormData({ ...formData, advance_payment_percentage: opt.id })}
-                                                    className={`p-5 rounded-2xl border-2 cursor-pointer transition-all relative overflow-hidden group ${
-                                                        (formData.advance_payment_percentage || 50) === opt.id
-                                                        ? 'border-red-600 bg-red-50/30'
-                                                        : 'border-gray-100 bg-white hover:border-gray-300'
-                                                    }`}
-                                                >
-                                                    <div className="flex items-center justify-between mb-2">
-                                                        <span className={`text-base font-black ${(formData.advance_payment_percentage || 50) === opt.id ? 'text-gray-900' : 'text-gray-500 group-hover:text-gray-700'}`}>
-                                                            {opt.name}
-                                                        </span>
-                                                        <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all ${
-                                                            (formData.advance_payment_percentage || 50) === opt.id 
-                                                            ? 'border-red-600 bg-red-600' 
-                                                            : 'border-gray-200 bg-white'
-                                                        }`}>
-                                                            {(formData.advance_payment_percentage || 50) === opt.id && (
-                                                                <div className="w-2.5 h-2.5 bg-white rounded-full shadow-inner" />
-                                                            )}
-                                                        </div>
-                                                    </div>
-                                                    <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">{opt.desc}</p>
-                                                    
-                                                    {(formData.advance_payment_percentage || 50) === opt.id && (
-                                                        <div className="absolute top-0 right-0 w-8 h-8 opacity-10">
-                                                            <div className="absolute top-0 right-0 w-full h-full bg-red-600 transform rotate-45 translate-x-4 -translate-y-4" />
-                                                        </div>
-                                                    )}
-                                                </div>
-                                            ))}
-                                        </div>
-                                    </div>
+                                     {(formData.purchase_model === 'direct' || formData.purchase_model === 'both') && (
+                                         <div className="py-8 border-y-2 border-gray-50 my-6 bg-slate-50/30 -mx-10 px-10">
+                                             <label className="block text-[11px] font-black text-slate-400 mb-6 uppercase tracking-[0.2em]">Financial Setup: Advance Payment Protocol</label>
+                                             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                                                 {[
+                                                     { id: 50, name: '50% Advance', desc: 'Standard 50/50 Split' },
+                                                     { id: 75, name: '75% Advance', desc: '75% Secure Upfront' },
+                                                     { id: 100, name: 'Full Payment', desc: '100% Upfront (Direct)' }
+                                                 ].map((opt) => (
+                                                     <div
+                                                         key={opt.id}
+                                                         onClick={() => setFormData({ ...formData, advance_payment_percentage: opt.id })}
+                                                         className={`p-6 rounded-3xl border-2 cursor-pointer transition-all relative overflow-hidden group shadow-sm ${
+                                                             (formData.advance_payment_percentage || 50) === opt.id
+                                                             ? 'border-indigo-600 bg-white shadow-indigo-100'
+                                                             : 'border-transparent bg-white hover:border-slate-200'
+                                                         }`}
+                                                     >
+                                                         <div className="flex items-center justify-between mb-3">
+                                                             <span className={`text-base font-black ${(formData.advance_payment_percentage || 50) === opt.id ? 'text-indigo-900' : 'text-slate-500 group-hover:text-slate-700'}`}>
+                                                                 {opt.name}
+                                                             </span>
+                                                             <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all ${
+                                                                 (formData.advance_payment_percentage || 50) === opt.id 
+                                                                 ? 'border-indigo-600 bg-indigo-600' 
+                                                                 : 'border-slate-200 bg-white'
+                                                             }`}>
+                                                                 {(formData.advance_payment_percentage || 50) === opt.id && (
+                                                                     <div className="w-2.5 h-2.5 bg-white rounded-full shadow-inner" />
+                                                                 )}
+                                                             </div>
+                                                         </div>
+                                                         <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-relaxed">{opt.desc}</p>
+                                                         
+                                                         {(formData.advance_payment_percentage || 50) === opt.id && (
+                                                             <div className="absolute top-0 right-0 w-10 h-10 opacity-5">
+                                                                 <CheckCircle className="absolute top-0 right-0 w-full h-full text-indigo-600 transform translate-x-2 -translate-y-2" />
+                                                             </div>
+                                                         )}
+                                                     </div>
+                                                 ))}
+                                             </div>
+                                         </div>
+                                     )}
 
                                     <div>
                                         <div className="flex items-center justify-between mb-4">
