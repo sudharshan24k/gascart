@@ -10,6 +10,7 @@ import { authService } from '../services/auth.service';
 import { logAuthEvent } from '../services/admin.service';
 import { supabase } from '../services/api';
 import { useAuth } from '../context/AuthContext';
+// Note: supabase is still imported for the logout token capture in handleLogout
 
 const AdminLayout = () => {
     const location = useLocation();
@@ -17,26 +18,14 @@ const AdminLayout = () => {
     const [sidebarOpen, setSidebarOpen] = useState(false);
     const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
     const [scrolled, setScrolled] = useState(false);
-    const [userProfile, setUserProfile] = useState<any>(null);
-    const { permissions, isSuperAdmin } = useAuth();
+    // userProfile comes from AuthContext which already fetches it reliably —
+    // no need for a separate supabase.auth.getSession() call here that would
+    // race during hydration and return null on first load.
+    const { permissions, isSuperAdmin, userProfile } = useAuth();
 
     useEffect(() => {
         const handleScroll = () => setScrolled(window.scrollY > 10);
         window.addEventListener('scroll', handleScroll);
-
-        const fetchProfile = async () => {
-            const { data: { session } } = await supabase.auth.getSession();
-            if (session) {
-                const { data } = await supabase
-                    .from('profiles')
-                    .select('*')
-                    .eq('id', session.user.id)
-                    .single();
-                setUserProfile(data);
-            }
-        };
-        fetchProfile();
-
         return () => window.removeEventListener('scroll', handleScroll);
     }, []);
 
@@ -99,14 +88,22 @@ const AdminLayout = () => {
     })).filter(group => group.items.length > 0);
 
     const handleLogout = async () => {
-        // Log logout before clearing session
+        // Capture the token BEFORE signing out, so logAuthEvent can attach it
+        // directly without racing against the async getSession() call in the interceptor.
+        let token: string | undefined;
         try {
-            await logAuthEvent('LOGOUT', 'User logged out from Admin Dashboard');
-            await authService.signOut();
-            window.location.href = '/login';
+            const { data: { session } } = await supabase.auth.getSession();
+            token = session?.access_token;
+        } catch (_) { /* ignore */ }
+
+        try {
+            await logAuthEvent('LOGOUT', 'User logged out from Admin Dashboard', {}, token);
         } catch (logErr) {
             console.warn('[Audit] Failed to log logout:', logErr);
         }
+
+        await authService.signOut();
+        window.location.href = '/login';
     };
 
     return (

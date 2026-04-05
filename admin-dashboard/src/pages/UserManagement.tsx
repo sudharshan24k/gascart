@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from 'react';
-import { supabase } from '../services/api';
 import { Search, ShoppingBag, ChevronRight, FileText, X, Download } from 'lucide-react';
 import { formatDateIST } from '../utils/dateUtils';
 import {
@@ -7,7 +6,8 @@ import {
     fetchUserOrders as fetchOrdersForUser,
     updateUser as updateUserInfo,
     exportUsersCSV as exportUsers,
-    getOrderInvoiceUrl
+    getOrderInvoiceUrl,
+    downloadAuthenticatedFile
 } from '../services/admin.service';
 
 interface User {
@@ -113,20 +113,7 @@ const UserManagement: React.FC = () => {
     const handleDownloadInvoice = async (orderId: string) => {
         try {
             const url = getOrderInvoiceUrl(orderId);
-            // Since we need auth for this, and it's a GET that returns a PDF, 
-            // the simple URL won't have the Bearer token. 
-            // If the backend allows it, we could pass token as query param, but better to fetch with axios.
-            // Let's use fetch with auth just like before but simplified.
-            const { data: { session } } = await supabase.auth.getSession();
-            const token = session?.access_token;
-
-            const response = await fetch(url, {
-                headers: { 'Authorization': `Bearer ${token}` }
-            });
-
-            if (!response.ok) throw new Error('Failed to download');
-
-            const blob = await response.blob();
+            const blob = await downloadAuthenticatedFile(url);
             const blobUrl = window.URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = blobUrl;

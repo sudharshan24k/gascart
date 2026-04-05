@@ -157,7 +157,7 @@ export const updateVendorEnquiryStatus = async (req: Request, res: Response, nex
                         certifications: data.certifications || [],
                         visibility_status: 'active'
                     })
-                    .eq('id', authData.user!.id);
+                    .eq('id', targetUserId); // Fixed: was authData.user!.id which crashes when user already exists
 
                 if (profileError) {
                     console.error('[Vendor Approval] Failed to update profile:', profileError);

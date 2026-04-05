@@ -1,4 +1,4 @@
-import axios from 'axios';
+import axios, { AxiosRequestConfig } from 'axios';
 import { supabase } from './api';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api/v1';
@@ -8,19 +8,54 @@ const adminApi = axios.create({
     baseURL: API_URL
 });
 
-// Add a request interceptor to automatically add the auth header
+/**
+ * Reliably retrieves the current Supabase access token.
+ *
+ * Problem: When using sessionStorage as the auth storage, Supabase's
+ * getSession() can return null on the very first call right after page load,
+ * even when a valid session exists in sessionStorage. This is because Supabase
+ * hydrates its internal session state asynchronously. Instead of waiting for
+ * the SIGNED_IN event, we proactively call refreshSession() to force immediate
+ * hydration, then fall back to getUser() (which validates the token server-side).
+ *
+ * This eliminates the 401 race condition on every admin page.
+ */
+const getAccessToken = async (): Promise<string | null> => {
+    // First try — fast path, works most of the time
+    const { data: { session } } = await supabase.auth.getSession();
+    if (session?.access_token) return session.access_token;
+
+    // Second try — session not yet hydrated from sessionStorage; force refresh.
+    // This exchanges the stored refresh token for a new access token.
+    try {
+        const { data: { session: refreshed } } = await supabase.auth.refreshSession();
+        if (refreshed?.access_token) return refreshed.access_token;
+    } catch (_) {
+        // refreshSession() throws if there is no refresh token at all —
+        // that's fine, it means the user is genuinely not logged in.
+    }
+
+    // Third try — last resort: validate via server round-trip
+    try {
+        const { data: { session: userSession } } = await supabase.auth.getSession();
+        if (userSession?.access_token) return userSession.access_token;
+    } catch (_) { /* ignore */ }
+
+    return null;
+};
+
+// ─── Request Interceptor ──────────────────────────────────────────────────────
+// Attaches the auth token to every request. Uses the multi-step getAccessToken()
+// helper to survive the Supabase session hydration race on first page load.
 adminApi.interceptors.request.use(async (config) => {
     try {
-        const { data: { session } } = await supabase.auth.getSession();
-        
-        if (session?.access_token) {
-            config.headers['Authorization'] = `Bearer ${session.access_token}`;
-            console.debug(`[AdminAPI] Authentication Token attached to ${config.url}`);
+        const token = await getAccessToken();
+        if (token) {
+            config.headers['Authorization'] = `Bearer ${token}`;
+            console.debug(`[AdminAPI] Auth token attached to ${config.url}`);
         } else {
-            console.warn(`[AdminAPI] No session found while requesting ${config.url}`);
+            console.warn(`[AdminAPI] No session found for ${config.url}`);
         }
-        
-        // Force bypass cache for admin operations
         config.headers['x-admin-request'] = 'true';
     } catch (error) {
         console.error('[AdminAPI] Interceptor error:', error);
@@ -28,11 +63,34 @@ adminApi.interceptors.request.use(async (config) => {
     return config;
 });
 
+// ─── Response Interceptor: Retry on 401 ──────────────────────────────────────
+// If a request gets a 401 (token expired mid-session), automatically refresh
+// the token once and retry the request before propagating the error.
+adminApi.interceptors.response.use(
+    (response) => response,
+    async (error) => {
+        const originalRequest = error.config;
+        if (error.response?.status === 401 && !originalRequest._retried) {
+            originalRequest._retried = true;
+            try {
+                const { data: { session } } = await supabase.auth.refreshSession();
+                if (session?.access_token) {
+                    originalRequest.headers['Authorization'] = `Bearer ${session.access_token}`;
+                    return adminApi(originalRequest);
+                }
+            } catch (_) { /* refresh failed — propagate original 401 */ }
+        }
+        return Promise.reject(error);
+    }
+);
+
+// ─── Dashboard ────────────────────────────────────────────────────────────────
 export const getDashboardStats = async () => {
     const response = await adminApi.get('/admin/stats');
     return response.data.data;
 };
 
+// ─── Consultants ──────────────────────────────────────────────────────────────
 export const fetchConsultants = async (params?: { status?: string; is_visible?: boolean }) => {
     const response = await adminApi.get('/consultants', { params });
     return response.data.data;
@@ -48,7 +106,7 @@ export const deleteConsultant = async (id: string) => {
     return response.data;
 };
 
-// Product management
+// ─── Products ─────────────────────────────────────────────────────────────────
 export const fetchAdminProducts = async () => {
     const response = await adminApi.get('/products');
     return response.data.data;
@@ -69,7 +127,7 @@ export const deleteProduct = async (id: string) => {
     return response.data;
 };
 
-// RFQ Management
+// ─── RFQs ─────────────────────────────────────────────────────────────────────
 export const fetchRFQs = async () => {
     const response = await adminApi.get('/rfqs/all');
     return response.data.data;
@@ -80,7 +138,7 @@ export const updateAdminRFQStatus = async (id: string, status: string) => {
     return response.data.data;
 };
 
-// Category Management
+// ─── Categories ───────────────────────────────────────────────────────────────
 export const fetchCategories = async (status: string = 'active') => {
     const response = await adminApi.get('/categories', { params: { status } });
     return response.data.data;
@@ -96,19 +154,17 @@ export const updateCategory = async (id: string, categoryData: any) => {
     return response.data.data;
 };
 
-// Soft delete — marks as deleted
 export const deleteCategory = async (id: string) => {
     const response = await adminApi.delete(`/categories/${id}`);
     return response.data;
 };
 
-// Hard delete — permanently removes record
 export const permanentlyDeleteCategory = async (id: string) => {
     const response = await adminApi.delete(`/categories/${id}/permanent`);
     return response.data;
 };
 
-// Knowledge Hub / Articles
+// ─── Knowledge Hub / Articles ─────────────────────────────────────────────────
 export const fetchAdminArticles = async () => {
     const response = await adminApi.get('/articles');
     return response.data.data;
@@ -129,7 +185,7 @@ export const deleteArticle = async (id: string) => {
     return response.data;
 };
 
-// Vendor Management
+// ─── Vendors ──────────────────────────────────────────────────────────────────
 export const fetchVendors = async (params?: { visibility_status?: string }) => {
     const response = await adminApi.get('/vendors', { params });
     return response.data.data;
@@ -215,10 +271,7 @@ export const fetchProductVendors = async (productId: string) => {
     return response.data.data;
 };
 
-// Audit management services have been unified under getAuditLogs
-
-
-// Document Management
+// ─── Documents ────────────────────────────────────────────────────────────────
 export const fetchDocuments = async (params?: { category?: string; status?: string }) => {
     const response = await adminApi.get('/documents', { params });
     return response.data.data;
@@ -239,7 +292,7 @@ export const deleteDocument = async (id: string) => {
     return response.data;
 };
 
-// Order Management
+// ─── Orders ───────────────────────────────────────────────────────────────────
 export const fetchOrders = async (params?: { status?: string }) => {
     const response = await adminApi.get('/orders/admin/all', { params });
     return response.data.data;
@@ -266,6 +319,22 @@ export const getOrderInvoiceUrl = (id: string) => {
 
 export const getExportOrdersUrl = () => {
     return `${API_URL}/orders/admin/export`;
+};
+
+/**
+ * Downloads an authenticated resource as a blob.
+ * Used for invoice downloads that require Bearer token (not possible via plain <a href>).
+ */
+export const downloadAuthenticatedFile = async (url: string): Promise<Blob> => {
+    const token = await getAccessToken();
+    const response = await fetch(url, {
+        headers: {
+            'Authorization': token ? `Bearer ${token}` : '',
+            'x-admin-request': 'true',
+        }
+    });
+    if (!response.ok) throw new Error(`Download failed: ${response.status}`);
+    return response.blob();
 };
 
 export const downloadRFQs = async () => {
@@ -296,7 +365,8 @@ export const downloadOrders = async () => {
     });
     return response.data;
 };
-// User Management
+
+// ─── User Management ──────────────────────────────────────────────────────────
 export const fetchAllUsers = async (params?: { role?: string; account_status?: string }) => {
     const response = await adminApi.get('/admin/users', { params });
     return response.data.data;
@@ -326,6 +396,7 @@ export const exportInvoicesZIP = async (orderIds: string[]) => {
     return response.data;
 };
 
+// ─── File Upload ──────────────────────────────────────────────────────────────
 export const uploadFile = async (bucket: string, file: File) => {
     const formData = new FormData();
     formData.append('file', file);
@@ -353,6 +424,7 @@ export const listBucketFiles = async (bucket: string) => {
     return response.data;
 };
 
+// ─── Career Applications ──────────────────────────────────────────────────────
 export const getCareerApplications = async (params?: { category?: string; status?: string }) => {
     const response = await adminApi.get('/admin/careers', { params });
     return response.data;
@@ -363,6 +435,7 @@ export const updateCareerApplicationStatus = async (id: string, status: string, 
     return response.data;
 };
 
+// ─── Audit Logs ───────────────────────────────────────────────────────────────
 export const getAuditLogs = async (params?: {
     action?: string;
     entity_type?: string;
@@ -387,6 +460,7 @@ export const getResumeSignedUrl = async (path: string) => {
     return response.data;
 };
 
+// ─── Admin Management ─────────────────────────────────────────────────────────
 export const createAdmin = async (adminData: { email: string; full_name: string; password?: string; permissions: string[] }) => {
     const response = await adminApi.post('/admin/users/create-admin', adminData);
     return response.data.data;
@@ -397,11 +471,27 @@ export const deleteAdmin = async (userId: string) => {
     return response.data;
 };
 
-export const logAuthEvent = async (action: 'LOGIN' | 'LOGOUT', description: string, metadata: any = {}) => {
+/**
+ * Logs an auth event (LOGIN / LOGOUT) to the audit trail.
+ *
+ * @param token - Optional pre-fetched access token. Pass this when logging
+ *   LOGOUT so the token is captured BEFORE sign-out clears the session.
+ *   Without it, the async interceptor may race against sign-out and get null.
+ */
+export const logAuthEvent = async (
+    action: 'LOGIN' | 'LOGOUT',
+    description: string,
+    metadata: any = {},
+    token?: string
+) => {
+    const overrideConfig: AxiosRequestConfig = token
+        ? { headers: { Authorization: `Bearer ${token}`, 'x-admin-request': 'true' } }
+        : {};
+
     const response = await adminApi.post('/admin/audit/log-auth', {
         action,
         description,
         metadata
-    });
+    }, overrideConfig);
     return response.data;
 };

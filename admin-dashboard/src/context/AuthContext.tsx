@@ -32,11 +32,23 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const [userProfile, setUserProfile] = useState<any | null>(null);
 
     const refreshAuth = async () => {
-        // Prevent concurrent refreshes if needed, but for now just ensure state is set correctly
         setLoading(true);
         try {
-            const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+            // Step 1: Try getSession() — fast path, works once Supabase is hydrated
+            let { data: { session }, error: sessionError } = await supabase.auth.getSession();
             if (sessionError) throw sessionError;
+
+            // Step 2: If no session yet, try refreshSession() to force hydration from
+            // sessionStorage. This fixes the race condition on page load where
+            // onAuthStateChange hasn't fired yet.
+            if (!session) {
+                try {
+                    const { data: { session: refreshed } } = await supabase.auth.refreshSession();
+                    session = refreshed;
+                } catch (_) {
+                    // No refresh token available — user is genuinely not logged in
+                }
+            }
 
             if (session) {
                 const { data: profile, error: profileError } = await supabase
@@ -77,7 +89,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             }
         } catch (err) {
             console.error('[Auth] Refresh error:', err);
-            // In case of error, default to unauthenticated
             setIsAuthenticated(false);
             setIsAdmin(false);
             setUserProfile(null);
