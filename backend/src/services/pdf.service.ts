@@ -320,17 +320,17 @@ export const generateInvoicePDF = (data: InvoiceData): Promise<Buffer> => {
         doc.fontSize(12).fillColor('#2ecc71').text(`Rs.${data.totalAmount.toFixed(2)}`, 480, y, { align: 'right' });
 
         // ── Footer ────────────────────────────────────────────────────────────
-        const footerTop = 700;
+        const footerTop = 680;
         doc.moveTo(50, footerTop).lineTo(550, footerTop).strokeColor('#eeeeee').stroke();
         doc.fontSize(10).font('Helvetica').fillColor('#888888').text(
             'Thank you for choosing GASCART for your industrial needs.',
             50, footerTop + 20,
-            { align: 'center' }
+            { align: 'center', width: 500 }
         );
         doc.text(
             'Terms & Conditions apply (See Page 2). This is an electronically generated invoice.',
             50, footerTop + 35,
-            { align: 'center' }
+            { align: 'center', width: 500 }
         );
 
         // ── Second Page: Terms & Conditions ──────────────────────────────────
@@ -391,7 +391,7 @@ export const generateInvoicePDF = (data: InvoiceData): Promise<Buffer> => {
 
         doc.fontSize(8).fillColor('#888888').text(
             'This is the second page of the system-generated invoice. For the latest version of terms, please visit www.gascart.in/terms.',
-            50, 780, { align: 'center', width: 500 }
+            50, 740, { align: 'center', width: 500 }
         );
 
         doc.end();
