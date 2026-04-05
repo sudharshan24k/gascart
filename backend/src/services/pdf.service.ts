@@ -197,7 +197,7 @@ export const generateBulkRFQPDF = async (items: RFQDocumentData[]): Promise<Buff
 export interface InvoiceOrderItem {
     quantity: number;
     price_at_purchase: number;
-    product?: { name?: string };
+    product?: { name?: string; advance_payment_percentage?: number };
 }
 
 export interface InvoiceShippingAddress {
@@ -212,6 +212,7 @@ export interface InvoiceShippingAddress {
 
 export interface InvoiceData {
     orderId: string;
+    orderOrderId?: string; // Optional support for different key names if needed
     createdAt: string;
     paymentStatus: string;
     razorpayPaymentId?: string;
@@ -225,7 +226,11 @@ export interface InvoiceData {
 
 export const generateInvoicePDF = (data: InvoiceData): Promise<Buffer> => {
     return new Promise((resolve, reject) => {
-        const doc = new PDFDocument({ margin: 50 });
+        // Create document with strict bottom margin to prevent auto-breaks too early
+        const doc = new PDFDocument({ 
+            margin: 50,
+            autoFirstPage: true
+        });
         const chunks: Buffer[] = [];
 
         doc.on('data', (chunk) => chunks.push(chunk));
@@ -234,112 +239,123 @@ export const generateInvoicePDF = (data: InvoiceData): Promise<Buffer> => {
 
         const shortId = data.orderId.slice(-8).toUpperCase();
 
-        // ── Brand & Header ────────────────────────────────────────────────────
-        doc.fillColor('#444444').font('Helvetica-Bold').fontSize(22).text('GASCART', 50, 50);
-        doc.font('Helvetica').fontSize(10).text('Industrial Ecommerce Solutions', 50, 78);
-        doc.text('123 Industrial Ave, Tech City, 560001', 50, 93);
-        doc.text('support@gascart.com | +91 234 567 890', 50, 108);
+        renderInvoice(doc, data);
 
-        doc.font('Helvetica-Bold').fontSize(22).text('INVOICE', 200, 50, { align: 'right' });
-        doc.font('Helvetica').fontSize(10).fillColor('#444444');
-        doc.text(`Invoice #: INV-${shortId}`, 200, 78, { align: 'right' });
-        doc.text(`Date: ${new Date(data.createdAt).toLocaleDateString()}`, 200, 93, { align: 'right' });
-        doc.text(`Status: ${data.paymentStatus.toUpperCase()}`, 200, 108, { align: 'right' });
+        doc.end();
+    });
+};
 
+export const renderInvoice = (doc: PDFKit.PDFDocument, data: InvoiceData) => {
+    const shortId = data.orderId.slice(-8).toUpperCase();
+
+    // ─── Header & Branding ────────────────────────────────────────────────
+    doc.fillColor('#0f172a').font('Helvetica-Bold').fontSize(24).text('GASCART', 50, 50);
+    doc.font('Helvetica-Bold').fontSize(8).fillColor('#64748b').text('INDUSTRIAL ECOMMERCE SOLUTIONS', 50, 80, { characterSpacing: 1.5 });
+        
+        doc.fontSize(9).font('Helvetica').fillColor('#334155');
+        doc.text('No 52, Kelagina Onikeri, Melina Onikeri Post', 50, 100);
+        doc.text('Sirsi, Uttara Kannada, Karnataka - 581412', 50, 112);
+        doc.text('info@gascart.in | +91 9739903856', 50, 124);
+
+        doc.font('Helvetica-Bold').fontSize(24).fillColor('#0f172a').text('INVOICE', 200, 50, { align: 'right' });
+        doc.font('Helvetica-Bold').fontSize(9).fillColor('#64748b');
+        doc.text(`ID: INV-${shortId}`, 200, 80, { align: 'right' });
+        doc.font('Helvetica').fillColor('#334155');
+        doc.text(`DATE: ${new Date(data.createdAt).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }).toUpperCase()}`, 200, 95, { align: 'right' });
+        doc.text(`STATUS: ${data.paymentStatus.toUpperCase()}`, 200, 110, { align: 'right' });
+        
         if (data.razorpayPaymentId) {
-            doc.text(`Payment ID: ${data.razorpayPaymentId}`, 200, 123, { align: 'right' });
+            doc.fontSize(8).text(`PAYMENT ID: ${data.razorpayPaymentId}`, 200, 125, { align: 'right' });
         }
 
-        doc.moveTo(50, 150).lineTo(550, 150).strokeColor('#eeeeee').stroke();
+        doc.moveTo(50, 145).lineTo(550, 145).lineWidth(1).strokeColor('#f1f5f9').stroke();
 
-        // ── Customer / Shipping Info ──────────────────────────────────────────
-        const customerInfoTop = 180;
-        doc.fontSize(12).font('Helvetica-Bold').fillColor('#333333').text('Bill To:', 50, customerInfoTop);
-        doc.fontSize(10).font('Helvetica').fillColor('#444444');
-        doc.text(data.profile?.full_name || 'Customer', 50, customerInfoTop + 25);
-        doc.text(data.profile?.email || '', 50, customerInfoTop + 40);
-        doc.text(data.shippingAddress.phone || '', 50, customerInfoTop + 55);
+        // ─── Billing Information ──────────────────────────────────────────────
+        const customerInfoTop = 165;
+        doc.fontSize(10).font('Helvetica-Bold').fillColor('#64748b').text('BILL TO', 50, customerInfoTop, { characterSpacing: 1 });
+        doc.fontSize(11).font('Helvetica-Bold').fillColor('#0f172a').text(data.profile?.full_name || 'Customer', 50, customerInfoTop + 18);
+        doc.fontSize(9).font('Helvetica').fillColor('#475569');
+        doc.text(data.profile?.email || '', 50, customerInfoTop + 33);
+        if (data.shippingAddress.phone) doc.text(`Phone: ${data.shippingAddress.phone}`, 50, customerInfoTop + 46);
 
-        doc.fontSize(12).font('Helvetica-Bold').fillColor('#333333').text('Ship To:', 300, customerInfoTop);
-        doc.fontSize(10).font('Helvetica').fillColor('#444444');
-        doc.text(data.shippingAddress.full_name || 'Customer', 300, customerInfoTop + 25);
-        
-        // Use a wrapping text block for address line 1 to avoid overlap if it's long
-        doc.text(data.shippingAddress.address_line1 || '', 300, customerInfoTop + 40, { width: 250 });
-        
-        // City, State, Zip - Pushed down further to accommodate potential wrapping above
-        doc.text(
-            `${data.shippingAddress.city || ''}, ${data.shippingAddress.state || ''} ${data.shippingAddress.postal_code || data.shippingAddress.zip_code || ''}`,
-            300,
-            customerInfoTop + 75
-        );
+        doc.fontSize(10).font('Helvetica-Bold').fillColor('#64748b').text('SHIP TO', 300, customerInfoTop, { characterSpacing: 1 });
+        doc.fontSize(11).font('Helvetica-Bold').fillColor('#0f172a').text(data.shippingAddress.full_name || data.profile?.full_name || 'Customer', 300, customerInfoTop + 18);
+        doc.fontSize(9).font('Helvetica').fillColor('#475569');
+        doc.text(data.shippingAddress.address_line1 || '', 300, customerInfoTop + 33, { width: 250 });
+        doc.text(`${data.shippingAddress.city || ''}, ${data.shippingAddress.state || ''} ${data.shippingAddress.postal_code || data.shippingAddress.zip_code || ''}`, 300, doc.y + 2);
 
-        doc.moveTo(50, 280).lineTo(550, 280).strokeColor('#eeeeee').stroke();
+        doc.moveTo(50, 245).lineTo(550, 245).lineWidth(1).strokeColor('#f1f5f9').stroke();
 
-        // ── Items Table ───────────────────────────────────────────────────────
-        const tableTop = 300;
-        doc.fontSize(10).font('Helvetica-Bold').fillColor('#333333').text('Item Description', 50, tableTop);
-        doc.text('Qty', 300, tableTop);
-        doc.text('Unit Price', 380, tableTop);
-        doc.text('Total', 480, tableTop);
-        doc.moveTo(50, tableTop + 15).lineTo(550, tableTop + 15).strokeColor('#cccccc').stroke();
+        // ─── Items Table ───────────────────────────────────────────────────────
+        const tableTop = 265;
+        doc.fontSize(9).font('Helvetica-Bold').fillColor('#64748b').text('ITEM DESCRIPTION', 50, tableTop);
+        doc.text('QTY', 320, tableTop, { width: 40, align: 'center' });
+        doc.text('UNIT PRICE', 380, tableTop, { width: 80, align: 'right' });
+        doc.text('TOTAL', 480, tableTop, { width: 70, align: 'right' });
+
+        doc.moveTo(50, tableTop + 15).lineTo(550, tableTop + 15).lineWidth(2).strokeColor('#0f172a').stroke();
 
         let y = tableTop + 30;
         doc.font('Helvetica');
-        data.orderItems.forEach((item) => {
-            const name = item.product?.name || 'Product';
-            doc.fontSize(10).fillColor('#444444').text(name, 50, y, { width: 240 });
-            doc.text(item.quantity.toString(), 300, y);
-            doc.text(`Rs.${item.price_at_purchase.toFixed(2)}`, 380, y);
-            doc.text(`Rs.${(item.quantity * item.price_at_purchase).toFixed(2)}`, 480, y);
-            y += 20;
-            doc.moveTo(50, y - 5).lineTo(550, y - 5).strokeColor('#f9f9f9').stroke();
+        
+        // Safety cap on items to avoid Page 1 overflow (Strictly 2 pages requirement)
+        const maxItems = 12; 
+        data.orderItems.slice(0, maxItems).forEach((item: InvoiceOrderItem) => {
+            const productName = item.product?.name || 'Product';
+            doc.fontSize(10).fillColor('#1e293b').font('Helvetica-Bold').text(productName, 50, y, { width: 260 });
+            doc.font('Helvetica').fillColor('#475569').text(item.quantity.toString(), 320, y, { width: 40, align: 'center' });
+            doc.text(`INR ${item.price_at_purchase.toLocaleString('en-IN', { minimumFractionDigits: 2 })}`, 380, y, { width: 80, align: 'right' });
+            doc.font('Helvetica-Bold').fillColor('#0f172a').text(`INR ${(item.quantity * item.price_at_purchase).toLocaleString('en-IN', { minimumFractionDigits: 2 })}`, 480, y, { width: 70, align: 'right' });
+            y += 25;
+            doc.moveTo(50, y - 5).lineTo(550, y - 5).lineWidth(0.5).strokeColor('#f1f5f9').stroke();
         });
 
-        // ── Summary ───────────────────────────────────────────────────────────
-        y += 20;
+        if (data.orderItems.length > maxItems) {
+            doc.fontSize(8).fillColor('#ef4444').text(`+ ${data.orderItems.length - maxItems} more items (Truncated for layout consistency)`, 50, y);
+            y += 15;
+        }
+
+        // ─── Summary ──────────────────────────────────────────────────────────
+        y += 15;
         const summaryX = 350;
+        doc.fontSize(10).font('Helvetica').fillColor('#64748b').text('Subtotal:', summaryX, y);
+        doc.font('Helvetica-Bold').fillColor('#1e293b').text(`INR ${data.totalAmount.toLocaleString('en-IN', { minimumFractionDigits: 2 })}`, 480, y, { width: 70, align: 'right' });
 
-        doc.fontSize(10).font('Helvetica').fillColor('#333333').text('Subtotal:', summaryX, y);
-        doc.text(`Rs.${data.totalAmount.toFixed(2)}`, 480, y, { align: 'right' });
+        const paidAmount = data.paidAmount || 0;
+        const balanceDue = data.balanceDue || 0;
 
-        if (data.paidAmount && data.paidAmount > 0) {
+        if (paidAmount > 0) {
             y += 20;
-            doc.text('Paid Amount:', summaryX, y);
-            doc.text(`Rs.${data.paidAmount.toFixed(2)}`, 480, y, { align: 'right' });
+            doc.fontSize(10).font('Helvetica').fillColor('#64748b').text('Paid Amount:', summaryX, y);
+            doc.font('Helvetica-Bold').fillColor('#1e293b').text(`INR ${paidAmount.toLocaleString('en-IN', { minimumFractionDigits: 2 })}`, 480, y, { width: 70, align: 'right' });
         }
 
-        if (data.balanceDue && data.balanceDue > 0) {
+        if (balanceDue > 0) {
             y += 20;
-            doc.font('Helvetica-Bold').fillColor('#e74c3c').text('Balance Due:', summaryX, y);
-            doc.fillColor('#e74c3c').text(`Rs.${data.balanceDue.toFixed(2)}`, 480, y, { align: 'right' });
+            doc.fontSize(10).font('Helvetica-Bold').fillColor('#e11d48').text('Balance Due:', summaryX, y);
+            doc.text(`INR ${balanceDue.toLocaleString('en-IN', { minimumFractionDigits: 2 })}`, 480, y, { width: 70, align: 'right' });
         }
 
-        y += 25;
-        doc.fontSize(12).font('Helvetica-Bold').fillColor('#333333').text('Total Amount:', summaryX, y);
-        doc.fontSize(12).fillColor('#2ecc71').text(`Rs.${data.totalAmount.toFixed(2)}`, 480, y, { align: 'right' });
+        y += 30;
+        doc.rect(summaryX - 10, y - 10, 210, 40).fill('#0f172a');
+        doc.fillColor('#ffffff').fontSize(12).font('Helvetica-Bold').text('TOTAL AMOUNT', summaryX, y);
+        doc.text(`INR ${data.totalAmount.toLocaleString('en-IN', { minimumFractionDigits: 2 })}`, 480, y, { width: 70, align: 'right' });
 
-        // ── Footer ────────────────────────────────────────────────────────────
-        const footerTop = 680;
-        doc.moveTo(50, footerTop).lineTo(550, footerTop).strokeColor('#eeeeee').stroke();
-        doc.fontSize(10).font('Helvetica').fillColor('#888888').text(
-            'Thank you for choosing GASCART for your industrial needs.',
-            50, footerTop + 20,
-            { align: 'center', width: 500 }
-        );
-        doc.text(
-            'Terms & Conditions apply (See Page 2). This is an electronically generated invoice.',
-            50, footerTop + 35,
-            { align: 'center', width: 500 }
-        );
+        // ─── Footer (Page 1) ──────────────────────────────────────────────────
+        // Fixed absolute position to prevent auto-breaks
+        const footerTop = 700;
+        doc.moveTo(50, footerTop).lineTo(550, footerTop).lineWidth(1).strokeColor('#f1f5f9').stroke();
+        doc.fontSize(8).font('Helvetica').fillColor('#94a3b8').text('THANK YOU FOR CHOOSING GASCART FOR YOUR INDUSTRIAL NEEDS.', 50, footerTop + 15, { align: 'center', characterSpacing: 1 });
+        doc.text('Terms & Conditions apply (See Page 2). This is an electronically generated invoice.', 50, footerTop + 28, { align: 'center' });
+        doc.font('Helvetica-Bold').fillColor('#0f172a').text('GASCART.IN', 50, footerTop + 42, { align: 'center', characterSpacing: 2 });
 
-        // ── Second Page: Terms & Conditions ──────────────────────────────────
+        // ─── Second Page: Terms & Conditions ──────────────────────────────────
         doc.addPage();
         
-        doc.fillColor('#333333').font('Helvetica-Bold').fontSize(16).text('TERMS AND CONDITIONS', 50, 50, { align: 'center' });
-        doc.moveTo(50, 75).lineTo(550, 75).strokeColor('#eeeeee').stroke();
+        doc.fillColor('#0f172a').font('Helvetica-Bold').fontSize(20).text('TERMS AND CONDITIONS', 50, 50, { align: 'center' });
+        doc.moveTo(50, 80).lineTo(550, 80).lineWidth(2).strokeColor('#f1f5f9').stroke();
         
-        let termsY = 95;
+        let termsY = 110;
         const termsFontSize = 8;
         const headerFontSize = 10;
         
@@ -383,17 +399,14 @@ export const generateInvoicePDF = (data: InvoiceData): Promise<Buffer> => {
         ];
 
         terms.forEach(section => {
-            doc.font('Helvetica-Bold').fontSize(headerFontSize).text(section.title, 50, termsY);
+            doc.font('Helvetica-Bold').fontSize(headerFontSize).fillColor('#0f172a').text(section.title, 50, termsY);
             termsY += 15;
-            doc.font('Helvetica').fontSize(termsFontSize).text(section.content, 50, termsY, { width: 500, align: 'justify' });
+            doc.font('Helvetica').fontSize(termsFontSize).fillColor('#475569').text(section.content, 50, termsY, { width: 500, align: 'justify' });
             termsY += doc.heightOfString(section.content, { width: 500 }) + 15;
         });
 
-        doc.fontSize(8).fillColor('#888888').text(
-            'This is the second page of the system-generated invoice. For the latest version of terms, please visit www.gascart.in/terms.',
+        doc.fontSize(8).fillColor('#94a3b8').text(
+            'This document constitutes the entire terms of service for the associated invoice. For the latest digital version, visit www.gascart.in/terms.',
             50, 740, { align: 'center', width: 500 }
         );
-
-        doc.end();
-    });
 };
