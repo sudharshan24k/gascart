@@ -180,6 +180,7 @@ const AdminProducts = () => {
     };
 
     const handleOpenModal = async (product: any = null) => {
+        console.info('[Frontend] Opening Modal. Product Data:', product);
         if (product) {
             setEditingProduct(product);
             setFormData({
@@ -228,6 +229,7 @@ const AdminProducts = () => {
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+        console.info('[Frontend] Submitting formData:', formData);
         try {
             const payload = {
                 ...formData,
@@ -241,6 +243,7 @@ const AdminProducts = () => {
                 low_stock_threshold: parseInt(formData.low_stock_threshold) || 10,
                 warehouse_location: formData.warehouse_location,
                 order_index: parseInt(formData.order_index) || 0,
+                advance_payment_percentage: Number(formData.advance_payment_percentage) || 50,
                 slug: formData.name.toLowerCase().trim().replace(/[-\s]+/g, '-')
             };
 

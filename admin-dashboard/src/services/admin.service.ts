@@ -15,6 +15,8 @@ adminApi.interceptors.request.use(async (config) => {
         if (session?.access_token) {
             config.headers.Authorization = `Bearer ${session.access_token}`;
         }
+        // Force bypass cache for admin operations
+        config.headers['x-admin-request'] = 'true';
     } catch (error) {
         console.error('[AdminAPI] Interceptor error:', error);
     }

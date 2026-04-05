@@ -9,10 +9,11 @@ export const getProducts = async (req: Request, res: Response, next: NextFunctio
 
         // Generate Cache Key based on query params
         const cacheKey = `products:${JSON.stringify(req.query)}`;
+        const isAdminRequest = req.headers['x-admin-request'] === 'true';
 
-        // Check Cache
+        // Check Cache (Skip for admins)
         let cachedData = null;
-        if (redis.status === 'ready') {
+        if (redis.status === 'ready' && !isAdminRequest) {
             try {
                 cachedData = await redis.get(cacheKey);
                 if (cachedData) {
@@ -111,8 +112,8 @@ export const getProducts = async (req: Request, res: Response, next: NextFunctio
             responseData.data = enhancedData;
         }
 
-        // Set Cache (TTL: 1 hour)
-        if (redis.status === 'ready') {
+        // Set Cache (Skip for admins, TTL: 1 hour)
+        if (redis.status === 'ready' && !isAdminRequest) {
             try {
                 await redis.setex(cacheKey, 3600, JSON.stringify(responseData));
             } catch (cacheErr: any) {
@@ -315,6 +316,7 @@ export const updateProduct = async (req: Request, res: Response, next: NextFunct
             return res.status(400).json({ status: 'error', message: 'No valid fields provided for update' });
         }
 
+        console.log('[Backend] Updating Product:', id, 'Payload:', updates);
         const { data, error } = await supabase
             .from('products')
             .update(updates)
