@@ -13,10 +13,11 @@ adminApi.interceptors.request.use(async (config) => {
     try {
         const { data: { session } } = await supabase.auth.getSession();
         
-        // Use the standard Axios 1.x way to set headers if possible, 
-        // fallback to direct assignment for older versions or simplified typing
         if (session?.access_token) {
-            config.headers.Authorization = `Bearer ${session.access_token}`;
+            config.headers['Authorization'] = `Bearer ${session.access_token}`;
+            console.debug(`[AdminAPI] Authentication Token attached to ${config.url}`);
+        } else {
+            console.warn(`[AdminAPI] No session found while requesting ${config.url}`);
         }
         
         // Force bypass cache for admin operations

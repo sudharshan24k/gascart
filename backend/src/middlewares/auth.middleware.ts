@@ -19,6 +19,8 @@ export const requireAuth = async (req: AuthRequest, res: Response, next: NextFun
     const authHeader = req.headers['authorization'];
     const token = authHeader?.split(' ')[1];
 
+    console.info(`[AuthMiddleware] req: ${req.method} ${req.url}, hasHeader: ${!!authHeader}, isAdminReq: ${req.headers['x-admin-request'] === 'true'}`);
+
     if (!authHeader) {
         return res.status(401).json({ message: 'Authorization header missing' });
     }
