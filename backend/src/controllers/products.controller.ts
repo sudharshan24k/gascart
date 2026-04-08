@@ -228,28 +228,32 @@ export const createProduct = async (req: Request, res: Response, next: NextFunct
     try {
         // Allowlist prevents mass assignment of internal DB fields
         const {
-            name, description, price, category_id, stock_quantity,
-            low_stock_threshold, sku, specifications, variants,
-            warehouse_location, images, purchase_model,
+            name, slug, description, price, category_id, stock_quantity,
+            low_stock_threshold, attributes, variants, warehouse_location,
+            images, purchase_model, min_rfq_fields,
             // Admin-controlled status fields — route is already requireAdmin-gated
-            is_active, is_featured, vendor_id, advance_payment_percentage
+            is_active, visibility_status, order_index, vendor_id, advance_payment_percentage,
+            documents
         } = req.body;
 
         const productData: Record<string, any> = {
-            name, description, price, category_id
+            name, slug, price, category_id
         };
+        if (description !== undefined) productData.description = description;
         if (stock_quantity !== undefined) productData.stock_quantity = stock_quantity;
         if (low_stock_threshold !== undefined) productData.low_stock_threshold = low_stock_threshold;
-        if (sku !== undefined) productData.sku = sku;
-        if (specifications !== undefined) productData.specifications = specifications;
+        if (attributes !== undefined) productData.attributes = attributes;
         if (variants !== undefined) productData.variants = variants;
         if (warehouse_location !== undefined) productData.warehouse_location = warehouse_location;
         if (images !== undefined) productData.images = images;
         if (purchase_model !== undefined) productData.purchase_model = purchase_model;
+        if (min_rfq_fields !== undefined) productData.min_rfq_fields = min_rfq_fields;
         if (is_active !== undefined) productData.is_active = is_active;
-        if (is_featured !== undefined) productData.is_featured = is_featured;
+        if (visibility_status !== undefined) productData.visibility_status = visibility_status;
+        if (order_index !== undefined) productData.order_index = order_index;
         if (vendor_id !== undefined) productData.vendor_id = vendor_id;
         if (advance_payment_percentage !== undefined) productData.advance_payment_percentage = advance_payment_percentage;
+        if (documents !== undefined) productData.documents = documents;
 
         const { data, error } = await supabase
             .from('products')
@@ -287,30 +291,34 @@ export const updateProduct = async (req: Request, res: Response, next: NextFunct
 
         // Allowlist prevents mass assignment of internal DB fields
         const {
-            name, description, price, category_id, stock_quantity,
-            low_stock_threshold, sku, specifications, variants,
-            warehouse_location, images, purchase_model,
+            name, slug, description, price, category_id, stock_quantity,
+            low_stock_threshold, attributes, variants, warehouse_location,
+            images, purchase_model, min_rfq_fields,
             // Admin-controlled status fields — route is already requireAdmin-gated
-            is_active, is_featured, vendor_id, advance_payment_percentage
+            is_active, visibility_status, order_index, vendor_id, advance_payment_percentage,
+            documents
         } = req.body;
 
         const updates: Record<string, any> = {};
         if (name !== undefined) updates.name = name;
+        if (slug !== undefined) updates.slug = slug;
         if (description !== undefined) updates.description = description;
         if (price !== undefined) updates.price = price;
         if (category_id !== undefined) updates.category_id = category_id;
         if (stock_quantity !== undefined) updates.stock_quantity = stock_quantity;
         if (low_stock_threshold !== undefined) updates.low_stock_threshold = low_stock_threshold;
-        if (sku !== undefined) updates.sku = sku;
-        if (specifications !== undefined) updates.specifications = specifications;
+        if (attributes !== undefined) updates.attributes = attributes;
         if (variants !== undefined) updates.variants = variants;
         if (warehouse_location !== undefined) updates.warehouse_location = warehouse_location;
         if (images !== undefined) updates.images = images;
         if (purchase_model !== undefined) updates.purchase_model = purchase_model;
+        if (min_rfq_fields !== undefined) updates.min_rfq_fields = min_rfq_fields;
         if (is_active !== undefined) updates.is_active = is_active;
-        if (is_featured !== undefined) updates.is_featured = is_featured;
+        if (visibility_status !== undefined) updates.visibility_status = visibility_status;
+        if (order_index !== undefined) updates.order_index = order_index;
         if (vendor_id !== undefined) updates.vendor_id = vendor_id;
         if (advance_payment_percentage !== undefined) updates.advance_payment_percentage = advance_payment_percentage;
+        if (documents !== undefined) updates.documents = documents;
 
         if (Object.keys(updates).length === 0) {
             return res.status(400).json({ status: 'error', message: 'No valid fields provided for update' });
