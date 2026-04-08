@@ -48,7 +48,26 @@ const Checkout: React.FC = () => {
     const subtotal = cartTotal;
     const tax = subtotal * 0.18;
     const grandTotal = subtotal + tax;
-    const advancePayable = grandTotal * 0.5;
+    
+    // Dynamic calculation based on individual product configurations
+    let totalAdvance = 0;
+    let commonPercentage: number | null = null;
+    let isMixed = false;
+
+    items.forEach(item => {
+        const price = item.vendor_price ?? item.selected_variant?.price ?? item.product?.price ?? 0;
+        const itemTotal = (price * item.quantity) * 1.18;
+        const percentage = item.product?.advance_payment_percentage ?? 50;
+        totalAdvance += (itemTotal * (percentage / 100));
+
+        if (commonPercentage === null) {
+            commonPercentage = percentage;
+        } else if (commonPercentage !== percentage) {
+            isMixed = true;
+        }
+    });
+
+    const advancePayable = totalAdvance;
 
     useEffect(() => {
         // Wait for both auth and cart to finish loading before checking for empty cart
@@ -189,7 +208,8 @@ const Checkout: React.FC = () => {
                     image: item.product?.image_url || '',
                     selected_variant: item.selected_variant,
                     vendor_id: item.vendor_id,
-                    vendor_price: item.vendor_price
+                    vendor_price: item.vendor_price,
+                    advance_payment_percentage: item.product?.advance_payment_percentage || 50
                 })),
                 shippingDetails: formData,
                 billingDetails: formData // Assuming same for simplicity
@@ -587,7 +607,9 @@ const Checkout: React.FC = () => {
                                 <div className="flex justify-between items-center mt-4 p-4 bg-primary/5 rounded-2xl border border-primary/20">
                                     <div>
                                         <span className="font-black text-primary text-lg block">Advance Payable Now</span>
-                                        <span className="text-xs text-primary/70 font-bold block mt-1">50% of Grand Total</span>
+                                        <span className="text-xs text-primary/70 font-bold block mt-1">
+                                            {isMixed ? 'Combined Package Rate' : `${commonPercentage ?? 50}% of Grand Total`}
+                                        </span>
                                     </div>
                                     <span className="font-black text-primary text-3xl">₹{advancePayable.toLocaleString()}</span>
                                 </div>

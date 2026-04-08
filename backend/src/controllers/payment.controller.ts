@@ -33,8 +33,9 @@ export const createPaymentOrder = async (req: AuthRequest, res: Response) => {
         let isMixed = false;
 
         for (const item of items) {
-            // Use product's advance percentage (default to 50 if missing)
-            const percentage = item.product?.advance_payment_percentage ?? 50;
+            // Priority: item level (sent by frontend) -> product level nested -> default 50
+            const percentage = item.advance_payment_percentage ?? item.product?.advance_payment_percentage ?? 50;
+            
             const itemSubtotal = Number(item.price) * Number(item.quantity);
             const itemTax = itemSubtotal * 0.18;
             const itemTotal = itemSubtotal + itemTax;
