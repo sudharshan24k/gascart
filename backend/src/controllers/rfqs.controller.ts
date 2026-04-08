@@ -150,11 +150,15 @@ export const getAllRFQs = async (req: Request, res: Response, next: NextFunction
 export const updateRFQStatus = async (req: Request, res: Response, next: NextFunction) => {
     try {
         const { id } = req.params;
-        const { status } = req.body;
+        const { status, internal_comments } = req.body;
+
+        const updates: any = {};
+        if (status !== undefined) updates.status = status;
+        if (internal_comments !== undefined) updates.internal_comments = internal_comments;
 
         const { data, error } = await supabase
             .from('rfqs')
-            .update({ status })
+            .update(updates)
             .eq('id', id)
             .select()
             .single();

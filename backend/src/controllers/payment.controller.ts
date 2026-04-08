@@ -3,6 +3,8 @@ import { supabase } from '../config/supabase';
 import { AuthRequest } from '../middlewares/auth.middleware';
 import { createRazorpayOrder, verifyPaymentSignature, getPaymentDetails } from '../services/razorpay.service';
 import { config } from '../config/env';
+import { sendOrderConfirmation } from '../services/email.service';
+import { generateInvoicePDF } from '../services/pdf.service';
 
 /**
  * Create Razorpay Order for Checkout
@@ -284,6 +286,58 @@ export const verifyPayment = async (req: AuthRequest, res: Response) => {
             }
         } catch (postError: any) {
             addLog(`Warning: Post-payment logic error (Non-fatal) - ${postError.message}`);
+        }
+
+        // 5. Send order confirmation email (Async - background)
+        if (payment.status === 'captured') {
+            (async () => {
+                try {
+                    addLog('Async: Starting email/invoice process...');
+                    // Fetch full order details for invoice (with product names)
+                    const { data: fullOrder } = await supabase
+                        .from('orders')
+                        .select('*, order_items(*, product:products(name))')
+                        .eq('id', order.id)
+                        .single();
+
+                    const { data: profile } = await supabase
+                        .from('profiles')
+                        .select('full_name, email')
+                        .eq('id', order.user_id)
+                        .single();
+
+                    if (profile?.email && fullOrder) {
+                        addLog(`Async: Generating invoice for ${profile.email}`);
+                        // Generate Invoice PDF
+                        const invoiceBuffer = await generateInvoicePDF({
+                            orderId: fullOrder.id,
+                            createdAt: fullOrder.created_at,
+                            paymentStatus: fullOrder.payment_status,
+                            razorpayPaymentId: razorpay_payment_id,
+                            totalAmount: fullOrder.total_amount,
+                            paidAmount: fullOrder.paid_amount,
+                            balanceDue: fullOrder.balance_due,
+                            orderItems: fullOrder.order_items,
+                            shippingAddress: fullOrder.shipping_address,
+                            profile: profile
+                        });
+
+                        addLog('Async: Sending email notification...');
+                        await sendOrderConfirmation(
+                            profile.email, 
+                            fullOrder.id, 
+                            fullOrder.total_amount,
+                            [{
+                                filename: `GASCART-INV-${fullOrder.id.slice(-8).toUpperCase()}.pdf`,
+                                content: invoiceBuffer
+                            }]
+                        );
+                        addLog('Async: Email sent successfully.');
+                    }
+                } catch (err: any) {
+                    console.error('[VerifyPaymentEmail] Async process failed:', err);
+                }
+            })();
         }
 
         addLog('Verification Finished Successfully');

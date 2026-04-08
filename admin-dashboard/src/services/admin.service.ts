@@ -133,8 +133,8 @@ export const fetchRFQs = async () => {
     return response.data.data;
 };
 
-export const updateAdminRFQStatus = async (id: string, status: string) => {
-    const response = await adminApi.patch(`/rfqs/${id}/status`, { status });
+export const updateAdminRFQStatus = async (id: string, status?: string, internal_comments?: string) => {
+    const response = await adminApi.patch(`/rfqs/${id}/status`, { status, internal_comments });
     return response.data.data;
 };
 
@@ -196,8 +196,8 @@ export const fetchVendorEnquiries = async (params?: { status?: string }) => {
     return response.data.data;
 };
 
-export const updateVendorEnquiryStatus = async (id: string, status: string) => {
-    const response = await adminApi.patch(`/vendors/enquiries/${id}`, { status });
+export const updateVendorEnquiryStatus = async (id: string, status?: string, internal_comments?: string) => {
+    const response = await adminApi.patch(`/vendors/enquiries/${id}`, { status, internal_comments });
     return response.data.data;
 };
 
@@ -298,7 +298,13 @@ export const fetchOrders = async (params?: { status?: string }) => {
     return response.data.data;
 };
 
-export const updateOrderStatus = async (id: string, updates: { status?: string, payment_status?: string, paid_amount?: number, balance_due?: number }) => {
+export const updateOrderStatus = async (id: string, updates: { 
+    status?: string; 
+    payment_status?: string; 
+    paid_amount?: number; 
+    balance_due?: number; 
+    internal_comments?: string;
+}) => {
     const response = await adminApi.patch(`/orders/admin/${id}/status`, updates);
     return response.data.data;
 };
@@ -430,8 +436,8 @@ export const getCareerApplications = async (params?: { category?: string; status
     return response.data;
 };
 
-export const updateCareerApplicationStatus = async (id: string, status: string, old_status: string) => {
-    const response = await adminApi.patch(`/admin/careers/${id}/status`, { status, old_status });
+export const updateCareerApplicationStatus = async (id: string, status?: string, old_status?: string, internal_comments?: string) => {
+    const response = await adminApi.patch(`/admin/careers/${id}/status`, { status, old_status, internal_comments });
     return response.data;
 };
 

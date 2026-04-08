@@ -595,12 +595,38 @@ const VendorManagement = () => {
                                         </div>
 
                                         {enquiry.message && (
-                                            <div className="relative mb-8">
+                                            <div className="relative mb-6">
                                                 <p className="text-gray-600 font-medium w-full p-6 bg-white rounded-2xl border border-gray-100 leading-relaxed italic shadow-inner">
                                                     "{enquiry.message}"
                                                 </p>
                                             </div>
                                         )}
+
+                                        {/* Internal Notes section */}
+                                        <div className="mb-8 p-6 bg-white rounded-3xl border border-gray-100 shadow-sm transition-all group-hover:border-primary/20">
+                                            <div className="flex justify-between items-center mb-3">
+                                                <h4 className="text-[10px] font-black text-gray-400 uppercase tracking-widest flex items-center gap-2">
+                                                    <FileCheck className="w-4 h-4 text-primary/40" /> Internal Admin Notes
+                                                </h4>
+                                            </div>
+                                            <textarea
+                                                defaultValue={enquiry.internal_comments || ''}
+                                                onBlur={async (e) => {
+                                                    const newVal = e.target.value;
+                                                    if (newVal !== (enquiry.internal_comments || '')) {
+                                                        try {
+                                                            await updateVendorEnquiryStatus(enquiry.id, enquiry.status, newVal);
+                                                            enquiry.internal_comments = newVal;
+                                                        } catch (err) {
+                                                            alert('Failed to save notes');
+                                                        }
+                                                    }
+                                                }}
+                                                placeholder="Add coordination notes, follow-up status, or vetting details..."
+                                                className="w-full px-5 py-4 bg-gray-50 border border-gray-100 rounded-2xl text-sm focus:ring-4 focus:ring-primary/5 focus:border-primary/20 outline-none transition-all min-h-[100px] resize-none placeholder:text-gray-300 font-medium text-gray-600 shadow-inner"
+                                            />
+                                            <p className="mt-2 text-[9px] text-gray-400 font-bold italic px-1">Saved automatically on blur.</p>
+                                        </div>
 
                                         <div className="flex flex-col sm:flex-row gap-4">
                                             {enquiry.document_url && (

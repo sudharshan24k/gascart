@@ -579,11 +579,34 @@ const AdminOrders = () => {
                                             <button
                                                 onClick={handleTrackingUpdate}
                                                 disabled={!trackingForm.carrier || !trackingForm.tracking_number}
-                                                className="w-full py-4 bg-white text-gray-900 border-2 border-gray-200 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:border-primary transition-all disabled:opacity-30 disabled:hover:border-gray-200"
+                                                className="w-full py-4 bg-white text-gray-900 border-2 border-gray-100 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:border-primary transition-all disabled:opacity-30 disabled:hover:border-gray-200"
                                             >
                                                 Update Protocol
                                             </button>
                                         </div>
+                                    </section>
+
+                                    <section className="bg-amber-50/30 p-8 rounded-[32px] border border-amber-100">
+                                        <h4 className="text-[11px] font-black uppercase tracking-[0.2em] text-amber-600 mb-6 flex items-center gap-2">
+                                            <FileText className="w-4 h-4" /> Internal Admin Notes
+                                        </h4>
+                                        <textarea
+                                            defaultValue={selectedOrder.internal_comments || ''}
+                                            onBlur={async (e) => {
+                                                const newVal = e.target.value;
+                                                if (newVal !== (selectedOrder.internal_comments || '')) {
+                                                    try {
+                                                        await updateOrderStatus(selectedOrder.id, { internal_comments: newVal });
+                                                        selectedOrder.internal_comments = newVal;
+                                                    } catch (err) {
+                                                        alert('Failed to save notes');
+                                                    }
+                                                }
+                                            }}
+                                            placeholder="Add internal notes about coordination, status updates, or follow-ups..."
+                                            className="w-full px-5 py-4 bg-white border border-amber-100 rounded-2xl text-sm focus:ring-4 focus:ring-amber-500/5 focus:border-amber-200 outline-none transition-all min-h-[120px] resize-none placeholder:text-amber-200 font-medium text-gray-700 shadow-sm"
+                                        />
+                                        <p className="mt-3 text-[9px] text-amber-400 font-bold italic px-1">Changes are saved automatically when you click away.</p>
                                     </section>
                                 </div>
                             </div>

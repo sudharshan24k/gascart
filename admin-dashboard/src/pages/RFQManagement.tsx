@@ -541,6 +541,33 @@ const RFQManagement: React.FC = () => {
                                         ))}
                                     </div>
                                 )}
+
+                                {/* Internal Notes section */}
+                                <div className="mt-12 pt-8 border-t border-gray-100 no-print">
+                                    <div className="flex justify-between items-center mb-4">
+                                        <h4 className="text-xs font-black text-gray-400 uppercase tracking-widest flex items-center gap-2">
+                                            <FileText className="w-4 h-4" /> Internal Admin Notes
+                                        </h4>
+                                    </div>
+                                    <textarea
+                                        defaultValue={selectedRFQ.internal_comments || ''}
+                                        onBlur={async (e) => {
+                                            const newVal = e.target.value;
+                                            if (newVal !== (selectedRFQ.internal_comments || '')) {
+                                                try {
+                                                    await updateAdminRFQStatus(selectedRFQ.id, selectedRFQ.status, newVal);
+                                                    selectedRFQ.internal_comments = newVal;
+                                                    // We don't necessarily need to reload all RFQs immediately if we just update the local object
+                                                } catch (err) {
+                                                    alert('Failed to save notes');
+                                                }
+                                            }
+                                        }}
+                                        placeholder="Add internal notes about coordination, status updates, or follow-ups..."
+                                        className="w-full px-6 py-5 bg-gray-50 border border-gray-100 rounded-[32px] text-sm focus:ring-4 focus:ring-primary/5 focus:border-primary/20 outline-none transition-all min-h-[120px] resize-none placeholder:text-gray-300 font-medium text-gray-600"
+                                    />
+                                    <p className="mt-3 text-[10px] text-gray-400 font-bold italic px-2">Changes are saved automatically when you click away.</p>
+                                </div>
                             </div>
                         </div>
 

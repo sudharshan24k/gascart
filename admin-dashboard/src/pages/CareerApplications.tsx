@@ -165,6 +165,31 @@ const CareerApplications: React.FC = () => {
                                 >
                                     <FileText className="w-4 h-4" /> View Resume
                                 </button>
+
+                                {/* Internal Notes section */}
+                                <div className="pt-4 border-t border-neutral-100">
+                                    <div className="flex justify-between items-center mb-2">
+                                        <span className="text-[10px] font-bold text-neutral-400 uppercase tracking-wider">Internal Admin Notes</span>
+                                    </div>
+                                    <textarea
+                                        defaultValue={app.internal_comments || ''}
+                                        onBlur={async (e) => {
+                                            const newVal = e.target.value;
+                                            if (newVal !== (app.internal_comments || '')) {
+                                                try {
+                                                    await updateCareerApplicationStatus(app.id, app.status, app.status, newVal);
+                                                    toast.success('Notes updated');
+                                                    // Optional: refresh data if needed, but here we just update local value for comparison
+                                                    app.internal_comments = newVal;
+                                                } catch (err) {
+                                                    toast.error('Failed to save notes');
+                                                }
+                                            }
+                                        }}
+                                        placeholder="Add private notes..."
+                                        className="w-full p-3 bg-neutral-50 border border-neutral-200 rounded-lg text-xs min-h-[80px] focus:ring-1 focus:ring-indigo-500/20 focus:border-indigo-300 outline-none transition-all resize-none placeholder:text-neutral-300 font-medium"
+                                    />
+                                </div>
                             </div>
 
                             {/* Card Footer Actions */}

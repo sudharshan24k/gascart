@@ -97,15 +97,22 @@ export const getVendorEnquiries = async (req: Request, res: Response, next: Next
 export const updateVendorEnquiryStatus = async (req: Request, res: Response, next: NextFunction) => {
     try {
         const { id } = req.params;
-        const { status } = req.body;
+        const { status, internal_comments } = req.body;
         const admin_id = (req as any).user.id;
+
+        const updates: any = {};
+        if (status) {
+            updates.status = status;
+            updates.reviewed_at = new Date().toISOString();
+            updates.reviewed_by = admin_id;
+        }
+        if (internal_comments !== undefined) {
+            updates.internal_comments = internal_comments;
+        }
 
         const { data, error } = await supabase
             .from('vendor_enquiries')
-            .update({
-                status,
-                reviewed_at: new Date().toISOString()
-            })
+            .update(updates)
             .eq('id', id)
             .select()
             .single();

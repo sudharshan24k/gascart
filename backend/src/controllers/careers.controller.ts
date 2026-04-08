@@ -66,20 +66,28 @@ export const getAllApplications = async (req: Request, res: Response) => {
 export const updateApplicationStatus = async (req: Request, res: Response) => {
     try {
         const { id } = req.params;
-        const { status } = req.body;
+        const { status, internal_comments } = req.body;
 
-        if (!status) {
-            return res.status(400).json({ status: 'fail', message: 'Status is required' });
+        const updates: any = {};
+        if (status) {
+            const validStatuses = ['pending', 'reviewed', 'rejected'];
+            if (!validStatuses.includes(status)) {
+                return res.status(400).json({ status: 'fail', message: 'Invalid status' });
+            }
+            updates.status = status;
         }
 
-        const validStatuses = ['pending', 'reviewed', 'rejected'];
-        if (!validStatuses.includes(status)) {
-            return res.status(400).json({ status: 'fail', message: 'Invalid status' });
+        if (internal_comments !== undefined) {
+            updates.internal_comments = internal_comments;
+        }
+
+        if (Object.keys(updates).length === 0) {
+            return res.status(400).json({ status: 'fail', message: 'No fields provided' });
         }
 
         const { data, error } = await supabase
             .from('career_applications')
-            .update({ status })
+            .update(updates)
             .eq('id', id)
             .select()
             .single();

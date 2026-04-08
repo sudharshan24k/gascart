@@ -227,13 +227,14 @@ export const getAllOrders = async (req: Request, res: Response, next: NextFuncti
 export const updateOrderStatus = async (req: Request, res: Response, next: NextFunction) => {
     try {
         const { id } = req.params;
-        const { status, payment_status, paid_amount, balance_due } = req.body;
+        const { status, payment_status, paid_amount, balance_due, internal_comments } = req.body;
 
         const updates: any = {};
         if (status) updates.status = status;
         if (payment_status) updates.payment_status = payment_status;
         if (paid_amount !== undefined) updates.paid_amount = paid_amount;
         if (balance_due !== undefined) updates.balance_due = balance_due;
+        if (internal_comments !== undefined) updates.internal_comments = internal_comments;
 
         const { data, error } = await supabase
             .from('orders')
