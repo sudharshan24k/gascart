@@ -1,0 +1,7 @@
+# Gascart Admin - robots.txt
+# Disallow crawling of all admin routes for security and privacy
+User-agent: *
+Disallow: /
+
+# Sitemap would go here for the main site, but not for the admin portal
+# Sitemap: https://gascart.com/sitemap.xml

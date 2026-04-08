@@ -1,4 +1,6 @@
 import { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
+import { Helmet } from 'react-helmet-async';
 import { Eye, Search, X, Package, FileText, Download, Users, ShoppingCart } from 'lucide-react';
 import { fetchOrders, updateOrderStatus, getOrderInvoiceUrl, updateTracking, downloadOrders, exportInvoicesZIP } from '../services/admin.service';
 import { formatDateIST } from '../utils/dateUtils';
@@ -198,10 +200,15 @@ const AdminOrders = () => {
 
     return (
         <div className="max-w-7xl mx-auto pb-20">
+            <Helmet>
+                <title>Order Management | Gascart Admin</title>
+                <meta name="description" content="View and manage customer orders, track fulfillment cycles, process payments, and export order data for the Gascart marketplace." />
+                <link rel="canonical" href="https://admin.gascart.com/orders" />
+            </Helmet>
             {/* Header */}
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-10">
                 <div>
-                    <h2 className="text-4xl font-black text-gray-900 tracking-tight">Order Management</h2>
+                    <h1 className="text-4xl font-black text-gray-900 tracking-tight">Order Management</h1>
                     <p className="text-gray-500 mt-1 font-bold italic">Process direct purchases and monitor fulfillment cycles.</p>
                 </div>
                 <div className="flex gap-4">
@@ -406,6 +413,56 @@ const AdminOrders = () => {
                             <p className="font-black text-xl uppercase tracking-widest opacity-20">No matching orders found</p>
                         </div>
                     )}
+                </div>
+            </div>
+
+            {/* Administrative Documentation & Linking */}
+            <div className="mt-16 grid grid-cols-1 lg:grid-cols-3 gap-10">
+                <div className="lg:col-span-2 bg-white rounded-[40px] p-10 border border-gray-100 shadow-sm">
+                    <h2 className="text-2xl font-black text-gray-900 mb-6 flex items-center gap-3">
+                        <FileText className="w-6 h-6 text-primary" /> Administrative Guidelines
+                    </h2>
+                    <div className="prose prose-neutral max-w-none text-gray-600 font-medium leading-relaxed space-y-4 text-sm">
+                        <p>
+                            Welcome to the Gascart Order Management Protocol. This centralized interface is designed for the high-precision oversight of the platform's commercial fulfillment cycles. As an administrator, you are responsible for maintaining the integrity of the supply chain, from the initial "Pending" state through to successful "Delivered" transitions.
+                        </p>
+                        <p>
+                            <strong>Fulfillment Integrity:</strong> When processing orders, ensure that the "Protocol Status" accurately reflects the physical state of the goods. Orders moved to "Processing" signify that the warehouse team has initiated picking and packing. Upon dispatch, the "Shipped" status must be accompanied by a valid Logistics Carrier and Tracking Serial. This ensures automated customer notification systems maintain real-time transparency.
+                        </p>
+                        <p>
+                            <strong>Financial Verification:</strong> Gascart operates on a hybrid payment model including advance payments and balance due protocols. Always verify the "Financial Value" column before authorizing shipment. If an order shows a significant balance due, ensure offline payment verification has been cleared by the finance department. The "Mark Balance Paid" function should only be utilized after manual confirmation of bank transfers or physical payment receipts.
+                        </p>
+                        <p>
+                            <strong>Administrative Oversight:</strong> Utilize the "Internal Admin Notes" feature in the order dossier to record manual coordination efforts, vendor delays, or special customer requests. These notes are critical for audit trails and ensure that multiple administrators can coordinate without redundancy or miscommunication. Remember that a well-documented order lifecycle reduces support overhead and improves institutional knowledge of recurring logistics patterns.
+                        </p>
+                    </div>
+                </div>
+
+                <div className="bg-gray-900 rounded-[40px] p-10 text-white shadow-2xl relative overflow-hidden">
+                    <div className="absolute top-0 right-0 w-64 h-64 bg-primary/20 rounded-full -mr-32 -mt-32 blur-3xl" />
+                    <h2 className="text-2xl font-black mb-8 relative z-10">Quick Navigation</h2>
+                    <nav className="space-y-4 relative z-10">
+                        {[
+                            { label: 'Asset Management', path: '/products', icon: Package, desc: 'Update inventory and product data' },
+                            { label: 'Vendor Oversight', path: '/vendors', icon: Users, desc: 'Manage registered supply partners' },
+                            { label: 'RFQ Protocol', path: '/rfqs', icon: FileText, desc: 'Monitor request-for-quote cycles' },
+                            { label: 'User Directory', path: '/users', icon: Users, desc: 'View customer and client profiles' }
+                        ].map((link, idx) => (
+                            <Link 
+                                key={idx}
+                                to={link.path}
+                                className="group flex items-center gap-5 p-5 rounded-3xl bg-white/5 hover:bg-white/10 border border-white/10 transition-all hover:scale-[1.02] active:scale-95"
+                            >
+                                <div className="w-12 h-12 rounded-2xl bg-white/10 flex items-center justify-center group-hover:bg-primary/20 transition-colors">
+                                    <link.icon className="w-6 h-6 text-primary" />
+                                </div>
+                                <div>
+                                    <p className="font-black text-sm">{link.label}</p>
+                                    <p className="text-[10px] text-white/40 font-bold uppercase tracking-wider">{link.desc}</p>
+                                </div>
+                            </Link>
+                        ))}
+                    </nav>
                 </div>
             </div>
 
