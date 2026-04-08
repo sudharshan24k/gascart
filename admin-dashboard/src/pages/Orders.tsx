@@ -201,8 +201,8 @@ const AdminOrders = () => {
     return (
         <div className="max-w-7xl mx-auto pb-20">
             <Helmet>
-                <title>Order Management | Gascart Admin</title>
-                <meta name="description" content="View and manage customer orders, track fulfillment cycles, process payments, and export order data for the Gascart marketplace." />
+                <title>Fulfillment &amp; Order Management | Gascart Admin Protocol</title>
+                <meta name="description" content="Mission control for Gascart fulfillment. Manage commercial order cycles for CBG and CNG assets, verify payments, track logistics, and oversee the e-commerce supply chain." />
                 <link rel="canonical" href="https://admin.gascart.com/orders" />
             </Helmet>
             {/* Header */}

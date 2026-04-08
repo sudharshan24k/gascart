@@ -21,6 +21,7 @@ import MediaLibrary from './pages/MediaLibrary';
 import AuditLogs from './pages/AuditLogs';
 import CareerApplications from './pages/CareerApplications';
 import AdminManagement from './pages/AdminManagement';
+import NotFound from './pages/NotFound';
 
 // Helper component to redirect to main site login
 const LoginRedirect = () => {
@@ -90,8 +91,8 @@ function App() {
                         </Route>
                     </Route>
 
-                    {/* Catch-all route to redirect to the main website's login page */}
-                    <Route path="*" element={<LoginRedirect />} />
+                    {/* Catch-all route to redirect to the new NotFound page */}
+                    <Route path="*" element={<NotFound />} />
                 </Routes>
             </Router>
         </AuthProvider>
