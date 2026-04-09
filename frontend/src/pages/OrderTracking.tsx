@@ -36,8 +36,23 @@ const OrderTracking: React.FC = () => {
     ];
 
     const currentStatus = order?.status?.toLowerCase() || 'pending';
-    let currentStepIndex = steps.findIndex(step => step.key === currentStatus);
-    if (currentStatus === 'cancelled') currentStepIndex = -1; // Handle cancelled state separately
+    
+    // Map internal statuses to tracking steps
+    const getStatusIndex = (status: string) => {
+        switch (status) {
+            case 'delivered': return 3;
+            case 'shipped':
+            case 'sent': return 2;
+            case 'processing':
+            case 'advanced': return 1;
+            case 'confirmed':
+            case 'pending': return 0;
+            default: return 0;
+        }
+    };
+
+    let currentStepIndex = getStatusIndex(currentStatus);
+    if (currentStatus === 'cancelled') currentStepIndex = -1;
 
     if (loading) {
         return (
