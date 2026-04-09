@@ -21,8 +21,8 @@ export const getDashboardStats = async (req: Request, res: Response, next: NextF
             supabase.from('products').select('*', { count: 'exact', head: true }),
             supabase.from('profiles').select('*', { count: 'exact', head: true }).eq('role', 'customer'),
             supabase.from('profiles').select('*', { count: 'exact', head: true }).eq('role', 'vendor'),
-            supabase.from('orders').select('*', { count: 'exact', head: true }),
-            supabase.from('orders').select('total_amount').neq('payment_status', 'failed'),
+            supabase.from('orders').select('*', { count: 'exact', head: true }).eq('payment_status', 'paid'),
+            supabase.from('orders').select('total_amount').eq('payment_status', 'paid'),
             supabase.from('orders')
                 .select(`
                     id, 
@@ -32,6 +32,7 @@ export const getDashboardStats = async (req: Request, res: Response, next: NextF
                     payment_status,
                     profiles:user_id(full_name, email)
                 `)
+                .eq('payment_status', 'paid')
                 .order('created_at', { ascending: false })
                 .limit(5),
             supabase.from('rfqs').select('*', { count: 'exact', head: true }),

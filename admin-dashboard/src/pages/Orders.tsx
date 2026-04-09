@@ -19,10 +19,10 @@ const AdminOrders = () => {
 
     // Stats
     const stats = {
-        totalRevenue: (orders || []).reduce((sum, o) => sum + Number(o.total_amount || 0), 0),
+        totalRevenue: (orders || []).filter(o => o.payment_status === 'paid').reduce((sum, o) => sum + Number(o.total_amount || 0), 0),
         pendingCount: (orders || []).filter(o => o.status === 'pending').length,
         processingCount: (orders || []).filter(o => o.status === 'processing').length,
-        totalOrders: (orders || []).length
+        totalOrders: (orders || []).filter(o => o.payment_status === 'paid').length
     };
 
     useEffect(() => {
@@ -369,16 +369,21 @@ const AdminOrders = () => {
                                     </td>
                                     <td className="py-8 px-10">
                                         <div className="font-black text-lg text-gray-900 tracking-tight">₹{Number(order.total_amount || 0).toLocaleString()}</div>
-                                        {order.balance_due > 0 ? (
+                                        {order.payment_status === 'paid' ? (
+                                            <div className="text-[10px] font-black uppercase tracking-widest text-emerald-500 flex items-center gap-1">
+                                                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                                                Fully Paid
+                                            </div>
+                                        ) : order.balance_due > 0 ? (
                                             <div className="text-[10px] uppercase tracking-wide mt-1">
                                                 <span className="text-emerald-600 font-bold">Paid: ₹{order.paid_amount?.toLocaleString() || '0'}</span>
                                                 <span className="mx-2 text-gray-300">|</span>
                                                 <span className="text-red-500 font-black">Due: ₹{order.balance_due?.toLocaleString()}</span>
                                             </div>
                                         ) : (
-                                            <div className="text-[10px] font-black uppercase tracking-widest text-emerald-500 flex items-center gap-1">
-                                                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
-                                                Fully Paid
+                                            <div className="text-[10px] font-black uppercase tracking-widest text-amber-500 flex items-center gap-1">
+                                                <span className="w-1.5 h-1.5 rounded-full bg-amber-500" />
+                                                Payment Pending
                                             </div>
                                         )}
                                     </td>
