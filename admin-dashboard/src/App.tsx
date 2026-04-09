@@ -1,5 +1,4 @@
-import React from 'react';
-import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 import { ProtectedRoute } from './components/RequirePermission';
 import AdminLayout from './pages/AdminLayout';
@@ -23,15 +22,7 @@ import CareerApplications from './pages/CareerApplications';
 import AdminManagement from './pages/AdminManagement';
 import NotFound from './pages/NotFound';
 
-// Helper component to redirect to main site login
-const LoginRedirect = () => {
-    const location = useLocation();
-    React.useEffect(() => {
-        const fullPath = location.pathname + location.search + location.hash;
-        window.location.href = `/login?redirect=${encodeURIComponent(fullPath)}`;
-    }, [location]);
-    return <div className="p-8 text-center text-neutral-500 font-bold">Redirecting to login...</div>;
-};
+
 
 function App() {
     const basename = '/';
