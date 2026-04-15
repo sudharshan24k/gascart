@@ -308,7 +308,7 @@ export const verifyPayment = async (req: AuthRequest, res: Response) => {
 
                     if (profile?.email && fullOrder) {
                         addLog(`Async: Generating invoice for ${profile.email}`);
-                        // Generate Invoice PDF
+                        // Generate Payment Receipt PDF
                         const invoiceBuffer = await generateInvoicePDF({
                             orderId: fullOrder.id,
                             createdAt: fullOrder.created_at,

@@ -730,7 +730,7 @@ export const ProductModal = ({
                                                             <div className="flex flex-col"><span className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">SKU</span> <span className="text-sm font-bold text-gray-700">{pv.vendor_sku}</span></div>
                                                         )}
                                                         {pv.vendor_price && (
-                                                            <div className="flex flex-col"><span className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">Price</span> <span className="text-sm font-extrabold text-gray-900">₹{parseFloat(pv.vendor_price).toLocaleString()}</span></div>
+                                                            <div className="flex flex-col"><span className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">Price</span> <span className="text-sm font-extrabold text-gray-900">₹{parseFloat(pv.vendor_price).toLocaleString('en-IN')}</span></div>
                                                         )}
                                                         {pv.vendor_stock_quantity !== null && pv.vendor_stock_quantity !== undefined && (
                                                             <div className="flex flex-col"><span className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">Stock</span> <span className="text-sm font-bold text-gray-700">{pv.vendor_stock_quantity}</span></div>

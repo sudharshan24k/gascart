@@ -315,14 +315,16 @@ export const downloadInvoice = async (req: Request, res: Response, next: NextFun
 
         // 1. Header Section
         doc.fillColor('#0F172A').fontSize(28).font('Helvetica-Bold').text('GASCART', 50, 50);
-        doc.fillColor('#64748B').fontSize(10).font('Helvetica').text('Industrial Ecommerce Solutions', 50, 80);
-        doc.text('123 Industrial Ave, Tech City, 560001', 50, 95);
-        doc.text('support@gascart.in | +91 234 567 8900', 50, 110);
+        doc.fillColor('#64748B').fontSize(10).font('Helvetica-Bold').text('Stut Instruments', 50, 80);
+        doc.fillColor('#64748B').fontSize(10).font('Helvetica').text('GST NO : 29AGKPH4294H1Z0', 50, 95);
+        doc.fillColor('#475569').fontSize(10).font('Helvetica').text('No 52, Kelagina Onikeri, Melina Onikeri Post', 50, 110);
+        doc.text('Sirsi, Uttara Kannada, Karnataka - 581412', 50, 125);
+        doc.text('info@gascart.in | +91 9739903856', 50, 140);
 
         // Invoice Details (Right Aligned)
-        doc.fillColor('#0F172A').fontSize(24).font('Helvetica-Bold').text('INVOICE', 0, 50, { align: 'right', width: 545 });
+        doc.fillColor('#0F172A').fontSize(24).font('Helvetica-Bold').text('PAYMENT RECEIPT', 0, 50, { align: 'right', width: 545 });
         doc.fillColor('#64748B').fontSize(10).font('Helvetica');
-        doc.text(`Invoice #: INV-${order.id.slice(0, 8).toUpperCase()}`, 0, 80, { align: 'right', width: 545 });
+        doc.text(`Payment Receipt #: INV-${order.id.slice(0, 8).toUpperCase()}`, 0, 80, { align: 'right', width: 545 });
         doc.text(`Date: ${new Date(order.created_at).toLocaleDateString('en-IN')}`, 0, 95, { align: 'right', width: 545 });
         doc.text(`Status: ${order.payment_status.toUpperCase()}`, 0, 110, { align: 'right', width: 545 });
         
@@ -392,8 +394,15 @@ export const downloadInvoice = async (req: Request, res: Response, next: NextFun
         const paidAmount = Number(order.paid_amount || totalAmount); // Fallback to full for old orders
         const balanceDue = Number(order.balance_due || 0);
 
+        const subtotal = totalAmount / 1.18;
+        const tax = totalAmount - subtotal;
+
         doc.fontSize(10).font('Helvetica-Bold').fillColor('#64748B').text('Subtotal:', 350, currentHeight);
-        doc.fillColor('#0F172A').text(`₹${totalAmount.toLocaleString('en-IN', {minimumFractionDigits: 2})}`, 450, currentHeight, { width: 95, align: 'right' });
+        doc.fillColor('#0F172A').text(`₹${subtotal.toLocaleString('en-IN', {minimumFractionDigits: 2})}`, 450, currentHeight, { width: 95, align: 'right' });
+
+        currentHeight += 20;
+        doc.fontSize(10).font('Helvetica-Bold').fillColor('#64748B').text('GST (18%):', 350, currentHeight);
+        doc.fillColor('#0F172A').text(`₹${tax.toLocaleString('en-IN', {minimumFractionDigits: 2})}`, 450, currentHeight, { width: 95, align: 'right' });
 
         currentHeight += 20;
         doc.fillColor('#64748B').text('Paid Amount:', 350, currentHeight);
@@ -412,9 +421,12 @@ export const downloadInvoice = async (req: Request, res: Response, next: NextFun
         doc.text(`₹${totalAmount.toLocaleString('en-IN', {minimumFractionDigits: 2})}`, 450, currentHeight, { width: 95, align: 'right' });
 
         // 6. Footer (Pinned to bottom of page 1)
+        
+        doc.fontSize(8).font('Helvetica-Oblique').fillColor('#EF4444').text('* Note: If any change in applicable GST rate, the difference will be collected or refunded before final payment receipt, as the case may be.', 50, 725, { width: 495, align: 'left' });
+
         doc.fontSize(9).font('Helvetica').fillColor('#94A3B8');
         doc.text('Thank you for choosing GASCART for your industrial needs.', 50, 750, { align: 'center', width: 495 });
-        doc.text('Terms & Conditions apply. This is an electronically generated invoice.', 50, 765, { align: 'center', width: 495 });
+        doc.text('Terms & Conditions apply. This is an electronically generated payment receipt.', 50, 765, { align: 'center', width: 495 });
 
         // Finalize
         doc.end();

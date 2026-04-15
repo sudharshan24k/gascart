@@ -354,7 +354,7 @@ const ProductListing: React.FC = () => {
                                                 <div className="flex-grow">
                                                     <div className="text-xs font-bold text-primary mb-1 uppercase tracking-wider">{vendorName}</div>
                                                     <h3 className="text-lg font-bold text-neutral-900 mb-1">{product.name}</h3>
-                                                    <div className="text-lg font-bold text-neutral-900">₹{Number(product.price).toLocaleString()}</div>
+                                                    <div className="text-lg font-bold text-neutral-900">₹{Number(product.price).toLocaleString('en-IN')}</div>
                                                 </div>
                                                 <div className="flex gap-2">
                                                     {(product.purchase_model === 'rfq' || product.purchase_model === 'both' || !product.purchase_model) && (
@@ -444,7 +444,7 @@ const ProductListing: React.FC = () => {
                                                 <div className="flex items-center gap-2 mt-auto pt-6 justify-between">
                                                     <div>
                                                         <p className="text-[10px] font-bold text-neutral-400 uppercase tracking-wider mb-1">Unit Price</p>
-                                                        <p className="text-xl font-bold text-neutral-900 font-display">₹{Number(product.price).toLocaleString()}</p>
+                                                        <p className="text-xl font-bold text-neutral-900 font-display">₹{Number(product.price).toLocaleString('en-IN')}</p>
                                                     </div>
                                                     <button
                                                         onClick={() => {

@@ -553,7 +553,7 @@ const Checkout: React.FC = () => {
                                             size="lg"
                                             className="text-lg py-6"
                                         >
-                                            Pay Advance ₹{advancePayable.toLocaleString()} & Place Order
+                                            Pay Advance ₹{advancePayable.toLocaleString('en-IN')} & Place Order
                                         </Button>
                                     </motion.div>
                                 )}
@@ -580,7 +580,7 @@ const Checkout: React.FC = () => {
                                             <h4 className="font-bold text-sm text-neutral-900 line-clamp-2 leading-tight mb-1">{item.product?.name}</h4>
                                             <div className="flex justify-between items-end">
                                                 <span className="text-[10px] font-black text-neutral-400 uppercase tracking-wider">Qty: {item.quantity}</span>
-                                                <span className="text-sm font-bold text-neutral-900">₹{((item.vendor_price ?? item.selected_variant?.price ?? item.product?.price ?? 0) * item.quantity).toLocaleString()}</span>
+                                                <span className="text-sm font-bold text-neutral-900">₹{((item.vendor_price ?? item.selected_variant?.price ?? item.product?.price ?? 0) * item.quantity).toLocaleString('en-IN')}</span>
                                             </div>
                                         </div>
                                     </div>
@@ -590,18 +590,18 @@ const Checkout: React.FC = () => {
                             <div className="space-y-3 pt-6 border-t border-neutral-100">
                                 <div className="flex justify-between text-sm">
                                     <span className="text-neutral-500 font-medium">Subtotal</span>
-                                    <span className="font-bold text-neutral-900">₹{subtotal.toLocaleString()}</span>
+                                    <span className="font-bold text-neutral-900">₹{subtotal.toLocaleString('en-IN')}</span>
                                 </div>
                                 <div className="flex justify-between text-sm">
                                     <span className="text-neutral-500 font-medium">Tax (18%)</span>
-                                    <span className="font-bold text-neutral-900">₹{tax.toLocaleString()}</span>
+                                    <span className="font-bold text-neutral-900">₹{tax.toLocaleString('en-IN')}</span>
                                 </div>
                             </div>
 
                             <div className="mt-8 pt-6 border-t border-dashed border-neutral-200">
                                 <div className="flex justify-between items-end mb-2">
                                     <span className="font-black text-neutral-500 text-sm">Grand Total (excl. Shipping)</span>
-                                    <span className="font-black text-neutral-900 text-lg">₹{grandTotal.toLocaleString()}</span>
+                                    <span className="font-black text-neutral-900 text-lg">₹{grandTotal.toLocaleString('en-IN')}</span>
                                 </div>
                                 
                                 <div className="flex justify-between items-center mt-4 p-4 bg-primary/5 rounded-2xl border border-primary/20">
@@ -611,7 +611,7 @@ const Checkout: React.FC = () => {
                                             {isMixed ? 'Combined Package Rate' : `${commonPercentage ?? 50}% of Grand Total`}
                                         </span>
                                     </div>
-                                    <span className="font-black text-primary text-3xl">₹{advancePayable.toLocaleString()}</span>
+                                    <span className="font-black text-primary text-3xl">₹{advancePayable.toLocaleString('en-IN')}</span>
                                 </div>
                                 
                                 <p className="text-xs text-neutral-400 font-medium text-center mt-4">

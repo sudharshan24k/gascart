@@ -117,14 +117,14 @@ const UserManagement: React.FC = () => {
             const blobUrl = window.URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = blobUrl;
-            a.download = `invoice-${orderId.slice(-8)}.pdf`;
+            a.download = `payment-receipt-${orderId.slice(-8)}.pdf`;
             document.body.appendChild(a);
             a.click();
             window.URL.revokeObjectURL(blobUrl);
             document.body.removeChild(a);
         } catch (error) {
-            console.error('Invoice download failed:', error);
-            alert('Failed to download invoice');
+            console.error('Payment Receipt download failed:', error);
+            alert('Failed to download payment receipt');
         }
     };
 

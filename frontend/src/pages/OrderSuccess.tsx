@@ -73,7 +73,7 @@ const OrderSuccess: React.FC = () => {
                 const url = window.URL.createObjectURL(blob);
                 const a = document.createElement('a');
                 a.href = url;
-                a.download = `invoice-${orderId.slice(0, 8)}.pdf`;
+                a.download = `payment-receipt-${orderId.slice(0, 8)}.pdf`;
                 document.body.appendChild(a);
                 a.click();
                 window.URL.revokeObjectURL(url);
@@ -83,7 +83,7 @@ const OrderSuccess: React.FC = () => {
             } else if (response.status === 401 || response.status === 403) {
                 alert('Authentication failed. Please log in again.');
             } else {
-                alert('Failed to download invoice. Please try again or contact support.');
+                alert('Failed to download payment receipt. Please try again or contact support.');
             }
         } catch (error) {
             console.error('Invoice download error:', error);
@@ -135,13 +135,13 @@ const OrderSuccess: React.FC = () => {
                                         className="w-full bg-white text-neutral-900 border-2 border-neutral-100 font-bold py-4 rounded-2xl hover:bg-neutral-50 hover:border-neutral-200 transition-all flex items-center justify-center gap-3 disabled:opacity-50 disabled:cursor-not-allowed group"
                                     >
                                         <Download className="w-5 h-5 group-hover:scale-110 transition-transform" />
-                                        {downloadingInvoice ? 'Generating Invoice...' : 'Download Official Invoice'}
+                                        {downloadingInvoice ? 'Generating Payment Receipt...' : 'Download Official Payment Receipt'}
                                     </button>
                                 ) : (
                                     <div className="bg-amber-50 border border-amber-100 rounded-2xl p-5 text-center">
                                         <Clock className="w-8 h-8 text-amber-500 mx-auto mb-3" />
                                         <p className="text-sm font-bold text-amber-800 mb-1">Payment Confirmation Pending</p>
-                                        <p className="text-xs text-amber-600 font-medium">Invoice will be available once payment is verified.</p>
+                                        <p className="text-xs text-amber-600 font-medium">Payment receipt will be available once payment is verified.</p>
                                     </div>
                                 )}
 

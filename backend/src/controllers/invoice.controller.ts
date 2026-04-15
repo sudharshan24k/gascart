@@ -28,15 +28,15 @@ export const generateInvoice = async (req: AuthRequest, res: Response) => {
         if (!isAdmin && order.user_id !== userId) {
             return res.status(403).json({
                 error: 'Access denied',
-                message: 'You do not have permission to access this invoice',
+                message: 'You do not have permission to access this payment receipt',
             });
         }
 
         // ── Payment status guard ──────────────────────────────────────────────
         if (order.payment_status !== 'paid') {
             return res.status(400).json({
-                error: 'Invoice not available yet',
-                message: 'Invoice will be available once payment is confirmed',
+                error: 'Payment Receipt not available yet',
+                message: 'Payment receipt will be available once payment is confirmed',
             });
         }
 
@@ -70,7 +70,7 @@ export const generateInvoice = async (req: AuthRequest, res: Response) => {
         });
 
         // ── Upload to Supabase Storage ────────────────────────────────────────
-        const filename = `invoice-${orderId.slice(-8)}.pdf`;
+        const filename = `payment-receipt-${orderId.slice(-8)}.pdf`;
         const storagePath = `invoices/${filename}`;
 
         const { error: uploadError } = await supabase.storage

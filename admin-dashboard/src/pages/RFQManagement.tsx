@@ -508,7 +508,7 @@ const RFQManagement: React.FC = () => {
                                                         <h5 className="text-2xl font-black text-gray-900 group-hover:text-primary transition-colors">{item.products?.name}</h5>
                                                         <div className="flex items-center gap-2 mt-2">
                                                             <span className="px-3 py-1 bg-primary/5 text-primary text-[10px] font-black rounded-lg border border-primary/10">Quantity: {item.submitted_fields?.item_quantity || 1}</span>
-                                                            <span className="px-3 py-1 bg-gray-100 text-gray-500 text-[10px] font-black rounded-lg border border-gray-200">Price Ref: ₹{Number(item.submitted_fields?.item_price || 0).toLocaleString()}</span>
+                                                            <span className="px-3 py-1 bg-gray-100 text-gray-500 text-[10px] font-black rounded-lg border border-gray-200">Price Ref: ₹{Number(item.submitted_fields?.item_price || 0).toLocaleString('en-IN')}</span>
                                                         </div>
                                                     </div>
                                                     <div className="bg-white p-3 rounded-2xl border border-gray-100 shadow-sm no-print">

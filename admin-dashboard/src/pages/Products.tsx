@@ -544,12 +544,12 @@ const AdminProducts = () => {
                                         <div className="flex flex-col">
                                             {(product.price_min && product.price_max && product.price_min !== product.price_max) ? (
                                                 <>
-                                                    <span className="text-xl font-black text-slate-900 tracking-tight">₹{parseFloat(product.price_min).toLocaleString()} - ₹{parseFloat(product.price_max).toLocaleString()}</span>
+                                                    <span className="text-xl font-black text-slate-900 tracking-tight">₹{parseFloat(product.price_min).toLocaleString('en-IN')} - ₹{parseFloat(product.price_max).toLocaleString('en-IN')}</span>
                                                     <span className="text-[10px] text-indigo-600 font-black uppercase tracking-widest mt-1 opacity-60">{product.vendor_count || 0} providers</span>
                                                 </>
                                             ) : (
                                                 <>
-                                                    <span className="text-xl font-black text-slate-900 tracking-tight">₹{parseFloat(product.price).toLocaleString()}</span>
+                                                    <span className="text-xl font-black text-slate-900 tracking-tight">₹{parseFloat(product.price).toLocaleString('en-IN')}</span>
                                                     {product.vendor_count > 0 && (
                                                         <span className="text-[10px] text-slate-400 font-black uppercase tracking-widest mt-1">{product.vendor_count} provider{product.vendor_count > 1 ? 's' : ''}</span>
                                                     )}

@@ -10,6 +10,13 @@ export const authService = {
             }
         });
         if (error) throw error;
+        
+        // Supabase returns an empty identities array if the user already exists 
+        // to prevent email enumeration. We need to explicitly check and throw.
+        if (data?.user?.identities != null && data.user.identities.length === 0) {
+            throw new Error('User exists already.');
+        }
+        
         return data;
     },
 

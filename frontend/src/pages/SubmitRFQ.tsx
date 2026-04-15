@@ -195,13 +195,13 @@ const SubmitRFQ = () => {
                                     {state.items.map(item => (
                                         <div key={item.id} className="flex justify-between items-center text-sm">
                                             <span className="opacity-70">{item.name} × {item.quantity}</span>
-                                            <span className="font-bold">₹{(item.price * item.quantity).toLocaleString()}</span>
+                                            <span className="font-bold">₹{(item.price * item.quantity).toLocaleString('en-IN')}</span>
                                         </div>
                                     ))}
                                 </div>
                                 <div className="border-t border-white/10 pt-6 flex justify-between items-center">
                                     <span className="text-lg font-bold opacity-60">Enquiry Total</span>
-                                    <span className="text-3xl font-black text-primary">₹{state.total.toLocaleString()}</span>
+                                    <span className="text-3xl font-black text-primary">₹{state.total.toLocaleString('en-IN')}</span>
                                 </div>
                             </div>
                             <div className="absolute top-0 right-0 w-32 h-32 bg-primary/10 rounded-full -mr-16 -mt-16 blur-3xl"></div>

@@ -184,7 +184,7 @@ const AdminProducts = () => {
                                         </span>
                                     </td>
                                     <td className="py-4 px-6 font-bold text-gray-900">
-                                        ₹{parseFloat(product.price).toLocaleString()}
+                                        ₹{parseFloat(product.price).toLocaleString('en-IN')}
                                     </td>
                                     <td className="py-4 px-6">
                                         {(() => {

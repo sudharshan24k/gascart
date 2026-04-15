@@ -57,7 +57,7 @@ const MyOrders: React.FC = () => {
         try {
             const { data: { session } } = await supabase.auth.getSession();
             if (!session) {
-                alert('You must be logged in to download invoices.');
+                alert('You must be logged in to download payment receipts.');
                 return;
             }
 
@@ -67,20 +67,20 @@ const MyOrders: React.FC = () => {
                 }
             });
 
-            if (!response.ok) throw new Error('Failed to download invoice');
+            if (!response.ok) throw new Error('Failed to download payment receipt');
 
             const blob = await response.blob();
             const url = window.URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
-            a.download = `invoice-${orderId.slice(-8)}.pdf`;
+            a.download = `payment-receipt-${orderId.slice(-8)}.pdf`;
             document.body.appendChild(a);
             a.click();
             window.URL.revokeObjectURL(url);
             document.body.removeChild(a);
         } catch (error) {
-            console.error('Invoice download failed:', error);
-            alert('Failed to download invoice. Please try again.');
+            console.error('Payment Receipt download failed:', error);
+            alert('Failed to download payment receipt. Please try again.');
         }
     };
 
@@ -98,7 +98,7 @@ const MyOrders: React.FC = () => {
                 <div className="flex flex-col md:flex-row md:items-end justify-between mb-8 gap-4">
                     <div>
                         <h1 className="text-4xl font-display font-bold text-neutral-900 mb-2">My Orders</h1>
-                        <p className="text-neutral-500 font-medium">Track past purchases and download invoices.</p>
+                        <p className="text-neutral-500 font-medium">Track past purchases and download payment receipts.</p>
                     </div>
                 </div>
 
@@ -228,10 +228,10 @@ const MyOrders: React.FC = () => {
                                                 </div>
                                                 <div className="flex-grow min-w-0">
                                                     <h4 className="font-bold text-neutral-900 text-lg mb-1 truncate">{item.product?.name || 'Product'}</h4>
-                                                    <p className="text-sm text-neutral-500 font-medium">Qty: {item.quantity} × <span className="text-neutral-900">₹{item.price_at_purchase?.toLocaleString()}</span></p>
+                                                    <p className="text-sm text-neutral-500 font-medium">Qty: {item.quantity} × <span className="text-neutral-900">₹{item.price_at_purchase?.toLocaleString('en-IN')}</span></p>
                                                 </div>
                                                 <div className="hidden sm:block text-right">
-                                                    <p className="font-bold text-neutral-900 text-lg">₹{(item.quantity * item.price_at_purchase)?.toLocaleString()}</p>
+                                                    <p className="font-bold text-neutral-900 text-lg">₹{(item.quantity * item.price_at_purchase)?.toLocaleString('en-IN')}</p>
                                                 </div>
                                             </div>
                                         ))}

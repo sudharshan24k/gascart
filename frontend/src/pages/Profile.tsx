@@ -332,7 +332,7 @@ const Profile: React.FC = () => {
                                                 <Package className="w-8 h-8 text-neutral-300" />
                                             </div>
                                             <h3 className="text-xl font-bold text-neutral-900 mb-2">No Previous Orders</h3>
-                                            <p className="text-neutral-500 max-w-xs mx-auto mb-8">Once you place an order, you can track its status and download invoices here.</p>
+                                            <p className="text-neutral-500 max-w-xs mx-auto mb-8">Once you place an order, you can track its status and download payment receipts here.</p>
                                             <Link to="/shop" className="px-8 py-3 bg-primary text-white font-bold rounded-xl shadow-lg hover:bg-primary-dark transition-all">
                                                 Browse Marketplace
                                             </Link>
@@ -356,7 +356,7 @@ const Profile: React.FC = () => {
                                                     </div>
                                                     <div>
                                                         <p className="text-xs font-black text-neutral-400 uppercase tracking-widest mb-1">Total Amount</p>
-                                                        <p className="font-bold text-neutral-900 text-lg">₹{order.total_amount?.toLocaleString()}</p>
+                                                        <p className="font-bold text-neutral-900 text-lg">₹{order.total_amount?.toLocaleString('en-IN')}</p>
                                                     </div>
                                                     <div>
                                                         <span className={`px-4 py-2 rounded-lg text-xs font-black uppercase tracking-widest ${order.status === 'delivered' ? 'bg-green-100 text-green-600' :
@@ -376,9 +376,9 @@ const Profile: React.FC = () => {
                                                             </div>
                                                             <div className="flex-grow">
                                                                 <p className="font-bold text-neutral-900 mb-1">{item.product?.name}</p>
-                                                                <p className="text-xs font-bold text-neutral-400 uppercase tracking-wider">Qty: {item.quantity} × ₹{item.price_at_purchase?.toLocaleString()}</p>
+                                                                <p className="text-xs font-bold text-neutral-400 uppercase tracking-wider">Qty: {item.quantity} × ₹{item.price_at_purchase?.toLocaleString('en-IN')}</p>
                                                             </div>
-                                                            <p className="font-bold text-neutral-900">₹{(item.quantity * item.price_at_purchase)?.toLocaleString()}</p>
+                                                            <p className="font-bold text-neutral-900">₹{(item.quantity * item.price_at_purchase)?.toLocaleString('en-IN')}</p>
                                                         </div>
                                                     ))}
                                                 </div>

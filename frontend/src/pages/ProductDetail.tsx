@@ -245,7 +245,7 @@ const ProductDetail: React.FC = () => {
                                     </p>
                                     <div className="flex items-baseline gap-2">
                                         <p className="text-4xl font-bold text-neutral-900 font-display">
-                                            ₹{Number(activePrice).toLocaleString()}
+                                            ₹{Number(activePrice).toLocaleString('en-IN')}
                                         </p>
                                         <span className="text-lg text-neutral-500 font-medium">
                                             {product.unit ? `/ ${product.unit}` : ''}
@@ -307,7 +307,7 @@ const ProductDetail: React.FC = () => {
                                                         </div>
                                                     </div>
                                                     <div className="text-right">
-                                                        <div className="font-bold text-lg">₹{Number(vPrice).toLocaleString()}</div>
+                                                        <div className="font-bold text-lg">₹{Number(vPrice).toLocaleString('en-IN')}</div>
                                                         {vendor.vendor_lead_time_days && <div className="text-xs text-neutral-500">{vendor.vendor_lead_time_days} Days Lead Time</div>}
                                                     </div>
                                                 </button>
@@ -656,7 +656,7 @@ const ProductDetail: React.FC = () => {
                                                                 <option value="">Any / Preferred Vendor</option>
                                                                 {product.vendors.map((v: any) => (
                                                                     <option key={v.vendor_id} value={v.vendor_id}>
-                                                                        {v.profiles?.company_name || 'Vendor'} (₹{Number(v.vendor_price ?? product.price).toLocaleString()})
+                                                                        {v.profiles?.company_name || 'Vendor'} (₹{Number(v.vendor_price ?? product.price).toLocaleString('en-IN')})
                                                                     </option>
                                                                 ))}
                                                             </select>

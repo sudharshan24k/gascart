@@ -250,14 +250,15 @@ export const renderInvoice = (doc: PDFKit.PDFDocument, data: InvoiceData) => {
 
     // ─── Header & Branding ────────────────────────────────────────────────
     doc.fillColor('#0f172a').font('Helvetica-Bold').fontSize(24).text('GASCART', 50, 50);
-    doc.font('Helvetica-Bold').fontSize(8).fillColor('#64748b').text('INDUSTRIAL ECOMMERCE SOLUTIONS', 50, 80, { characterSpacing: 1.5 });
+    doc.font('Helvetica-Bold').fontSize(8).fillColor('#64748b').text('Stut Instruments', 50, 80, { characterSpacing: 1.5 });
+    doc.font('Helvetica').fontSize(8).fillColor('#64748b').text('GST NO : 29AGKPH4294H1Z0', 50, 92, { characterSpacing: 1 });
         
         doc.fontSize(9).font('Helvetica').fillColor('#334155');
-        doc.text('No 52, Kelagina Onikeri, Melina Onikeri Post', 50, 100);
-        doc.text('Sirsi, Uttara Kannada, Karnataka - 581412', 50, 112);
-        doc.text('info@gascart.in | +91 9739903856', 50, 124);
+        doc.text('No 52, Kelagina Onikeri, Melina Onikeri Post', 50, 104);
+        doc.text('Sirsi, Uttara Kannada, Karnataka - 581412', 50, 116);
+        doc.text('info@gascart.in | +91 9739903856', 50, 128);
 
-        doc.font('Helvetica-Bold').fontSize(24).fillColor('#0f172a').text('INVOICE', 200, 50, { align: 'right' });
+        doc.font('Helvetica-Bold').fontSize(24).fillColor('#0f172a').text('PAYMENT RECEIPT', 200, 50, { align: 'right' });
         doc.font('Helvetica-Bold').fontSize(9).fillColor('#64748b');
         doc.text(`ID: INV-${shortId}`, 200, 80, { align: 'right' });
         doc.font('Helvetica').fillColor('#334155');
@@ -318,8 +319,16 @@ export const renderInvoice = (doc: PDFKit.PDFDocument, data: InvoiceData) => {
         // ─── Summary ──────────────────────────────────────────────────────────
         y += 15;
         const summaryX = 350;
+        
+        const subtotal = data.totalAmount / 1.18;
+        const tax = data.totalAmount - subtotal;
+
         doc.fontSize(10).font('Helvetica').fillColor('#64748b').text('Subtotal:', summaryX, y);
-        doc.font('Helvetica-Bold').fillColor('#1e293b').text(`INR ${data.totalAmount.toLocaleString('en-IN', { minimumFractionDigits: 2 })}`, 480, y, { width: 70, align: 'right' });
+        doc.font('Helvetica-Bold').fillColor('#1e293b').text(`INR ${subtotal.toLocaleString('en-IN', { minimumFractionDigits: 2 })}`, 480, y, { width: 70, align: 'right' });
+
+        y += 20;
+        doc.fontSize(10).font('Helvetica').fillColor('#64748b').text('GST (18%):', summaryX, y);
+        doc.font('Helvetica-Bold').fillColor('#1e293b').text(`INR ${tax.toLocaleString('en-IN', { minimumFractionDigits: 2 })}`, 480, y, { width: 70, align: 'right' });
 
         const paidAmount = data.paidAmount || 0;
         const balanceDue = data.balanceDue || 0;
@@ -345,8 +354,11 @@ export const renderInvoice = (doc: PDFKit.PDFDocument, data: InvoiceData) => {
         // Fixed absolute position to prevent auto-breaks
         const footerTop = 700;
         doc.moveTo(50, footerTop).lineTo(550, footerTop).lineWidth(1).strokeColor('#f1f5f9').stroke();
+        
+        doc.fontSize(8).font('Helvetica-Oblique').fillColor('#ef4444').text('* Note: If any change in applicable GST rate, the difference will be collected or refunded before final payment receipt, as the case may be.', 50, footerTop - 40, { width: 500, align: 'left' });
+
         doc.fontSize(8).font('Helvetica').fillColor('#94a3b8').text('THANK YOU FOR CHOOSING GASCART FOR YOUR INDUSTRIAL NEEDS.', 50, footerTop + 15, { align: 'center', characterSpacing: 1 });
-        doc.text('Terms & Conditions apply (See Page 2). This is an electronically generated invoice.', 50, footerTop + 28, { align: 'center' });
+        doc.text('Terms & Conditions apply (See Page 2). This is an electronically generated payment receipt.', 50, footerTop + 28, { align: 'center' });
         doc.font('Helvetica-Bold').fillColor('#0f172a').text('GASCART.IN', 50, footerTop + 42, { align: 'center', characterSpacing: 2 });
 
         // ─── Second Page: Terms & Conditions ──────────────────────────────────
@@ -406,7 +418,7 @@ export const renderInvoice = (doc: PDFKit.PDFDocument, data: InvoiceData) => {
         });
 
         doc.fontSize(8).fillColor('#94a3b8').text(
-            'This document constitutes the entire terms of service for the associated invoice. For the latest digital version, visit www.gascart.in/terms.',
+            'This document constitutes the entire terms of service for the associated payment receipt. For the latest digital version, visit www.gascart.in/terms.',
             50, 740, { align: 'center', width: 500 }
         );
 };

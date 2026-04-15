@@ -197,7 +197,7 @@ export const exportInvoicesZIP = async (req: Request, res: Response, next: NextF
 
         const archive = archiver('zip', { zlib: { level: 9 } });
         res.setHeader('Content-Type', 'application/zip');
-        res.setHeader('Content-Disposition', 'attachment; filename=invoices-bulk.zip');
+        res.setHeader('Content-Disposition', 'attachment; filename=payment-receipts-bulk.zip');
 
         // Pipe archive to response
         archive.pipe(res);
@@ -219,7 +219,7 @@ export const exportInvoicesZIP = async (req: Request, res: Response, next: NextF
                 // End the PDF document stream
                 stream.end();
             } catch (err: any) {
-                console.error(`Failed to generate invoice for ${orderId}:`, err.message);
+                console.error(`Failed to generate payment receipt for ${orderId}:`, err.message);
                 // Continue with other orders even if one fails
             }
         }

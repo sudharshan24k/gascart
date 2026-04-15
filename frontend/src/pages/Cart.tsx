@@ -128,7 +128,7 @@ const Cart = () => {
                                                         )}
                                                     </div>
                                                     <div className="text-2xl font-bold text-neutral-900 mt-2">
-                                                        ₹{((item.vendor_price ?? item.selected_variant?.price ?? item.product.price) * item.quantity).toLocaleString()}
+                                                        ₹{((item.vendor_price ?? item.selected_variant?.price ?? item.product.price) * item.quantity).toLocaleString('en-IN')}
                                                     </div>
                                                 </div>
 
@@ -186,17 +186,17 @@ const Cart = () => {
                             <dl className="space-y-4 mb-8">
                                 <div className="flex justify-between text-neutral-600">
                                     <dt className="text-sm font-medium">Subtotal</dt>
-                                    <dd className="font-bold text-neutral-900">₹{subtotal.toLocaleString()}</dd>
+                                    <dd className="font-bold text-neutral-900">₹{subtotal.toLocaleString('en-IN')}</dd>
                                 </div>
                                 <div className="flex justify-between text-neutral-600">
                                     <dt className="text-sm font-medium">Tax (18% GST)</dt>
-                                    <dd className="font-bold text-neutral-900">₹{tax.toLocaleString()}</dd>
+                                    <dd className="font-bold text-neutral-900">₹{tax.toLocaleString('en-IN')}</dd>
                                 </div>
 
                                 <div className="border-t border-dashed border-neutral-200 my-4 pt-4">
                                     <div className="flex justify-between items-end mb-4">
                                         <dt className="text-sm font-bold text-neutral-500">Grand Total (excl. Shipping)</dt>
-                                        <dd className="text-lg font-bold text-neutral-900">₹{grandTotal.toLocaleString()}</dd>
+                                        <dd className="text-lg font-bold text-neutral-900">₹{grandTotal.toLocaleString('en-IN')}</dd>
                                     </div>
                                     
                                     <div className="flex justify-between items-center p-4 bg-primary/5 rounded-2xl border border-primary/20">
@@ -205,7 +205,7 @@ const Cart = () => {
                                                 {isMixed ? 'Advance Payment' : `Advance (${commonPercentage ?? 50}%)`}
                                             </dt>
                                         </div>
-                                        <dd className="text-2xl font-black text-primary">₹{advancePayable.toLocaleString()}</dd>
+                                        <dd className="text-2xl font-black text-primary">₹{advancePayable.toLocaleString('en-IN')}</dd>
                                     </div>
                                     
                                     <p className="text-[10px] text-neutral-400 font-medium text-center mt-4">

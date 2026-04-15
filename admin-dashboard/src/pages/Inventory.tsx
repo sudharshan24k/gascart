@@ -328,7 +328,7 @@ const Inventory = () => {
                                                             onClick={() => setEditingQuantity({ id: product.id, value: (product.stock_quantity || 0).toString() })}
                                                             className="cursor-text group-hover/qty:scale-110 transition-transform duration-300 flex flex-col items-center"
                                                         >
-                                                            <span className="text-3xl font-black text-slate-900 tabular-nums">{product.stock_quantity?.toLocaleString() || 0}</span>
+                                                            <span className="text-3xl font-black text-slate-900 tabular-nums">{product.stock_quantity?.toLocaleString('en-IN') || 0}</span>
                                                             <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-1 opacity-0 group-hover/qty:opacity-100 transition-opacity">Edit Protocol</span>
                                                         </div>
                                                     )}
@@ -402,7 +402,7 @@ const Inventory = () => {
                                     <div className="admin-card bg-slate-50/50 border-slate-100 flex flex-col justify-between">
                                         <div>
                                             <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Omni-Channel Stock</p>
-                                            <p className="text-4xl font-black text-slate-900">{selectedProduct.stock_quantity?.toLocaleString()}</p>
+                                            <p className="text-4xl font-black text-slate-900">{selectedProduct.stock_quantity?.toLocaleString('en-IN')}</p>
                                         </div>
                                         <div className="mt-4 w-full h-1.5 bg-slate-200 rounded-full overflow-hidden">
                                             <motion.div
@@ -414,7 +414,7 @@ const Inventory = () => {
                                     </div>
                                     <div className="admin-card bg-indigo-50/30 border-indigo-100">
                                         <p className="text-[10px] font-black text-indigo-600 uppercase tracking-widest mb-2">Valuation Metrics</p>
-                                        <p className="text-2xl font-black text-indigo-900">₹{((selectedProduct.stock_quantity || 0) * (selectedProduct.price || 0)).toLocaleString()}</p>
+                                        <p className="text-2xl font-black text-indigo-900">₹{((selectedProduct.stock_quantity || 0) * (selectedProduct.price || 0)).toLocaleString('en-IN')}</p>
                                         <p className="text-[10px] font-bold text-indigo-600/40 mt-1 uppercase">Capital Liquidity</p>
                                     </div>
                                     <div className="col-span-2 admin-card bg-slate-900 border-none p-6 text-white flex justify-between items-center group/loc shadow-xl shadow-slate-900/10">
@@ -504,11 +504,11 @@ const Inventory = () => {
                                         <div className="admin-card bg-slate-900 border-none p-6 text-white flex justify-between items-center shadow-xl shadow-slate-900/20">
                                             <div>
                                                 <p className="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-1">Unit Value</p>
-                                                <p className="text-2xl font-black">₹{parseFloat(selectedProduct.price || 0).toLocaleString()}</p>
+                                                <p className="text-2xl font-black">₹{parseFloat(selectedProduct.price || 0).toLocaleString('en-IN')}</p>
                                             </div>
                                             <div className="text-right">
                                                 <p className="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-1">Stock Liquidity</p>
-                                                <p className="text-2xl font-black text-emerald-400">₹{((selectedProduct.stock_quantity || 0) * (selectedProduct.price || 0)).toLocaleString()}</p>
+                                                <p className="text-2xl font-black text-emerald-400">₹{((selectedProduct.stock_quantity || 0) * (selectedProduct.price || 0)).toLocaleString('en-IN')}</p>
                                             </div>
                                         </div>
                                     </div>

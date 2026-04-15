@@ -84,7 +84,7 @@ const AdminDashboard = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                 <StatCard
                     title="Gross Revenue"
-                    value={`₹${(stats?.totalRevenue || 0).toLocaleString()}`}
+                    value={`₹${(stats?.totalRevenue || 0).toLocaleString('en-IN')}`}
                     icon={Activity}
                     iconColor="text-indigo-600"
                     bgColor="bg-indigo-50"
@@ -132,7 +132,7 @@ const AdminDashboard = () => {
                                     </div>
                                 </div>
                                 <div className="text-right">
-                                    <p className="font-black text-gray-900">₹{order.total_amount?.toLocaleString()}</p>
+                                    <p className="font-black text-gray-900">₹{order.total_amount?.toLocaleString('en-IN')}</p>
                                     <p className={`text-[10px] font-black uppercase tracking-widest ${
                                         order.status === 'completed' ? 'text-green-500' : 
                                         order.status === 'pending' ? 'text-amber-500' : 'text-gray-400'

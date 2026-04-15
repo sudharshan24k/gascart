@@ -45,7 +45,7 @@ export const generateInvoiceBuffer = async (orderId: string): Promise<{ buffer: 
         doc.on('data', chunk => chunks.push(chunk));
         doc.on('end', () => resolve({
             buffer: Buffer.concat(chunks),
-            filename: `invoice-${orderId.slice(-8)}.pdf`
+            filename: `payment-receipt-${orderId.slice(-8)}.pdf`
         }));
         doc.on('error', reject);
 
@@ -95,6 +95,6 @@ export const generateInvoiceStream = async (orderId: string): Promise<{ stream: 
 
     return {
         stream: doc,
-        filename: `invoice-${orderId.slice(-8)}.pdf`
+        filename: `payment-receipt-${orderId.slice(-8)}.pdf`
     };
 };

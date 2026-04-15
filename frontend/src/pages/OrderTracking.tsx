@@ -190,7 +190,7 @@ const OrderTracking: React.FC = () => {
                                                     <p className="text-neutral-500 text-sm mb-4 line-clamp-1">{item.product?.description}</p>
                                                     <div className="flex justify-between items-center bg-white p-3 rounded-xl border border-neutral-100 shadow-sm">
                                                         <span className="text-xs font-black uppercase tracking-widest text-neutral-500">Qty: {item.quantity}</span>
-                                                        <span className="font-bold text-neutral-900">₹{Number(item.price_at_purchase || 0).toLocaleString()}</span>
+                                                        <span className="font-bold text-neutral-900">₹{Number(item.price_at_purchase || 0).toLocaleString('en-IN')}</span>
                                                     </div>
                                                 </div>
                                             </div>
@@ -214,7 +214,7 @@ const OrderTracking: React.FC = () => {
                                         </div>
                                         <div className="pt-6 border-t border-dashed border-neutral-200 flex justify-between items-end">
                                             <span className="font-bold text-xl text-neutral-900">Total</span>
-                                            <span className="font-black text-3xl text-neutral-900">₹{Number(order.total_amount || 0).toLocaleString()}</span>
+                                            <span className="font-black text-3xl text-neutral-900">₹{Number(order.total_amount || 0).toLocaleString('en-IN')}</span>
                                         </div>
                                     </div>
                                     <button
@@ -222,7 +222,7 @@ const OrderTracking: React.FC = () => {
                                         className="w-full flex items-center justify-center gap-2 bg-white text-neutral-900 border-2 border-neutral-100 font-bold py-4 rounded-2xl hover:bg-neutral-50 hover:border-neutral-200 transition-all shadow-sm"
                                     >
                                         <FileText className="w-5 h-5" />
-                                        Download Invoice
+                                        Download Payment Receipt
                                     </button>
                                 </div>
 

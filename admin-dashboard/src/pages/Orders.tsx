@@ -167,14 +167,14 @@ const AdminOrders = () => {
             const url = window.URL.createObjectURL(new Blob([data]));
             const a = document.createElement('a');
             a.href = url;
-            a.download = `invoices-bulk-${new Date().getTime()}.zip`;
+            a.download = `payment-receipts-bulk-${new Date().getTime()}.zip`;
             document.body.appendChild(a);
             a.click();
             window.URL.revokeObjectURL(url);
             document.body.removeChild(a);
         } catch (error) {
             console.error('Bulk ZIP export failed:', error);
-            alert('Failed to export invoices');
+            alert('Failed to export payment receipts');
         }
     };
 
@@ -217,7 +217,7 @@ const AdminOrders = () => {
                             onClick={handleBulkInvoiceZIP}
                             className="px-8 py-4 bg-primary text-white shadow-xl shadow-primary/20 rounded-2xl font-black hover:bg-primary-dark transition-all flex items-center gap-2 active:scale-95"
                         >
-                            <FileText className="w-5 h-5" /> Export Invoices ZIP ({selectedOrderIds.size})
+                            <FileText className="w-5 h-5" /> Export Payment Receipts ZIP ({selectedOrderIds.size})
                         </button>
                     )}
                     <button
@@ -232,7 +232,7 @@ const AdminOrders = () => {
             {/* Stats Overview */}
             <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-10">
                 {[
-                    { label: 'Gross Volume', value: `₹${stats.totalRevenue.toLocaleString()}`, color: 'bg-emerald-50 text-emerald-600' },
+                    { label: 'Gross Volume', value: `₹${stats.totalRevenue.toLocaleString('en-IN')}`, color: 'bg-emerald-50 text-emerald-600' },
                     { label: 'Pending Queue', value: stats.pendingCount, color: 'bg-amber-50 text-amber-600' },
                     { label: 'Active Processing', value: stats.processingCount, color: 'bg-indigo-50 text-indigo-600' },
                     { label: 'Total Fulfillments', value: stats.totalOrders, color: 'bg-gray-50 text-gray-600' }
@@ -368,7 +368,7 @@ const AdminOrders = () => {
                                         </div>
                                     </td>
                                     <td className="py-8 px-10">
-                                        <div className="font-black text-lg text-gray-900 tracking-tight">₹{Number(order.total_amount || 0).toLocaleString()}</div>
+                                        <div className="font-black text-lg text-gray-900 tracking-tight">₹{Number(order.total_amount || 0).toLocaleString('en-IN')}</div>
                                         {order.payment_status === 'paid' ? (
                                             <div className="text-[10px] font-black uppercase tracking-widest text-emerald-500 flex items-center gap-1">
                                                 <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
@@ -376,9 +376,9 @@ const AdminOrders = () => {
                                             </div>
                                         ) : order.balance_due > 0 ? (
                                             <div className="text-[10px] uppercase tracking-wide mt-1">
-                                                <span className="text-emerald-600 font-bold">Paid: ₹{order.paid_amount?.toLocaleString() || '0'}</span>
+                                                <span className="text-emerald-600 font-bold">Paid: ₹{order.paid_amount?.toLocaleString('en-IN') || '0'}</span>
                                                 <span className="mx-2 text-gray-300">|</span>
-                                                <span className="text-red-500 font-black">Due: ₹{order.balance_due?.toLocaleString()}</span>
+                                                <span className="text-red-500 font-black">Due: ₹{order.balance_due?.toLocaleString('en-IN')}</span>
                                             </div>
                                         ) : (
                                             <div className="text-[10px] font-black uppercase tracking-widest text-amber-500 flex items-center gap-1">
@@ -394,7 +394,7 @@ const AdminOrders = () => {
                                                 target="_blank"
                                                 rel="noreferrer"
                                                 className="w-10 h-10 flex items-center justify-center bg-white text-gray-400 hover:text-primary border border-gray-100 rounded-xl shadow-sm hover:shadow-md transition-all"
-                                                title="Download Invoice"
+                                                title="Download Payment Receipt"
                                             >
                                                 <FileText className="w-5 h-5" />
                                             </a>
@@ -551,11 +551,11 @@ const AdminOrders = () => {
                                                         <p className="font-black text-gray-900 text-lg">{item.product?.name || 'Loading Asset...'}</p>
                                                         <div className="flex items-center gap-2 mt-1">
                                                             <span className="text-xs font-black text-primary bg-primary/5 px-2 py-0.5 rounded">QTY: {item.quantity}</span>
-                                                            <span className="text-xs text-gray-400 font-bold italic">₹{item.price_at_purchase?.toLocaleString()}/unit</span>
+                                                            <span className="text-xs text-gray-400 font-bold italic">₹{item.price_at_purchase?.toLocaleString('en-IN')}/unit</span>
                                                         </div>
                                                     </div>
                                                     <div className="text-right">
-                                                        <p className="font-black text-gray-900 text-xl">₹{(Number(item.price_at_purchase || 0) * Number(item.quantity || 1)).toLocaleString()}</p>
+                                                        <p className="font-black text-gray-900 text-xl">₹{(Number(item.price_at_purchase || 0) * Number(item.quantity || 1)).toLocaleString('en-IN')}</p>
                                                     </div>
                                                 </div>
                                             ))}
@@ -582,18 +582,18 @@ const AdminOrders = () => {
                                         <div className="space-y-4 pt-6 border-t border-primary/10">
                                             <div className="flex justify-between items-end">
                                                 <p className="text-[10px] font-black text-primary uppercase tracking-widest">Gross Total</p>
-                                                <p className="text-4xl font-black text-gray-900 tabular-nums">₹{Number(selectedOrder.total_amount || 0).toLocaleString()}</p>
+                                                <p className="text-4xl font-black text-gray-900 tabular-nums">₹{Number(selectedOrder.total_amount || 0).toLocaleString('en-IN')}</p>
                                             </div>
 
                                             {selectedOrder.balance_due > 0 && (
                                                 <div className="bg-white/50 rounded-xl p-4 border border-white/50">
                                                     <div className="flex justify-between text-xs mb-2">
                                                         <span className="text-gray-500 font-bold">Advance Paid:</span>
-                                                        <span className="font-black text-emerald-600">₹{selectedOrder.paid_amount?.toLocaleString()}</span>
+                                                        <span className="font-black text-emerald-600">₹{selectedOrder.paid_amount?.toLocaleString('en-IN')}</span>
                                                     </div>
                                                     <div className="flex justify-between text-xs mb-4">
                                                         <span className="text-gray-500 font-bold">Balance Due:</span>
-                                                        <span className="font-black text-red-500">₹{selectedOrder.balance_due?.toLocaleString()}</span>
+                                                        <span className="font-black text-red-500">₹{selectedOrder.balance_due?.toLocaleString('en-IN')}</span>
                                                     </div>
                                                     <button
                                                         onClick={() => handlePaymentUpdate('paid', selectedOrder.total_amount, 0)}
@@ -608,7 +608,7 @@ const AdminOrders = () => {
                                                 target="_blank"
                                                 className="w-full flex items-center justify-center gap-3 px-8 py-5 bg-gray-900 text-white rounded-[24px] font-black shadow-xl shadow-gray-900/20 hover:bg-black transition-all active:scale-95 text-xs uppercase tracking-[0.1em]"
                                             >
-                                                <Download className="w-5 h-5" /> Generate Invoice
+                                                <Download className="w-5 h-5" /> Generate Payment Receipt
                                             </a>
                                         </div>
                                     </section>
