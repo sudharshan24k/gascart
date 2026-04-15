@@ -320,15 +320,8 @@ export const renderInvoice = (doc: PDFKit.PDFDocument, data: InvoiceData) => {
         y += 15;
         const summaryX = 350;
         
-        const subtotal = data.totalAmount / 1.18;
-        const tax = data.totalAmount - subtotal;
-
         doc.fontSize(10).font('Helvetica').fillColor('#64748b').text('Subtotal:', summaryX, y);
-        doc.font('Helvetica-Bold').fillColor('#1e293b').text(`INR ${subtotal.toLocaleString('en-IN', { minimumFractionDigits: 2 })}`, 480, y, { width: 70, align: 'right' });
-
-        y += 20;
-        doc.fontSize(10).font('Helvetica').fillColor('#64748b').text('GST (18%):', summaryX, y);
-        doc.font('Helvetica-Bold').fillColor('#1e293b').text(`INR ${tax.toLocaleString('en-IN', { minimumFractionDigits: 2 })}`, 480, y, { width: 70, align: 'right' });
+        doc.font('Helvetica-Bold').fillColor('#1e293b').text(`INR ${data.totalAmount.toLocaleString('en-IN', { minimumFractionDigits: 2 })}`, 480, y, { width: 70, align: 'right' });
 
         const paidAmount = data.paidAmount || 0;
         const balanceDue = data.balanceDue || 0;

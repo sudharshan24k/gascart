@@ -394,15 +394,8 @@ export const downloadInvoice = async (req: Request, res: Response, next: NextFun
         const paidAmount = Number(order.paid_amount || totalAmount); // Fallback to full for old orders
         const balanceDue = Number(order.balance_due || 0);
 
-        const subtotal = totalAmount / 1.18;
-        const tax = totalAmount - subtotal;
-
         doc.fontSize(10).font('Helvetica-Bold').fillColor('#64748B').text('Subtotal:', 350, currentHeight);
-        doc.fillColor('#0F172A').text(`₹${subtotal.toLocaleString('en-IN', {minimumFractionDigits: 2})}`, 450, currentHeight, { width: 95, align: 'right' });
-
-        currentHeight += 20;
-        doc.fontSize(10).font('Helvetica-Bold').fillColor('#64748B').text('GST (18%):', 350, currentHeight);
-        doc.fillColor('#0F172A').text(`₹${tax.toLocaleString('en-IN', {minimumFractionDigits: 2})}`, 450, currentHeight, { width: 95, align: 'right' });
+        doc.fillColor('#0F172A').text(`₹${totalAmount.toLocaleString('en-IN', {minimumFractionDigits: 2})}`, 450, currentHeight, { width: 95, align: 'right' });
 
         currentHeight += 20;
         doc.fillColor('#64748B').text('Paid Amount:', 350, currentHeight);
