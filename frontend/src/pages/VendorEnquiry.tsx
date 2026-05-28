@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
-import { Building2, User, Mail, Phone, Briefcase, Award, MessageSquare, CheckCircle, ArrowLeft, Send, ShieldCheck, Globe, Zap, Download, FileText, Gavel, Scale, Loader2, AlertCircle, UploadCloud } from 'lucide-react';
+import { Building2, User, Mail, Phone, Briefcase, Award, MessageSquare, CheckCircle, ArrowLeft, Send, ShieldCheck, Globe, Zap, Download, FileText, Gavel, Scale, Loader2, UploadCloud } from 'lucide-react';
 import { api } from '../services/api';
 
 interface Document {
@@ -42,7 +42,6 @@ const VendorEnquiry: React.FC = () => {
 
     const [documents, setDocuments] = useState<Document[]>([]);
     const [docsLoading, setDocsLoading] = useState(true);
-    const [docsError, setDocsError] = useState('');
 
     const fallbackDocuments = [
         { id: '1', title: "Gascart Consultant Agreement", category: "Agreement", file_url: "/Gascart Consultant.pdf", file_size: "0.22 MB" },
@@ -60,7 +59,6 @@ const VendorEnquiry: React.FC = () => {
                 }
             } catch (err) {
                 console.error('Failed to load documents:', err);
-                setDocsError('Showing default documents.');
                 setDocuments(fallbackDocuments as Document[]);
             } finally {
                 setDocsLoading(false);
