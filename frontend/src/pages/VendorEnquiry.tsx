@@ -21,6 +21,7 @@ const categoryIcons: Record<string, React.ElementType> = {
     'Policy': FileText,
     'Privacy': Scale,
     'Technical': Gavel,
+    'Agreement': FileText,
 };
 
 const VendorEnquiry: React.FC = () => {
@@ -44,10 +45,8 @@ const VendorEnquiry: React.FC = () => {
     const [docsError, setDocsError] = useState('');
 
     const fallbackDocuments = [
-        { id: '1', title: "Standard Vendor Agreement", category: "Legal", file_url: "#", file_size: "2.4 MB" },
-        { id: '2', title: "General Terms & Conditions", category: "Policy", file_url: "#", file_size: "1.1 MB" },
-        { id: '3', title: "Privacy & Data Protection Policy", category: "Privacy", file_url: "#", file_size: "0.8 MB" },
-        { id: '4', title: "Industrial Safety Standards", category: "Technical", file_url: "#", file_size: "4.5 MB" },
+        { id: '1', title: "Gascart Consultant Agreement", category: "Agreement", file_url: "/Gascart Consultant.pdf", file_size: "0.22 MB" },
+        { id: '2', title: "Gascart Participation Agreement", category: "Agreement", file_url: "/Gascart Participation.pdf", file_size: "0.21 MB" },
     ];
 
     useEffect(() => {
@@ -444,16 +443,9 @@ const VendorEnquiry: React.FC = () => {
                     <header className="mb-16 text-center">
                         <h2 className="text-4xl font-black text-gray-900 mb-6">Vendor <span className="text-primary italic">Resources</span></h2>
                         <p className="text-gray-500 text-lg max-w-2xl mx-auto">
-                            Access official documentation, vendor requirements, and platform governance policies.
+                            These are the major documents you can download and refer to for any further contracts or agreements.
                         </p>
                     </header>
-
-                    {docsError && (
-                        <div className="mb-8 p-4 bg-amber-50 border border-amber-100 rounded-2xl flex items-center gap-3 text-amber-700 max-w-5xl mx-auto">
-                            <AlertCircle className="w-5 h-5 shrink-0" />
-                            <span className="font-medium text-sm">{docsError}</span>
-                        </div>
-                    )}
 
                     {docsLoading ? (
                         <div className="flex items-center justify-center py-20">
