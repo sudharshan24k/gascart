@@ -16,7 +16,7 @@ The Supermarket for Oil & Gas Industry. A fully custom, production-ready B2B mar
 
 - Node.js (v18+)
 - npm or yarn
-- Supabase Account
+- Supabase Account.
 
 ### Setup
 
