@@ -203,7 +203,7 @@ const AdminOrders = () => {
             <Helmet>
                 <title>Fulfillment &amp; Order Management | Gascart Admin Protocol</title>
                 <meta name="description" content="Mission control for Gascart fulfillment. Manage commercial order cycles for CBG and CNG assets, verify payments, track logistics, and oversee the e-commerce supply chain." />
-                <link rel="canonical" href="https://admin.gascart.com/orders" />
+                <link rel="canonical" href="https://admin.gascart.in/orders" />
             </Helmet>
             {/* Header */}
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-10">

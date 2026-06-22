@@ -39,7 +39,7 @@ const ExpertProfile: React.FC = () => {
                     const { data } = await supabase.from('profiles').select('*').eq('id', user.id).single();
                     if (data) setRequesterProfile(data);
                 } else if (localStorage.getItem('admin_logged_in') === 'true') {
-                    setRequesterProfile({ full_name: 'Admin User', email: 'admin@gascart.com', phone: '+1 234 567 890' });
+                    setRequesterProfile({ full_name: 'Admin User', email: 'admin@gascart.in', phone: '+1 234 567 890' });
                 }
             }
         };

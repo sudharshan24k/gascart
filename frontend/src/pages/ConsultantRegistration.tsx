@@ -158,7 +158,7 @@ const ConsultantRegistration: React.FC = () => {
                         <div className="mt-12 p-8 bg-primary/10 rounded-3xl border border-primary/20">
                             <h3 className="text-xl font-bold text-primary mb-2">Need Help First?</h3>
                             <p className="text-primary/80 mb-4 text-sm">Our consultant relations team is here to answer your questions before you register.</p>
-                            <a href="mailto:partners@gascart.com" className="font-bold text-primary hover:underline">partners@gascart.com</a>
+                            <a href="mailto:partners@gascart.in" className="font-bold text-primary hover:underline">partners@gascart.in</a>
                         </div>
                     </motion.div>
 

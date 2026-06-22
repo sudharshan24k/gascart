@@ -45,7 +45,7 @@ export const sendEmail = async (options: EmailOptions) => {
 };
 
 export const notifyAdminOfRFQ = async (rfqData: any, pdfBuffer?: Buffer) => {
-    const adminEmail = process.env.ADMIN_EMAIL || 'admin@gascart.com';
+    const adminEmail = process.env.ADMIN_EMAIL || 'admin@gascart.in';
 
     await sendEmail({
         to: adminEmail,

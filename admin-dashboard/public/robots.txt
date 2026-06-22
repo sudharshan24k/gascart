@@ -4,5 +4,5 @@ User-agent: *
 Disallow: /
 
 # Sitemap would go here for the main site, but not for the admin portal
-# Sitemap: https://gascart.com/sitemap.xml
-Sitemap: https://admin.gascart.com/sitemap.xml
+# Sitemap: https://gascart.in/sitemap.xml
+Sitemap: https://admin.gascart.in/sitemap.xml

@@ -235,8 +235,8 @@ const VendorEnquiry: React.FC = () => {
                             <p className="text-white/60 font-black tracking-widest text-[10px] uppercase mb-4">Partner Relations</p>
                             <h3 className="text-2xl font-bold mb-4">Need personalized assistance?</h3>
                             <p className="text-white/70 mb-8 text-sm font-medium">Our vendor success team is ready to assist you with the onboarding process or technical queries.</p>
-                            <a href="mailto:partners@gascart.com" className="bg-white text-secondary-900 font-black px-8 py-3 rounded-xl inline-block hover:scale-105 transition-transform">
-                                partners@gascart.com
+                            <a href="mailto:partners@gascart.in" className="bg-white text-secondary-900 font-black px-8 py-3 rounded-xl inline-block hover:scale-105 transition-transform">
+                                partners@gascart.in
                             </a>
                         </div>
                     </motion.div>
