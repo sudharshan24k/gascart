@@ -409,6 +409,67 @@ export const api = {
             return res.json();
         }
     },
+    producers: {
+        submit: async (data: any): Promise<ApiResponse> => {
+            const token = (await supabase.auth.getSession()).data.session?.access_token;
+            const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+            if (token) headers['Authorization'] = `Bearer ${token}`;
+            const apiUrl = getBaseUrl();
+            const res = await fetch(`${apiUrl}/producers`, {
+                method: 'POST',
+                headers,
+                body: JSON.stringify(data)
+            });
+            if (!res.ok) {
+                const error = await res.json();
+                throw new Error(error.message || 'Failed to submit producer capacity');
+            }
+            return res.json();
+        },
+        list: async (status?: string): Promise<ApiResponse> => {
+            const token = (await supabase.auth.getSession()).data.session?.access_token;
+            const headers: Record<string, string> = {};
+            if (token) headers['Authorization'] = `Bearer ${token}`;
+            const apiUrl = getBaseUrl();
+            const query = status ? `?status=${status}` : '';
+            const res = await fetch(`${apiUrl}/producers${query}`, { headers });
+            if (!res.ok) {
+                throw new Error('Failed to fetch producer capacities');
+            }
+            return res.json();
+        },
+        update: async (id: string, data: any): Promise<ApiResponse> => {
+            const token = (await supabase.auth.getSession()).data.session?.access_token;
+            if (!token) throw new Error('Not authenticated');
+            const apiUrl = getBaseUrl();
+            const res = await fetch(`${apiUrl}/producers/${id}`, {
+                method: 'PATCH',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify(data)
+            });
+            if (!res.ok) {
+                const error = await res.json();
+                throw new Error(error.message || 'Failed to update producer capacity');
+            }
+            return res.json();
+        },
+        delete: async (id: string): Promise<ApiResponse> => {
+            const token = (await supabase.auth.getSession()).data.session?.access_token;
+            if (!token) throw new Error('Not authenticated');
+            const apiUrl = getBaseUrl();
+            const res = await fetch(`${apiUrl}/producers/${id}`, {
+                method: 'DELETE',
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            if (!res.ok) {
+                throw new Error('Failed to delete producer capacity');
+            }
+            return res.json();
+        }
+    },
     admin: {
         updateUser: async (userId: string, data: { role?: string, account_status?: string }): Promise<ApiResponse> => {
             const token = (await supabase.auth.getSession()).data.session?.access_token;

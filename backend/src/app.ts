@@ -18,6 +18,7 @@ import paymentRoutes from './routes/payment.routes';
 import webhookRoutes from './routes/webhook.routes';
 import uploadRoutes from './routes/upload.routes';
 import careerRoutes from './routes/careers.routes';
+import producersRoutes from './routes/producers.routes';
 
 const app = express();
 
@@ -111,6 +112,7 @@ try {
     app.use('/api/v1/payments', paymentRoutes);
     app.use('/api/v1/upload', uploadRoutes);
     app.use('/api/v1/careers', careerRoutes);
+    app.use('/api/v1/producers', producersRoutes);
 } catch (routeError) {
     console.error('[App] Failed to initialize routes:', routeError);
 }

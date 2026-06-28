@@ -12,6 +12,7 @@ const CareerApplications: React.FC = () => {
     const [loading, setLoading] = useState(true);
     const [categoryFilter, setCategoryFilter] = useState('All Categories');
     const [statusFilter, setStatusFilter] = useState('All Statuses');
+    const [notes, setNotes] = useState<Record<string, string>>({});
 
     const fetchApplications = async () => {
         setLoading(true);
@@ -23,6 +24,11 @@ const CareerApplications: React.FC = () => {
             const res = await getCareerApplications(params);
             if (res.status === 'success') {
                 setApplications(res.data);
+                const initialNotes: Record<string, string> = {};
+                res.data.forEach((app: any) => {
+                    initialNotes[app.id] = app.internal_comments || '';
+                });
+                setNotes(initialNotes);
             }
         } catch (error) {
             console.error('Failed to load applications:', error);
@@ -36,9 +42,9 @@ const CareerApplications: React.FC = () => {
         fetchApplications();
     }, [categoryFilter, statusFilter]);
 
-    const handleStatusChange = async (id: string, newStatus: string, oldStatus: string) => {
+    const handleStatusChange = async (id: string, newStatus: string, oldStatus: string, currentNote?: string) => {
         try {
-            await updateCareerApplicationStatus(id, newStatus, oldStatus);
+            await updateCareerApplicationStatus(id, newStatus, oldStatus, currentNote);
             toast.success(`Application marked as ${newStatus}`);
             fetchApplications();
         } catch (error) {
@@ -172,14 +178,14 @@ const CareerApplications: React.FC = () => {
                                         <span className="text-[10px] font-bold text-neutral-400 uppercase tracking-wider">Internal Admin Notes</span>
                                     </div>
                                     <textarea
-                                        defaultValue={app.internal_comments || ''}
+                                        value={notes[app.id] !== undefined ? notes[app.id] : (app.internal_comments || '')}
+                                        onChange={(e) => setNotes({ ...notes, [app.id]: e.target.value })}
                                         onBlur={async (e) => {
                                             const newVal = e.target.value;
                                             if (newVal !== (app.internal_comments || '')) {
                                                 try {
                                                     await updateCareerApplicationStatus(app.id, app.status, app.status, newVal);
                                                     toast.success('Notes updated');
-                                                    // Optional: refresh data if needed, but here we just update local value for comparison
                                                     app.internal_comments = newVal;
                                                 } catch (err) {
                                                     toast.error('Failed to save notes');
@@ -196,7 +202,7 @@ const CareerApplications: React.FC = () => {
                             <div className="p-3 bg-neutral-50 border-t border-neutral-100 flex gap-2">
                                 {app.status !== 'reviewed' && (
                                     <button
-                                        onClick={() => handleStatusChange(app.id, 'reviewed', app.status)}
+                                        onClick={() => handleStatusChange(app.id, 'reviewed', app.status, notes[app.id])}
                                         className="flex-1 flex items-center justify-center gap-1.5 py-2 hover:bg-white rounded-lg text-sm font-medium text-blue-600 transition-colors"
                                     >
                                         <CheckCircle className="w-4 h-4" /> Mark Reviewed
@@ -204,7 +210,7 @@ const CareerApplications: React.FC = () => {
                                 )}
                                 {app.status !== 'rejected' && (
                                     <button
-                                        onClick={() => handleStatusChange(app.id, 'rejected', app.status)}
+                                        onClick={() => handleStatusChange(app.id, 'rejected', app.status, notes[app.id])}
                                         className="flex-1 flex items-center justify-center gap-1.5 py-2 hover:bg-white rounded-lg text-sm font-medium text-red-600 transition-colors"
                                     >
                                         <XCircle className="w-4 h-4" /> Reject

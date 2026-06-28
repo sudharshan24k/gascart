@@ -28,6 +28,7 @@ export type AuditEntity =
     | 'article'
     | 'media'
     | 'inventory'
+    | 'producer_capacity'
     | 'system';
 
 interface AuditLogEntry {

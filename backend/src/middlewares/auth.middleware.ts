@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
-import fs from 'fs';
+import * as fs from 'fs';
 import { supabase } from '../config/supabase';
 import { config } from '../config/env';
 

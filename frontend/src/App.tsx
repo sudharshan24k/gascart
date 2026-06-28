@@ -12,6 +12,7 @@ import ConsultantDashboard from './pages/ConsultantDashboard';
 import Learn from './pages/Learn'; // Re-applied import to trigger refresh
 import ArticleDetail from './pages/ArticleDetail';
 import VendorEnquiry from './pages/VendorEnquiry';
+import ProducerCapacities from './pages/ProducerCapacities';
 import Compare from './pages/Compare';
 import MyOrders from './pages/MyOrders';
 import OrderTracking from './pages/OrderTracking';
@@ -65,6 +66,7 @@ function App() {
                                     <Route path="consultant-registration" element={<ConsultantRegistration />} />
                                     <Route path="consultant-dashboard" element={<ConsultantDashboard />} />
                                     <Route path="vendor-enquiry" element={<VendorEnquiry />} />
+                                    <Route path="producer-capacities" element={<ProducerCapacities />} />
                                     <Route path="contact" element={<Contact />} />
                                     <Route path="careers" element={<Careers />} />
 
